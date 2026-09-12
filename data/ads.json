@@ -1,0 +1,109 @@
+{
+  "_readme": "Every ad slot is driven from this file. A slot with no active ad shows an 'advertisement slot available' placeholder with your sales email. Four creative types are supported: image (banner), video (mp4), flier (full natural shape, opens enlarged) and text (no artwork). Every type is clickable via 'link'. See images/README.md for sizes.",
+  "slots": {
+    "home-leaderboard": {
+      "label": "Homepage leaderboard",
+      "size": "970x90",
+      "accepts": "image, video or text"
+    },
+    "home-billboard": {
+      "label": "Homepage billboard",
+      "size": "970x250",
+      "accepts": "image, video or text"
+    },
+    "home-lower": {
+      "label": "Homepage lower leaderboard",
+      "size": "970x90",
+      "accepts": "image, video or text"
+    },
+    "directory-sidebar": {
+      "label": "Directory sidebar",
+      "size": "300x250",
+      "accepts": "image, flier or video"
+    },
+    "directory-strip": {
+      "label": "Directory top strip",
+      "size": "970x90",
+      "accepts": "image, video or text"
+    },
+    "directory-infeed": {
+      "label": "Directory in-feed",
+      "size": "text",
+      "accepts": "image, video or text"
+    },
+    "tenders-leaderboard": {
+      "label": "Tenders board leaderboard",
+      "size": "970x90",
+      "accepts": "image, video or text"
+    },
+    "tenders-infeed": {
+      "label": "Tenders in-feed",
+      "size": "text",
+      "accepts": "image, video or text"
+    },
+    "tenders-sidebar": {
+      "label": "Tenders sidebar",
+      "size": "300x250",
+      "accepts": "image, video or text"
+    },
+    "jobs-leaderboard": {
+      "label": "Jobs board leaderboard",
+      "size": "970x90",
+      "accepts": "image, video or text"
+    },
+    "jobs-sidebar": {
+      "label": "Jobs sidebar",
+      "size": "300x250",
+      "accepts": "image, video or text"
+    },
+    "news-sidebar": {
+      "label": "News sidebar",
+      "size": "300x250",
+      "accepts": "image, video or text"
+    },
+    "footer-leaderboard": {
+      "label": "Footer leaderboard",
+      "size": "728x90",
+      "accepts": "image, video or text"
+    }
+  },
+  "ads": [
+    {
+      "id": "sample-001",
+      "slot": "home-leaderboard",
+      "active": true,
+      "start": "2026-09-01",
+      "end": "2026-12-31",
+      "advertiser": "Sample Advertiser Ltd",
+      "image": "images/ads/sample-leaderboard.png",
+      "alt": "Sample advertiser banner — replace with a real creative",
+      "link": "https://example.com",
+      "note": "SAMPLE. Delete this entry and drop in a paying advertiser's artwork."
+    },
+    {
+      "id": "sample-002",
+      "slot": "directory-infeed",
+      "active": true,
+      "start": "2026-09-01",
+      "end": "2026-12-31",
+      "advertiser": "Sample Advertiser Ltd",
+      "title": "Construction finance from a sample advertiser",
+      "body": "This is a text in-feed advertisement. It needs no artwork, which makes it the easiest slot to sell first.",
+      "cta": "Learn more",
+      "link": "https://example.com",
+      "note": "SAMPLE. Text in-feed ads need no image — good for your first advertisers."
+    },
+    {
+      "id": "sample-003",
+      "slot": "directory-sidebar",
+      "active": true,
+      "start": "2026-09-01",
+      "end": "2026-12-31",
+      "advertiser": "Sample Flier Advertiser",
+      "flier": "images/ads/sample-flier.png",
+      "alt": "Sample promotional flier — replace with a real creative",
+      "link": "https://example.com",
+      "note": "SAMPLE flier. Fliers keep their natural shape (portrait, square, anything) and open enlarged on click."
+    }
+  ]
+}

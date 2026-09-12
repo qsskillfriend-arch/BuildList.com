@@ -1,0 +1,77 @@
+{
+  "updated": "2026-09-09",
+  "sources": [
+    "Kisenyi hardware cluster",
+    "Nakawa suppliers",
+    "Namanve industrial"
+  ],
+  "note": "Indicative Kampala retail prices, collected weekly from three named suppliers. Not a substitute for a quotation.",
+  "items": [
+    {
+      "name": "Cement (50kg)",
+      "val": "UGX 36,500",
+      "change": "+2%",
+      "up": true
+    },
+    {
+      "name": "Steel Rebar 16mm",
+      "val": "UGX 4,100,000/T",
+      "change": "+8%",
+      "up": true
+    },
+    {
+      "name": "River Sand",
+      "val": "UGX 85,000/m³",
+      "change": "+5%",
+      "up": true
+    },
+    {
+      "name": "Hardcore (Murram)",
+      "val": "UGX 42,000/m³",
+      "change": "-1%",
+      "up": false
+    },
+    {
+      "name": "Timber 2\"×4\"",
+      "val": "UGX 8,500/pc",
+      "change": "0%",
+      "up": null
+    },
+    {
+      "name": "Iron Sheets 28g",
+      "val": "UGX 42,000/sheet",
+      "change": "+3%",
+      "up": true
+    },
+    {
+      "name": "Fired Clay Bricks",
+      "val": "UGX 380,000/1000",
+      "change": "-2%",
+      "up": false
+    },
+    {
+      "name": "Ceramic Tiles 600×600",
+      "val": "UGX 65,000/m²",
+      "change": "0%",
+      "up": null
+    },
+    {
+      "name": "PVC Pipes 4\"",
+      "val": "UGX 22,000/6m",
+      "change": "+1%",
+      "up": true
+    },
+    {
+      "name": "Paint (20L Exterior)",
+      "val": "UGX 140,000",
+      "change": "+4%",
+      "up": true
+    },
+    {
+      "name": "Aggregate 20mm",
+      "val": "UGX 58,000/m³",
+      "change": "-1%",
+      "up": false
+    }
+  ]
+}

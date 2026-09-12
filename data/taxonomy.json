@@ -1,0 +1,214 @@
+{
+  "categories": [
+    {
+      "slug": "architecture-design",
+      "name": "Architecture & Design",
+      "cluster": "Design"
+    },
+    {
+      "slug": "quantity-surveying",
+      "name": "Quantity Surveying",
+      "cluster": "Professionals"
+    },
+    {
+      "slug": "civil-structural",
+      "name": "Civil & Structural Engineering",
+      "cluster": "Professionals"
+    },
+    {
+      "slug": "land-surveying",
+      "name": "Land Surveying",
+      "cluster": "Professionals"
+    },
+    {
+      "slug": "property-valuers",
+      "name": "Property Valuers",
+      "cluster": "Professionals"
+    },
+    {
+      "slug": "urban-planning",
+      "name": "Urban & Town Planning",
+      "cluster": "Professionals"
+    },
+    {
+      "slug": "general-contracting",
+      "name": "General Contracting",
+      "cluster": "Contractors"
+    },
+    {
+      "slug": "electrical-contracting",
+      "name": "Electrical Contracting",
+      "cluster": "Contractors"
+    },
+    {
+      "slug": "plumbing-fire",
+      "name": "Plumbing & Fire Fighting",
+      "cluster": "Contractors"
+    },
+    {
+      "slug": "hvac",
+      "name": "Heating, Ventilation & Air Conditioning",
+      "cluster": "Contractors"
+    },
+    {
+      "slug": "structural-steel",
+      "name": "Structural Steel Design",
+      "cluster": "Contractors"
+    },
+    {
+      "slug": "landscaping",
+      "name": "Landscaping & External Works",
+      "cluster": "Contractors"
+    },
+    {
+      "slug": "building-management",
+      "name": "Building Management Systems",
+      "cluster": "Services"
+    },
+    {
+      "slug": "ict-network",
+      "name": "ICT & Network Infrastructure",
+      "cluster": "Services"
+    },
+    {
+      "slug": "facility-management",
+      "name": "Facility Management",
+      "cluster": "Services"
+    },
+    {
+      "slug": "health-safety",
+      "name": "Health & Safety Consulting",
+      "cluster": "Services"
+    },
+    {
+      "slug": "environmental",
+      "name": "Environmental & Sustainability",
+      "cluster": "Services"
+    },
+    {
+      "slug": "real-estate-development",
+      "name": "Real Estate Development",
+      "cluster": "Development"
+    }
+  ],
+  "districts": [
+    {
+      "slug": "kampala",
+      "name": "Kampala"
+    },
+    {
+      "slug": "wakiso",
+      "name": "Wakiso"
+    },
+    {
+      "slug": "mukono",
+      "name": "Mukono"
+    },
+    {
+      "slug": "jinja",
+      "name": "Jinja"
+    },
+    {
+      "slug": "entebbe",
+      "name": "Entebbe"
+    },
+    {
+      "slug": "mbarara",
+      "name": "Mbarara"
+    },
+    {
+      "slug": "gulu",
+      "name": "Gulu"
+    },
+    {
+      "slug": "hoima",
+      "name": "Hoima"
+    },
+    {
+      "slug": "kayunga",
+      "name": "Kayunga"
+    },
+    {
+      "slug": "kabale",
+      "name": "Kabale"
+    },
+    {
+      "slug": "tororo",
+      "name": "Tororo"
+    },
+    {
+      "slug": "luweero",
+      "name": "Luweero"
+    },
+    {
+      "slug": "bushenyi",
+      "name": "Bushenyi"
+    },
+    {
+      "slug": "busia",
+      "name": "Busia"
+    },
+    {
+      "slug": "mbale",
+      "name": "Mbale"
+    }
+  ],
+  "accreditations": [
+    {
+      "slug": "boraqs",
+      "name": "BORAQS Registered"
+    },
+    {
+      "slug": "uipe",
+      "name": "UIPE Member"
+    },
+    {
+      "slug": "uiqs",
+      "name": "UIQS Member"
+    },
+    {
+      "slug": "ncic",
+      "name": "NCIC Registered"
+    },
+    {
+      "slug": "iso",
+      "name": "ISO Certified"
+    },
+    {
+      "slug": "ppda",
+      "name": "PPDA Listed"
+    }
+  ],
+  "tiers": [
+    {
+      "slug": "platinum",
+      "name": "Platinum",
+      "rank": 0,
+      "price": 1500000
+    },
+    {
+      "slug": "premium",
+      "name": "Premium",
+      "rank": 1,
+      "price": 400000
+    },
+    {
+      "slug": "verified",
+      "name": "Verified",
+      "rank": 2,
+      "price": 150000
+    },
+    {
+      "slug": "starter",
+      "name": "Starter",
+      "rank": 3,
+      "price": 50000
+    },
+    {
+      "slug": "free",
+      "name": "Free",
+      "rank": 4,
+      "price": 0
+    }
+  ]
+}

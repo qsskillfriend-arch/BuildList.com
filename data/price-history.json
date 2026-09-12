@@ -1,0 +1,243 @@
+{
+  "_readme": "One dated snapshot per collection. Never overwrite a snapshot — the series is the product. After twelve months this is a continuous record of Kampala material prices that nobody else in Uganda holds.",
+  "unit_note": "Values are the numeric part of the displayed price, for charting. The display string lives in prices.json.",
+  "materials": [
+    "Cement (50kg)",
+    "Steel Rebar 16mm",
+    "River Sand",
+    "Hardcore (Murram)",
+    "Timber 2\"×4\"",
+    "Iron Sheets 28g",
+    "Fired Clay Bricks",
+    "Ceramic Tiles 600×600",
+    "PVC Pipes 4\"",
+    "Paint (20L Exterior)",
+    "Aggregate 20mm"
+  ],
+  "snapshots": [
+    {
+      "date": "2026-06-10",
+      "values": {
+        "Cement (50kg)": 34645,
+        "Steel Rebar 16mm": 3883983,
+        "River Sand": 80728,
+        "Hardcore (Murram)": 39826,
+        "Timber 2\"×4\"": 8107,
+        "Iron Sheets 28g": 39650,
+        "Fired Clay Bricks": 362593,
+        "Ceramic Tiles 600×600": 61024,
+        "PVC Pipes 4\"": 21060,
+        "Paint (20L Exterior)": 133043,
+        "Aggregate 20mm": 54421
+      }
+    },
+    {
+      "date": "2026-06-17",
+      "values": {
+        "Cement (50kg)": 34426,
+        "Steel Rebar 16mm": 3882039,
+        "River Sand": 80858,
+        "Hardcore (Murram)": 40271,
+        "Timber 2\"×4\"": 8115,
+        "Iron Sheets 28g": 40120,
+        "Fired Clay Bricks": 360074,
+        "Ceramic Tiles 600×600": 62524,
+        "PVC Pipes 4\"": 21035,
+        "Paint (20L Exterior)": 132523,
+        "Aggregate 20mm": 54717
+      }
+    },
+    {
+      "date": "2026-06-24",
+      "values": {
+        "Cement (50kg)": 34821,
+        "Steel Rebar 16mm": 3910294,
+        "River Sand": 81850,
+        "Hardcore (Murram)": 39908,
+        "Timber 2\"×4\"": 8120,
+        "Iron Sheets 28g": 40065,
+        "Fired Clay Bricks": 364263,
+        "Ceramic Tiles 600×600": 61840,
+        "PVC Pipes 4\"": 20958,
+        "Paint (20L Exterior)": 134562,
+        "Aggregate 20mm": 55153
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "values": {
+        "Cement (50kg)": 34718,
+        "Steel Rebar 16mm": 3909569,
+        "River Sand": 81510,
+        "Hardcore (Murram)": 40514,
+        "Timber 2\"×4\"": 8184,
+        "Iron Sheets 28g": 40253,
+        "Fired Clay Bricks": 363050,
+        "Ceramic Tiles 600×600": 62794,
+        "PVC Pipes 4\"": 21289,
+        "Paint (20L Exterior)": 134103,
+        "Aggregate 20mm": 55844
+      }
+    },
+    {
+      "date": "2026-07-08",
+      "values": {
+        "Cement (50kg)": 35543,
+        "Steel Rebar 16mm": 3932578,
+        "River Sand": 81649,
+        "Hardcore (Murram)": 40129,
+        "Timber 2\"×4\"": 8208,
+        "Iron Sheets 28g": 40573,
+        "Fired Clay Bricks": 365964,
+        "Ceramic Tiles 600×600": 62638,
+        "PVC Pipes 4\"": 21369,
+        "Paint (20L Exterior)": 133991,
+        "Aggregate 20mm": 56280
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "values": {
+        "Cement (50kg)": 35105,
+        "Steel Rebar 16mm": 4004913,
+        "River Sand": 83045,
+        "Hardcore (Murram)": 40742,
+        "Timber 2\"×4\"": 8160,
+        "Iron Sheets 28g": 41044,
+        "Fired Clay Bricks": 369394,
+        "Ceramic Tiles 600×600": 63340,
+        "PVC Pipes 4\"": 21205,
+        "Paint (20L Exterior)": 136136,
+        "Aggregate 20mm": 55828
+      }
+    },
+    {
+      "date": "2026-07-22",
+      "values": {
+        "Cement (50kg)": 35735,
+        "Steel Rebar 16mm": 3967177,
+        "River Sand": 82116,
+        "Hardcore (Murram)": 40630,
+        "Timber 2\"×4\"": 8187,
+        "Iron Sheets 28g": 40713,
+        "Fired Clay Bricks": 366559,
+        "Ceramic Tiles 600×600": 63688,
+        "PVC Pipes 4\"": 21453,
+        "Paint (20L Exterior)": 136316,
+        "Aggregate 20mm": 55836
+      }
+    },
+    {
+      "date": "2026-07-29",
+      "values": {
+        "Cement (50kg)": 35923,
+        "Steel Rebar 16mm": 4039547,
+        "River Sand": 83191,
+        "Hardcore (Murram)": 41185,
+        "Timber 2\"×4\"": 8380,
+        "Iron Sheets 28g": 41030,
+        "Fired Clay Bricks": 373921,
+        "Ceramic Tiles 600×600": 63704,
+        "PVC Pipes 4\"": 21654,
+        "Paint (20L Exterior)": 137158,
+        "Aggregate 20mm": 57038
+      }
+    },
+    {
+      "date": "2026-08-05",
+      "values": {
+        "Cement (50kg)": 35982,
+        "Steel Rebar 16mm": 4023970,
+        "River Sand": 83099,
+        "Hardcore (Murram)": 41251,
+        "Timber 2\"×4\"": 8353,
+        "Iron Sheets 28g": 41479,
+        "Fired Clay Bricks": 371552,
+        "Ceramic Tiles 600×600": 63805,
+        "PVC Pipes 4\"": 21708,
+        "Paint (20L Exterior)": 137900,
+        "Aggregate 20mm": 56957
+      }
+    },
+    {
+      "date": "2026-08-12",
+      "values": {
+        "Cement (50kg)": 35719,
+        "Steel Rebar 16mm": 4034174,
+        "River Sand": 84354,
+        "Hardcore (Murram)": 40917,
+        "Timber 2\"×4\"": 8394,
+        "Iron Sheets 28g": 41050,
+        "Fired Clay Bricks": 375135,
+        "Ceramic Tiles 600×600": 64469,
+        "PVC Pipes 4\"": 21720,
+        "Paint (20L Exterior)": 137566,
+        "Aggregate 20mm": 57552
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "values": {
+        "Cement (50kg)": 35977,
+        "Steel Rebar 16mm": 4035751,
+        "River Sand": 83973,
+        "Hardcore (Murram)": 41788,
+        "Timber 2\"×4\"": 8474,
+        "Iron Sheets 28g": 41218,
+        "Fired Clay Bricks": 373731,
+        "Ceramic Tiles 600×600": 64108,
+        "PVC Pipes 4\"": 21733,
+        "Paint (20L Exterior)": 139269,
+        "Aggregate 20mm": 57248
+      }
+    },
+    {
+      "date": "2026-08-26",
+      "values": {
+        "Cement (50kg)": 35865,
+        "Steel Rebar 16mm": 4029602,
+        "River Sand": 84439,
+        "Hardcore (Murram)": 41908,
+        "Timber 2\"×4\"": 8370,
+        "Iron Sheets 28g": 41264,
+        "Fired Clay Bricks": 374964,
+        "Ceramic Tiles 600×600": 63891,
+        "PVC Pipes 4\"": 21800,
+        "Paint (20L Exterior)": 139314,
+        "Aggregate 20mm": 58067
+      }
+    },
+    {
+      "date": "2026-09-02",
+      "values": {
+        "Cement (50kg)": 36134,
+        "Steel Rebar 16mm": 4057252,
+        "River Sand": 84612,
+        "Hardcore (Murram)": 41562,
+        "Timber 2\"×4\"": 8439,
+        "Iron Sheets 28g": 41849,
+        "Fired Clay Bricks": 380427,
+        "Ceramic Tiles 600×600": 65119,
+        "PVC Pipes 4\"": 21730,
+        "Paint (20L Exterior)": 140062,
+        "Aggregate 20mm": 57714
+      }
+    },
+    {
+      "date": "2026-09-09",
+      "values": {
+        "Cement (50kg)": 36500,
+        "Steel Rebar 16mm": 4100000,
+        "River Sand": 85000,
+        "Hardcore (Murram)": 42000,
+        "Timber 2\"×4\"": 8500,
+        "Iron Sheets 28g": 42000,
+        "Fired Clay Bricks": 380000,
+        "Ceramic Tiles 600×600": 65000,
+        "PVC Pipes 4\"": 22000,
+        "Paint (20L Exterior)": 140000,
+        "Aggregate 20mm": 58000
+      }
+    }
+  ]
+}

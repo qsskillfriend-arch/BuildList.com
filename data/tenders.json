@@ -1,0 +1,93 @@
+[
+  {
+    "ref": "KCCA/2025/WORKS/041",
+    "title": "Construction of Nakawa Market Phase II — Structural Works",
+    "org": "Kampala Capital City Authority",
+    "deadline": "2026-10-27",
+    "value": "UGX 8.4B",
+    "valueUgx": 8400000000,
+    "category": "building-works",
+    "featured": true,
+    "urgent": false,
+    "source": "PPDA portal",
+    "postedAt": "2026-09-01"
+  },
+  {
+    "ref": "MoWT/2025/ROADS/112",
+    "title": "Rehabilitation of Kampala–Gulu Highway — Lot 2 (Lira–Gulu 87km)",
+    "org": "Ministry of Works & Transport",
+    "deadline": "2026-09-18",
+    "value": "UGX 340B",
+    "valueUgx": 340000000000,
+    "category": "roads-civil",
+    "featured": false,
+    "urgent": true,
+    "source": "PPDA portal",
+    "postedAt": "2026-08-20"
+  },
+  {
+    "ref": "UNRA/2025/CONSULT/088",
+    "title": "Supervision Consultancy — Kampala Flyover Phase 2 Construction",
+    "org": "Uganda National Roads Authority",
+    "deadline": "2026-10-30",
+    "value": "UGX 2.1B",
+    "valueUgx": 2100000000,
+    "category": "consultancy",
+    "featured": true,
+    "urgent": false,
+    "source": "Agency website",
+    "postedAt": "2026-09-02"
+  },
+  {
+    "ref": "MoH/2025/WORKS/067",
+    "title": "Construction of Specialist Outpatient Department — Mulago Hospital",
+    "org": "Ministry of Health Uganda",
+    "deadline": "2026-11-10",
+    "value": "UGX 24B",
+    "valueUgx": 24000000000,
+    "category": "building-works",
+    "featured": false,
+    "urgent": false,
+    "source": "PPDA portal",
+    "postedAt": "2026-09-04"
+  },
+  {
+    "ref": "NWSC/2025/CIVIL/034",
+    "title": "Water Treatment Plant Expansion — Jinja (Design & Build)",
+    "org": "National Water & Sewerage Corp",
+    "deadline": "2026-09-15",
+    "value": "UGX 18B",
+    "valueUgx": 18000000000,
+    "category": "water-sanitation",
+    "featured": false,
+    "urgent": true,
+    "source": "Agency website",
+    "postedAt": "2026-08-15"
+  },
+  {
+    "ref": "URA/2025/WORKS/019",
+    "title": "Construction of URA Regional Offices — Fort Portal and Mbarara",
+    "org": "Uganda Revenue Authority",
+    "deadline": "2026-11-05",
+    "value": "UGX 12B",
+    "valueUgx": 12000000000,
+    "category": "building-works",
+    "featured": false,
+    "urgent": false,
+    "source": "PPDA portal",
+    "postedAt": "2026-09-03"
+  },
+  {
+    "ref": "PPDA/2025/CONSULT/201",
+    "title": "Preparation of National Construction Industry Policy — Consultancy",
+    "org": "Public Procurement & Disposal of Public Assets",
+    "deadline": "2026-09-20",
+    "value": "UGX 850M",
+    "valueUgx": 850000000,
+    "category": "consultancy",
+    "featured": true,
+    "urgent": true,
+    "source": "PPDA portal",
+    "postedAt": "2026-08-18"
+  }
+]
