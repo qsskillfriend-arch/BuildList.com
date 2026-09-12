@@ -69,7 +69,6 @@ screenshot-*.png
 # Never commit the service_role key or a populated env file.
 .env
 .env.*
-supabase/migrate.js
 supabase/.temp/
 
 # ── Stage 5 generated pages ──────────────────────────
@@ -79,3 +78,5 @@ supabase/.temp/
 /browse/
 /tenders/
 /news/
+
+supabase/.env

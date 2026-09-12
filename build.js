@@ -50,6 +50,18 @@ const openTenders = D.tenders.filter(t => new Date(t.deadline) >= new Date());
    a thin page, which is worse for ranking than no page at all. */
 const MIN_FOR_PAGE = 1;
 
+/* Remove previously generated pages before rebuilding. Without this a
+   renamed slug leaves an orphan page on disk that Google may already
+   have indexed, and you end up with two URLs for one firm. Netlify
+   builds in a clean checkout anyway; this keeps local builds honest. */
+function clean() {
+  OUT_DIRS.forEach(d => {
+    const p = path.join(ROOT, d);
+    if (fs.existsSync(p)) fs.rmSync(p, { recursive: true, force: true });
+  });
+}
+clean();
+
 let written = 0;
 function write(rel, html) {
   const file = path.join(ROOT, rel);
@@ -360,6 +372,36 @@ fs.writeFileSync(path.join(ROOT, 'sitemap.xml'),
 ${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${stamp}</lastmod><changefreq>${u.freq}</changefreq><priority>${u.pri}</priority></url>`).join('\n')}
 </urlset>
 `);
+
+/* ═══════════════ 7. REDIRECTS ═══════════════
+   The short category URLs are generated from taxonomy.json, so they can
+   never drift from the pages that actually exist. Hand-written ones went
+   stale the moment the categories changed, and a 301 to a 404 is worse
+   than no redirect at all. */
+const REDIRECT_MARK = '# ── BEGIN generated category shortcuts (build.js) ──';
+const REDIRECT_END  = '# ── END generated category shortcuts ──';
+
+const shortcuts = [REDIRECT_MARK,
+  '# Do not edit between these markers. Rewritten on every build.',
+  '# /quantity-surveying-kampala  →  /browse/quantity-surveying-kampala/'];
+
+D.taxonomy.categories.forEach(cat => {
+  if (!fs.existsSync(path.join(ROOT, 'browse', cat.slug))) return;
+  shortcuts.push(`/${cat.slug}*`.padEnd(34) + `/browse/${cat.slug}:splat`.padEnd(40) + '301');
+});
+shortcuts.push(REDIRECT_END);
+
+const rPath = path.join(ROOT, '_redirects');
+let redirects = fs.readFileSync(rPath, 'utf8');
+const a = redirects.indexOf(REDIRECT_MARK);
+const b = redirects.indexOf(REDIRECT_END);
+if (a !== -1 && b !== -1) {
+  redirects = redirects.slice(0, a) + shortcuts.join('\n') + redirects.slice(b + REDIRECT_END.length);
+} else {
+  // First run: insert above the catch-all so it cannot swallow them
+  redirects = redirects.replace(/(# ── Catch-all)/, shortcuts.join('\n') + '\n\n$1');
+}
+fs.writeFileSync(rPath, redirects);
 
 console.log(`Built ${written} pages + sitemap (${urls.length} URLs) for ${SITE_URL}`);
 console.log(`  ${liveFirms.length} firms · ${comboLinks.length} category pages · ${openTenders.length} tenders · ${D.articles.length} articles`);

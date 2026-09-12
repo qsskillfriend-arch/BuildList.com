@@ -59,6 +59,8 @@ a{color:var(--forest)}
 .gate-box p{color:#8FA396;font-size:13px;margin-bottom:20px}
 .gate-warn{background:rgba(184,50,50,.14);border:1px solid rgba(184,50,50,.45);color:#F2B8B8;
   padding:14px 16px;border-radius:var(--r);font-size:12.5px;line-height:1.6;margin-bottom:20px}
+/* Signed-in mode is reassurance, not a warning — red would be misleading */
+.gate-warn.ok{background:rgba(31,122,77,.16);border-color:rgba(31,122,77,.45);color:#A8D9BF}
 .gate-warn strong{color:#fff;display:block;margin-bottom:4px}
 .gate-box input{width:100%;background:var(--ink-2);border:1px solid #2C3F34;color:#fff;
   padding:11px 13px;border-radius:var(--r);margin-bottom:10px}
@@ -287,16 +289,30 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
   <div class="gate-box">
     <h1>BuildList.com admin</h1>
     <p>Content workbench for Sharplink Ventures (U) Limited</p>
-    <div class="gate-warn">
+    <div class="gate-warn" id="gateWarn">
       <strong>This passphrase is not security.</strong>
       Anyone who can open this file can read the passphrase in the source. It stops
       an idle click, nothing more. Run this on your own machine and keep
       <span class="mono">admin.html</span> out of the deployed site. Real access
       control arrives with Supabase auth — see <span class="mono">supabase/README.md</span>.
     </div>
-    <label class="sr" for="pw">Passphrase</label>
-    <input type="password" id="pw" placeholder="Passphrase" autocomplete="off">
-    <button onclick="unlock()">Open workbench</button>
+    <div id="gateLocal">
+      <label class="sr" for="pw">Passphrase</label>
+      <input type="password" id="pw" placeholder="Passphrase" autocomplete="off">
+      <button onclick="unlock()">Open workbench</button>
+    </div>
+    <div id="gateSupabase" style="display:none">
+      <label class="sr" for="sbEmail">Email</label>
+      <input type="email" id="sbEmail" placeholder="you@buildlist.com" autocomplete="username">
+      <label class="sr" for="sbPass">Password</label>
+      <input type="password" id="sbPass" placeholder="Password" autocomplete="current-password">
+      <button onclick="signIn()">Sign in</button>
+      <p style="color:#6E8377;font-size:12px;margin-top:12px;line-height:1.5">
+        Accounts are created in Supabase (Authentication &rarr; Users) and must
+        appear in the <span style="font-family:var(--mono)">staff</span> table.
+        This is real authentication, not a passphrase.
+      </p>
+    </div>
   </div>
 </div>
 
@@ -310,6 +326,10 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
     <nav id="nav"></nav>
     <div class="rail-foot">
       Sharplink Ventures (U) Ltd<br><span id="railDate"></span>
+      <span id="railSignOut" style="display:none"><br>
+        <button onclick="signOut()" style="background:none;border:none;color:#7C9187;
+          font-size:11.5px;text-decoration:underline;cursor:pointer;padding:6px 0">Sign out</button>
+      </span>
     </div>
   </aside>
 
@@ -349,12 +369,17 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
    ═══════════════════════════════════════════════════════════════ */
 const ADMIN = {
   passphrase: 'buildlist',   // change this; it is obfuscation, not security
-  mode: 'local',               // 'local' | 'supabase'
+  // 'local'    — reads data/*.json, you download changes and commit them
+  // 'supabase' — real login, edits save straight to the database
+  mode: 'local',
   supabase: { url: '', anonKey: '' },
   // Paste your GA4 Measurement ID and Property ID. The ID also has to be
   // set in index.html (SITE.analytics.measurementId) for the site to send
   // anything at all — this one only builds the report links.
   ga: { measurementId: '', propertyId: '' },
+  // Netlify → Site configuration → Build hooks → Add build hook.
+  // Paste the URL here for a one-click "rebuild the public site" button.
+  rebuildHook: '',
   stalePriceDays: 10,
   tenderWarnDays: 3
 };
@@ -364,6 +389,163 @@ const DB = {};
 let DIRTY = new Set();
 let CURRENT = null;   // {file, index, item}
 const LSKEY = 'buildlist-admin-draft';
+
+/* ═══════════════════════════════════════════════════════════════
+   SUPABASE (Stage 3)
+   Plain fetch against the REST and auth endpoints — no library, no
+   CDN, nothing to keep up to date. Uses the ANON key, so every query
+   runs through the row-level security policies in schema.sql.
+   ═══════════════════════════════════════════════════════════════ */
+const SB = {
+  url: () => (ADMIN.supabase.url || '').replace(/\/$/, ''),
+  key: () => ADMIN.supabase.anonKey || '',
+  token: null,
+  user: null,
+  on: () => ADMIN.mode === 'supabase' && ADMIN.supabase.url && ADMIN.supabase.anonKey
+};
+
+async function sbFetch(pathname, opts) {
+  opts = opts || {};
+  const headers = Object.assign({
+    apikey: SB.key(),
+    Authorization: 'Bearer ' + (SB.token || SB.key()),
+    'Content-Type': 'application/json'
+  }, opts.headers || {});
+  const res = await fetch(SB.url() + pathname, Object.assign({}, opts, { headers }));
+  const text = await res.text();
+  if (!res.ok) throw new Error(res.status + ' ' + text.slice(0, 300));
+  return text ? JSON.parse(text) : null;
+}
+
+async function signIn() {
+  const email = document.getElementById('sbEmail').value.trim();
+  const pass = document.getElementById('sbPass').value;
+  if (!email || !pass) { toast('Enter your email and password'); return; }
+  try {
+    const r = await sbFetch('/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      body: JSON.stringify({ email: email, password: pass })
+    });
+    SB.token = r.access_token;
+    SB.user = r.user;
+
+    /* Signing in is not the same as being staff. The RLS policies
+       enforce this server-side too, but failing here gives a clear
+       message instead of a wall of empty tables. */
+    const staff = await sbFetch('/rest/v1/staff?select=role,name&user_id=eq.' + r.user.id);
+    if (!staff || !staff.length) {
+      SB.token = null;
+      toast('That account is not in the staff table. Ask an admin to add it.');
+      return;
+    }
+    SB.user.role = staff[0].role;
+    SB.user.displayName = staff[0].name || email;
+
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').classList.add('on');
+    boot();
+  } catch (e) {
+    toast('Sign in failed. Check the email and password.');
+  }
+}
+
+async function signOut() {
+  if (DIRTY.size && !confirm('You have unpublished changes. Sign out anyway?')) return;
+  try { await sbFetch('/auth/v1/logout', { method: 'POST' }); } catch (e) {}
+  SB.token = null;
+  location.reload();
+}
+
+/* Writes the in-memory DB back to Supabase. Upserts on the natural
+   key of each table, so running it twice changes nothing. */
+async function pushToSupabase() {
+  const jobs = [];
+  const add = (table, rows, conflict) => {
+    if (rows && rows.length) jobs.push({ table, rows, conflict });
+  };
+
+  if (DIRTY.has('firms')) {
+    add('firms', DB.firms.map(f => ({
+      slug: f.slug, name: f.name, initials: f.initials || null,
+      description: f.desc || null, district: f.district, area: f.area || null,
+      phone: f.phone || null, whatsapp: f.whatsapp || null, email: f.email || null,
+      website: f.website || null, logo_url: f.logo || null,
+      tier: f.tier, status: f.status || 'live',
+      verified: !!f.verified, verified_at: f.verifiedDate || null,
+      established: f.established || null, employees: f.employees || null,
+      is_group_company: !!f.isGroupCompany
+    })), 'slug');
+  }
+  if (DIRTY.has('tenders')) {
+    add('tenders', DB.tenders.map(t => ({
+      ref: t.ref, title: t.title, org: t.org || null, category: t.category || null,
+      deadline: t.deadline, value_text: t.value || null, value_ugx: t.valueUgx || null,
+      featured: !!t.featured, source: t.source || null, posted_at: t.postedAt || null
+    })), 'ref');
+  }
+  if (DIRTY.has('jobs')) {
+    add('jobs', DB.jobs.map(j => ({
+      slug: j.slug, title: j.title, company: j.company || null,
+      district: j.district || null, location: j.location || null,
+      employment: j.type || null, discipline: j.discipline || null,
+      salary: j.salary || null, experience: j.experience || null,
+      level: j.level || null, apply_email: j.applyEmail || null,
+      featured: !!j.featured, posted_at: j.postedAt || null, closes_at: j.closesAt || null
+    })), 'slug');
+  }
+  if (DIRTY.has('articles')) {
+    add('articles', DB.articles.map(a => ({
+      slug: a.slug, title: a.title, excerpt: a.excerpt || null, body: a.body || null,
+      category: a.category || null, icon: a.icon || null, sponsored: !!a.sponsored,
+      published: true, read_time: a.readTime || null, published_at: a.date || null
+    })), 'slug');
+  }
+  if (DIRTY.has('ads')) {
+    add('ads', (DB.ads.ads || []).map(a => ({
+      campaign_id: a.id, slot: a.slot, advertiser: a.advertiser,
+      image_url: a.image || null, alt: a.alt || null,
+      title: a.title || null, body: a.body || null, cta: a.cta || null,
+      link: a.link, active: a.active !== false,
+      starts_on: a.start || null, ends_on: a.end || null
+    })), 'campaign_id');
+  }
+
+  for (const job of jobs) {
+    for (let i = 0; i < job.rows.length; i += 200) {
+      await sbFetch('/rest/v1/' + job.table + '?on_conflict=' + job.conflict, {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(job.rows.slice(i, i + 200))
+      });
+    }
+  }
+
+  /* Prices are a new dated snapshot every time, never an overwrite.
+     The series is the product. */
+  if (DIRTY.has('prices')) {
+    const [snap] = await sbFetch('/rest/v1/price_snapshots?on_conflict=collected_on', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify([{
+        collected_on: DB.prices.updated,
+        sources: DB.prices.sources || null,
+        note: DB.prices.note || null
+      }])
+    });
+    await sbFetch('/rest/v1/price_items?snapshot_id=eq.' + snap.id, { method: 'DELETE' });
+    await sbFetch('/rest/v1/price_items', {
+      method: 'POST',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify(DB.prices.items.map(p => ({
+        snapshot_id: snap.id, material: p.name, value_text: p.val,
+        change_text: p.change,
+        direction: p.up === true ? 'up' : p.up === false ? 'down' : 'flat'
+      })))
+    });
+  }
+
+  return jobs.length + (DIRTY.has('prices') ? 1 : 0);
+}
 
 /* ═══════════════════════════════════════════════════════════════
    BOOT
@@ -376,11 +558,34 @@ function unlock(){
   boot();
 }
 document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
+document.getElementById('sbPass').addEventListener('keydown', e => { if(e.key==='Enter') signIn(); });
+
+/* Show the right gate for the configured mode */
+(function () {
+  if (!SB.on()) return;
+  document.getElementById('gateLocal').style.display = 'none';
+  document.getElementById('gateSupabase').style.display = '';
+  document.getElementById('gateWarn').classList.add('ok');
+  document.getElementById('gateWarn').innerHTML =
+    '<strong>Signed-in access.</strong> This dashboard is connected to your Supabase ' +
+    'database. Accounts are real, permissions are enforced by the database itself, and ' +
+    'edits save live. You can deploy this file if you want to \u2014 though running it ' +
+    'locally is still simpler.';
+})();
 
 async function boot(){
+  if (SB.on()) document.getElementById('railSignOut').style.display = '';
   document.getElementById('railDate').textContent =
     new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('modeLabel').textContent =
+    SB.on() ? 'Live database' + (SB.user ? ' \u00b7 ' + SB.user.displayName : '') : 'Local files';
+
   try {
+    /* Even in Supabase mode the dashboard loads the JSON files first.
+       They are generated from the database on every deploy, so they are
+       current, and loading 618 firms from one file is faster than a
+       dozen joined queries. Writes go to the database; reads come from
+       the build output. */
     await Promise.all(FILES.map(async f => {
       const r = await fetch('data/'+f+'.json',{cache:'no-cache'});
       if(!r.ok) throw new Error(f+': HTTP '+r.status);
@@ -1042,6 +1247,7 @@ const EVENT_DOC = {
    PUBLISH
    ═══════════════════════════════════════════════════════════════ */
 RENDER.export = el => {
+  if (SB.on()) { renderPublishSupabase(el); return; }
   el.innerHTML =
     '<div class="note"><b>How publishing works in this version.</b>'+
     'There is no server, so nothing saves itself. Download the files you changed, '+
@@ -1060,6 +1266,57 @@ RENDER.export = el => {
         '<button class="btn btn-sm" onclick="copyOne(\''+f+'\')">Copy</button></div>';
     }).join('');
 };
+
+function renderPublishSupabase(el){
+  el.innerHTML =
+    '<div class="note"><b>Connected to the live database.</b>'+
+    'Saving writes your changes straight to Supabase. The public site rebuilds from the '+
+    'database on the next deploy \u2014 Netlify runs <span class="mono">supabase/pull.js</span> '+
+    'then <span class="mono">build.js</span>, which regenerates every affected page.</div>'+
+    (DIRTY.size
+      ? '<div class="toolbar">'+
+          '<button class="btn btn-g" id="sbSaveBtn" onclick="saveToSupabase()">Save '+DIRTY.size+' change'+(DIRTY.size>1?'s':'')+' to the database</button>'+
+          '<button class="btn" onclick="downloadAll()">Download as JSON instead</button>'+
+        '</div>'
+      : '<div class="note"><b>Nothing has changed yet.</b>Edit something and it will appear here.</div>')+
+    FILES.map(f=>{
+      const changed = DIRTY.has(f);
+      return '<div class="filecard'+(changed?' changed':'')+'">'+
+        '<span class="fn">'+f+'</span>'+
+        (changed?'<span class="pill pill-pending">changed</span>':'<span class="pill pill-off">unchanged</span>')+
+        '<button class="btn btn-sm" onclick="downloadOne(\''+f+'\')">Download</button></div>';
+    }).join('')+
+    '<div class="note" style="margin-top:18px"><b>Trigger the public rebuild.</b>'+
+    'Saving here updates the database immediately, but the public site is static and only '+
+    'changes when it rebuilds. Either commit anything to GitHub, or set a Netlify build hook '+
+    'and paste it into <span class="mono">ADMIN.rebuildHook</span> to add a one-click button here.</div>'+
+    (ADMIN.rebuildHook
+      ? '<div class="toolbar"><button class="btn btn-p" onclick="triggerRebuild()">Rebuild the public site</button></div>'
+      : '');
+}
+
+async function saveToSupabase(){
+  const btn = document.getElementById('sbSaveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+  try {
+    const n = await pushToSupabase();
+    DIRTY.clear();
+    localStorage.removeItem(LSKEY);
+    paintSave(); buildNav(); go('export');
+    toast('Saved to the database (' + n + ' table' + (n>1?'s':'') + ')');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Retry save'; }
+    toast('Save failed: ' + e.message.slice(0,90));
+  }
+}
+
+async function triggerRebuild(){
+  if (!ADMIN.rebuildHook) return;
+  try {
+    await fetch(ADMIN.rebuildHook, { method: 'POST' });
+    toast('Rebuild started. The public site updates in about a minute.');
+  } catch(e) { toast('Could not trigger the rebuild'); }
+}
 
 function fileText(f){ return JSON.stringify(DB[f],null,2)+'\n'; }
 function downloadOne(f){

@@ -24,11 +24,29 @@
 # whole point of Stage 5 is lost.
 
 # Category shorthand: /quantity-surveyors-kampala → /browse/…
-/quantity-surveyors*      /browse/quantity-surveyors:splat      301
-/architecture-firms*      /browse/architecture-firms:splat      301
-/civil-engineering*       /browse/civil-engineering:splat       301
-/building-contractors*    /browse/building-contractors:splat    301
-/material-suppliers*      /browse/material-suppliers:splat      301
+
+# ── BEGIN generated category shortcuts (build.js) ──
+# Do not edit between these markers. Rewritten on every build.
+# /quantity-surveying-kampala  →  /browse/quantity-surveying-kampala/
+/architecture-design*             /browse/architecture-design:splat       301
+/quantity-surveying*              /browse/quantity-surveying:splat        301
+/civil-structural*                /browse/civil-structural:splat          301
+/land-surveying*                  /browse/land-surveying:splat            301
+/property-valuers*                /browse/property-valuers:splat          301
+/urban-planning*                  /browse/urban-planning:splat            301
+/general-contracting*             /browse/general-contracting:splat       301
+/electrical-contracting*          /browse/electrical-contracting:splat    301
+/plumbing-fire*                   /browse/plumbing-fire:splat             301
+/hvac*                            /browse/hvac:splat                      301
+/structural-steel*                /browse/structural-steel:splat          301
+/landscaping*                     /browse/landscaping:splat               301
+/building-management*             /browse/building-management:splat       301
+/ict-network*                     /browse/ict-network:splat               301
+/facility-management*             /browse/facility-management:splat       301
+/health-safety*                   /browse/health-safety:splat             301
+/environmental*                   /browse/environmental:splat             301
+/real-estate-development*         /browse/real-estate-development:splat   301
+# ── END generated category shortcuts ──
 
 # ── Catch-all ────────────────────────────────────────
 # Anything else serves the app rather than a 404.
