@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en-UG">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — BuildList.com</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   BUILDLIST ADMIN
+   A workbench, not a website. The public site is editorial — warm
+   parchment, serif display. This is instrumental: cooler surface,
+   one sans family, dense rows, brand colour used only to mean
+   something. Different job, different clothes.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#0F1A14;          /* rail + deepest chrome */
+  --ink-2:#17251D;
+  --forest:#1A3C2A;
+  --gold:#C49A16;
+  --field:#F1F4F1;        /* working surface — cool, not the site's warm parchment */
+  --surface:#FFFFFF;
+  --line:#DDE4DE;
+  --line-2:#C3CEC6;
+  --text:#16211B;
+  --text-2:#5C6B62;
+  --text-3:#8A978F;
+  --live:#1F7A4D;
+  --pending:#A87908;
+  --danger:#B83232;
+  --danger-soft:#FBEDED;
+  --live-soft:#E8F4ED;
+  --pending-soft:#FBF3DF;
+  --r:6px;
+  --rail:224px;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  background:var(--field);color:var(--text);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--forest)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--mono);font-size:12.5px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ── Gate ───────────────────────────────────────────────────── */
+#gate{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+.gate-box{max-width:440px;width:100%}
+.gate-box h1{color:#fff;font-size:22px;font-weight:600;margin-bottom:6px}
+.gate-box p{color:#8FA396;font-size:13px;margin-bottom:20px}
+.gate-warn{background:rgba(184,50,50,.14);border:1px solid rgba(184,50,50,.45);color:#F2B8B8;
+  padding:14px 16px;border-radius:var(--r);font-size:12.5px;line-height:1.6;margin-bottom:20px}
+.gate-warn strong{color:#fff;display:block;margin-bottom:4px}
+.gate-box input{width:100%;background:var(--ink-2);border:1px solid #2C3F34;color:#fff;
+  padding:11px 13px;border-radius:var(--r);margin-bottom:10px}
+.gate-box button{width:100%;background:var(--gold);border:none;color:var(--ink);
+  padding:11px;border-radius:var(--r);font-weight:600;cursor:pointer}
+
+/* ── Shell ──────────────────────────────────────────────────── */
+#app{display:none;min-height:100vh}
+#app.on{display:grid;grid-template-columns:var(--rail) 1fr}
+
+.rail{background:var(--ink);color:#B9C8BF;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto}
+.rail-brand{padding:18px 18px 14px;border-bottom:1px solid #22332A}
+.rail-brand b{display:block;color:#fff;font-size:14px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+.rail-brand span{display:block;color:#6E8377;font-size:11px;margin-top:2px}
+.rail nav{padding:10px 10px 20px;flex:1}
+.rail-sec{color:#5D7166;font-size:10.5px;font-weight:600;padding:14px 10px 6px;letter-spacing:.06em}
+.rail a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);
+  color:#B9C8BF;text-decoration:none;font-size:13.5px;cursor:pointer}
+.rail a:hover{background:#1B2C22;color:#fff}
+.rail a.on{background:var(--forest);color:#fff;font-weight:500}
+.rail a .n{margin-left:auto;font-family:var(--mono);font-size:11px;color:#7C9187}
+.rail a.on .n{color:#CBBE8A}
+.rail a .dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.rail-foot{padding:14px 18px;border-top:1px solid #22332A;font-size:11.5px;color:#5D7166}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:0 22px;
+  height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.topbar .sub{color:var(--text-3);font-size:12.5px}
+.spacer{margin-left:auto}
+.wrap{padding:22px;max-width:1400px;width:100%}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface);cursor:pointer;font-size:13px;
+  font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--forest)}
+.btn-p{background:var(--forest);border-color:var(--forest);color:#fff}
+.btn-p:hover{background:#14301F}
+.btn-g{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.btn-d{color:var(--danger);border-color:#E4BEBE}
+.btn-d:hover{background:var(--danger-soft);border-color:var(--danger)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── Save state ─────────────────────────────────────────────── */
+.savestate{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2)}
+.savestate .pip{width:8px;height:8px;border-radius:50%;background:var(--live)}
+.savestate.dirty{color:var(--pending);font-weight:500}
+.savestate.dirty .pip{background:var(--pending)}
+
+/* ── The board ──────────────────────────────────────────────── */
+.board{display:grid;gap:10px;max-width:860px}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left;width:100%}
+.task:hover{border-color:var(--line-2)}
+.task .bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line-2)}
+.task.urgent .bar{background:var(--danger)}
+.task.due .bar{background:var(--pending)}
+.task.ok .bar{background:var(--live)}
+.task .body{flex:1;min-width:0}
+.task .t{display:block;font-weight:600;font-size:14px}
+.task .d{display:block;color:var(--text-2);font-size:12.5px;margin-top:2px}
+.task .num{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);min-width:38px;text-align:right}
+.task.urgent .num{color:var(--danger)}
+.task.due .num{color:var(--pending)}
+.task.ok .num{color:var(--live)}
+
+.tally{display:flex;gap:0;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;margin-bottom:20px;flex-wrap:wrap}
+.tally div{padding:14px 20px;border-right:1px solid var(--line);flex:1;min-width:130px}
+.tally div:last-child{border-right:none}
+.tally b{display:block;font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.1}
+.tally span{color:var(--text-3);font-size:11.5px}
+
+/* ── Tables ─────────────────────────────────────────────────── */
+.toolbar{display:flex;gap:9px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.toolbar input[type=search],.toolbar select{padding:7px 11px;border:1px solid var(--line-2);
+  border-radius:var(--r);background:var(--surface)}
+.toolbar input[type=search]{min-width:230px}
+.tablewrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11.5px;font-weight:600;color:var(--text-2);
+  padding:10px 14px;border-bottom:1px solid var(--line);background:#FAFBFA;position:sticky;top:0;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #EDF1EE;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FAFBFA}
+.rowname{font-weight:600;display:block}
+.rowsub{color:var(--text-3);font-size:12px}
+.thumb{width:34px;height:34px;border-radius:var(--r);background:var(--forest);color:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;
+  flex-shrink:0;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:contain;background:#fff}
+.cellflex{display:flex;align-items:center;gap:11px}
+.actions{display:flex;gap:6px;justify-content:flex-end}
+
+/* ── Pills ──────────────────────────────────────────────────── */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;
+  font-size:11.5px;font-weight:600;white-space:nowrap}
+.pill-live{background:var(--live-soft);color:var(--live)}
+.pill-pending{background:var(--pending-soft);color:var(--pending)}
+.pill-off{background:#EEF1EF;color:var(--text-2)}
+.pill-danger{background:var(--danger-soft);color:var(--danger)}
+.pill-gold{background:#FBF2D8;color:#8A6B10}
+
+/* ── Drawer editor ──────────────────────────────────────────── */
+.scrim{position:fixed;inset:0;background:rgba(15,26,20,.42);z-index:40;display:none}
+.scrim.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(660px,100%);background:var(--surface);
+  z-index:41;transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.drawer-head{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.drawer-head h2{font-size:15px;font-weight:600}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 22px}
+.drawer-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:center;background:#FAFBFA}
+
+fieldset{border:none;margin-bottom:22px}
+legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
+  padding-bottom:6px;border-bottom:1px solid var(--line);width:100%}
+.f{margin-bottom:13px}
+.f label{display:block;font-size:12.5px;font-weight:500;margin-bottom:4px}
+.f .hint{font-size:11.5px;color:var(--text-3);margin-top:3px;line-height:1.45}
+.f input[type=text],.f input[type=number],.f input[type=date],.f input[type=url],
+.f input[type=email],.f select,.f textarea{
+  width:100%;padding:8px 11px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface)}
+.f textarea{min-height:74px;resize:vertical}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.checks{display:flex;flex-wrap:wrap;gap:7px}
+.checks label{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--line-2);border-radius:20px;font-size:12.5px;cursor:pointer;background:var(--surface)}
+.checks label:has(input:checked){background:var(--live-soft);border-color:var(--live);color:var(--live);font-weight:500}
+.err{color:var(--danger);font-size:12px;margin-top:4px}
+.f input.bad,.f select.bad{border-color:var(--danger);background:var(--danger-soft)}
+
+/* ── Repeaters (photos, projects) ───────────────────────────── */
+.rep{border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:9px;background:#FAFBFA}
+.rep-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.rep-head b{font-size:12.5px}
+
+/* ── Checks page ────────────────────────────────────────────── */
+.issue{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line-2);
+  border-radius:var(--r);padding:13px 16px;margin-bottom:9px}
+.issue.error{border-left-color:var(--danger)}
+.issue.warn{border-left-color:var(--pending)}
+.issue b{display:block;font-size:13.5px;margin-bottom:2px}
+.issue p{color:var(--text-2);font-size:12.5px}
+.issue .where{font-family:var(--mono);font-size:11.5px;color:var(--text-3);margin-top:5px}
+
+/* ── Export ─────────────────────────────────────────────────── */
+.filecard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:13px 16px;display:flex;align-items:center;gap:14px;margin-bottom:9px}
+.filecard .fn{font-family:var(--mono);font-weight:500;flex:1}
+.filecard.changed{border-color:var(--gold);background:#FEFCF5}
+
+.note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:var(--r);padding:14px 17px;margin-bottom:18px;font-size:13px;line-height:1.6}
+.note b{display:block;margin-bottom:4px}
+.note.red{border-left-color:var(--danger);background:var(--danger-soft)}
+
+.empty{text-align:center;padding:52px 20px;color:var(--text-2);background:var(--surface);
+  border:1px dashed var(--line-2);border-radius:var(--r)}
+.empty b{display:block;font-size:15px;color:var(--text);margin-bottom:5px}
+
+/* ── Media check ─────────────────────────────────────────────── */
+.media-row{display:flex;gap:16px;align-items:center;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:13px 16px;margin-bottom:9px}
+.media-row.bad{border-left:3px solid var(--danger)}
+.media-row.warn{border-left:3px solid var(--pending)}
+.media-row.good{border-left:3px solid var(--live)}
+.media-prev{width:92px;height:64px;border:1px solid var(--line);border-radius:4px;
+  background:#F6F7F6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='8' height='8' fill='%23EDEFED'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23EDEFED'/%3E%3C/svg%3E");
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.media-prev img,.media-prev video{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.media-info{flex:1;min-width:0}
+.media-info b{display:block;font-size:13.5px}
+.media-info .sub{color:var(--text-2);font-size:12px;margin-top:2px}
+.media-verdict{font-size:12px;margin-top:5px}
+.media-verdict.bad{color:var(--danger);font-weight:600}
+.media-verdict.warn{color:var(--pending);font-weight:600}
+.media-verdict.good{color:var(--live)}
+.media-dims{font-family:var(--mono);font-size:11.5px;color:var(--text-3);white-space:nowrap}
+
+/* ── Analytics ───────────────────────────────────────────────── */
+.ga-status{display:flex;align-items:center;gap:10px;padding:14px 17px;border-radius:var(--r);
+  margin-bottom:18px;font-size:13px}
+.ga-status.off{background:var(--pending-soft);border:1px solid #E8D9A8;color:#7A5A05}
+.ga-status.on{background:var(--live-soft);border:1px solid #BFE0CD;color:#15603A}
+.ga-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:20px}
+.ga-link{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;text-decoration:none;color:inherit}
+.ga-link:hover{border-color:var(--forest)}
+.ga-link b{display:block;font-size:13.5px;margin-bottom:3px}
+.ga-link span{color:var(--text-2);font-size:12px;line-height:1.45;display:block}
+.ev-table td:first-child{font-family:var(--mono);font-size:12px}
+
+/* ── Toast ──────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:var(--r);z-index:60;
+  transition:transform .2s ease;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.24)}
+#toast.on{transform:translateX(-50%) translateY(0)}
+
+.page{display:none}
+.page.on{display:block}
+
+@media (max-width:900px){
+  #app.on{grid-template-columns:1fr}
+  .rail{position:static;height:auto;flex-direction:row;overflow-x:auto;align-items:center}
+  .rail-brand,.rail-foot{display:none}
+  .rail nav{display:flex;gap:4px;padding:8px}
+  .rail-sec{display:none}
+  .rail a{white-space:nowrap}
+  .rail a .n,.rail a .dot{display:none}
+  .f2,.f3{grid-template-columns:1fr}
+  .wrap{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ GATE ══════════════ -->
+<div id="gate">
+  <div class="gate-box">
+    <h1>BuildList.com admin</h1>
+    <p>Content workbench for Sharplink Ventures (U) Limited</p>
+    <div class="gate-warn">
+      <strong>This passphrase is not security.</strong>
+      Anyone who can open this file can read the passphrase in the source. It stops
+      an idle click, nothing more. Run this on your own machine and keep
+      <span class="mono">admin.html</span> out of the deployed site. Real access
+      control arrives with Supabase auth — see <span class="mono">supabase/README.md</span>.
+    </div>
+    <label class="sr" for="pw">Passphrase</label>
+    <input type="password" id="pw" placeholder="Passphrase" autocomplete="off">
+    <button onclick="unlock()">Open workbench</button>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+  <aside class="rail">
+    <div class="rail-brand">
+      <b>BuildList<span style="color:var(--gold)">.com</span> admin</b>
+      <span id="modeLabel">Local files</span>
+    </div>
+    <nav id="nav"></nav>
+    <div class="rail-foot">
+      Sharplink Ventures (U) Ltd<br><span id="railDate"></span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Board</h1>
+      <span class="sub" id="pageSub"></span>
+      <div class="spacer"></div>
+      <div class="savestate" id="saveState"><span class="pip"></span><span>All changes saved locally</span></div>
+      <button class="btn btn-p" onclick="go('export')">Publish</button>
+    </div>
+    <div class="wrap" id="pages"></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <h2 id="drawerTitle">Edit</h2>
+    <div class="spacer"></div>
+    <button class="btn btn-sm" onclick="closeDrawer()">Close</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot">
+    <button class="btn btn-p" onclick="saveDrawer()">Save</button>
+    <button class="btn" onclick="closeDrawer()">Cancel</button>
+    <div class="spacer"></div>
+    <button class="btn btn-d btn-sm" id="delBtn" onclick="deleteCurrent()">Delete</button>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════════════ */
+const ADMIN = {
+  passphrase: 'buildlist',   // change this; it is obfuscation, not security
+  mode: 'local',               // 'local' | 'supabase'
+  supabase: { url: '', anonKey: '' },
+  // Paste your GA4 Measurement ID and Property ID. The ID also has to be
+  // set in index.html (SITE.analytics.measurementId) for the site to send
+  // anything at all — this one only builds the report links.
+  ga: { measurementId: '', propertyId: '' },
+  stalePriceDays: 10,
+  tenderWarnDays: 3
+};
+
+const FILES = ['taxonomy','firms','tenders','jobs','articles','prices','ads'];
+const DB = {};
+let DIRTY = new Set();
+let CURRENT = null;   // {file, index, item}
+const LSKEY = 'buildlist-admin-draft';
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+function unlock(){
+  const v = document.getElementById('pw').value;
+  if (v !== ADMIN.passphrase) { toast('Passphrase not recognised'); return; }
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').classList.add('on');
+  boot();
+}
+document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
+
+async function boot(){
+  document.getElementById('railDate').textContent =
+    new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  try {
+    await Promise.all(FILES.map(async f => {
+      const r = await fetch('data/'+f+'.json',{cache:'no-cache'});
+      if(!r.ok) throw new Error(f+': HTTP '+r.status);
+      DB[f] = await r.json();
+    }));
+  } catch(err){
+    document.getElementById('pages').innerHTML =
+      '<div class="note red"><b>Could not load the data files.</b>'+
+      'This page must be served over http, not opened from a folder. '+
+      'Run <span class="mono">python3 -m http.server 8000</span> in the site folder, then open '+
+      '<span class="mono">http://localhost:8000/admin.html</span>.<br><br>'+esc(err.message)+'</div>';
+    return;
+  }
+  restoreDraft();
+  buildNav();
+  go('board');
+}
+
+/* Drafts survive a refresh. Losing two hours of typing to an accidental
+   reload is the fastest way to make someone stop using a tool. */
+function restoreDraft(){
+  try{
+    const raw = localStorage.getItem(LSKEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(!d || !d.files) return;
+    if(!confirm('You have unpublished changes from '+new Date(d.at).toLocaleString()+'. Restore them?')){
+      localStorage.removeItem(LSKEY); return;
+    }
+    Object.keys(d.files).forEach(f => { DB[f] = d.files[f]; DIRTY.add(f); });
+    paintSave();
+  }catch(e){ localStorage.removeItem(LSKEY); }
+}
+function persist(){
+  const files = {};
+  DIRTY.forEach(f => { files[f] = DB[f]; });
+  try{ localStorage.setItem(LSKEY, JSON.stringify({at:Date.now(),files})); }catch(e){}
+}
+function mark(file){ DIRTY.add(file); persist(); paintSave(); buildNav(); }
+function paintSave(){
+  const el = document.getElementById('saveState');
+  if(DIRTY.size){
+    el.className='savestate dirty';
+    el.innerHTML='<span class="pip"></span><span>'+DIRTY.size+' file'+(DIRTY.size>1?'s':'')+' changed \u2014 not yet published</span>';
+  } else {
+    el.className='savestate';
+    el.innerHTML='<span class="pip"></span><span>Nothing to publish</span>';
+  }
+}
+window.addEventListener('beforeunload', e => { if(DIRTY.size){ e.preventDefault(); e.returnValue=''; } });
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const today = () => new Date().toISOString().slice(0,10);
+const daysTo = d => Math.ceil((new Date(d)-new Date())/86400000);
+const daysSince = d => Math.floor((new Date()-new Date(d))/86400000);
+const slugify = s => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const initials = s => String(s).split(/\s+/).filter(w=>/^[A-Za-z]/.test(w)).slice(0,2)
+  .map(w=>w[0].toUpperCase()).join('') || '??';
+function toast(m){
+  const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2600);
+}
+function tName(kind,slug){
+  const list = DB.taxonomy[kind]||[];
+  const f = list.find(x=>x.slug===slug);
+  return f?f.name:slug;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV
+   ═══════════════════════════════════════════════════════════════ */
+const SECTIONS = [
+  {id:'board',    label:'Board',     group:'Daily'},
+  {id:'firms',    label:'Firms',     group:'Content', count:()=>DB.firms.length,
+     flag:()=>DB.firms.filter(f=>f.status==='pending').length},
+  {id:'tenders',  label:'Tenders',   group:'Content', count:()=>openT().length,
+     flag:()=>DB.tenders.filter(t=>daysTo(t.deadline)<0).length},
+  {id:'jobs',     label:'Jobs',      group:'Content', count:()=>openJ().length},
+  {id:'articles', label:'Articles',  group:'Content', count:()=>DB.articles.length},
+  {id:'prices',   label:'Prices',    group:'Content',
+     flag:()=>daysSince(DB.prices.updated)>ADMIN.stalePriceDays?1:0},
+  {id:'ads',      label:'Advertising',group:'Revenue', count:()=>liveAds().length},
+  {id:'media',    label:'Media check', group:'Revenue', flag:()=>MEDIA_ISSUES},
+  {id:'analytics',label:'Analytics',   group:'Revenue'},
+  {id:'checks',   label:'Checks',    group:'Publish', flag:()=>runChecks().filter(i=>i.level==='error').length},
+  {id:'export',   label:'Publish',   group:'Publish', flag:()=>DIRTY.size}
+];
+
+function buildNav(){
+  const nav = document.getElementById('nav');
+  let html='', group='';
+  SECTIONS.forEach(s=>{
+    if(s.group!==group){ group=s.group; html+='<div class="rail-sec">'+group+'</div>'; }
+    const flag = s.flag?s.flag():0;
+    const n = s.count?s.count():null;
+    html += '<a data-go="'+s.id+'" onclick="go(\''+s.id+'\')" tabindex="0" onkeydown="if(event.key===\'Enter\')go(\''+s.id+'\')">'
+      + esc(s.label)
+      + (flag ? '<span class="dot" title="Needs attention"></span>' : (n!==null?'<span class="n">'+n+'</span>':''))
+      + '</a>';
+  });
+  nav.innerHTML = html;
+  const cur = document.querySelector('.page.on');
+  if(cur) highlight(cur.dataset.page);
+}
+function highlight(id){
+  document.querySelectorAll('.rail a').forEach(a=>a.classList.toggle('on',a.dataset.go===id));
+}
+
+const TITLES = {
+  board:['Board','What needs doing today'],
+  firms:['Firms','Listings, tiers and verification'],
+  tenders:['Tenders','Closed notices hide themselves on the site'],
+  jobs:['Jobs','Vacancies expire on their closing date'],
+  articles:['Articles','News and guides'],
+  prices:['Material prices','Update weekly from the same three suppliers'],
+  ads:['Advertising','Thirteen slots, scheduled by date'],
+  checks:['Checks','Problems to fix before publishing'],
+  media:['Media check','Every image and video, measured against its slot'],
+  analytics:['Analytics','Where to look, and what the site is recording'],
+  export:['Publish','Download changed files and commit them']
+};
+
+function go(id){
+  document.getElementById('pageTitle').textContent = TITLES[id][0];
+  document.getElementById('pageSub').textContent = TITLES[id][1];
+  highlight(id);
+  const pages = document.getElementById('pages');
+  pages.innerHTML = '<div class="page on" data-page="'+id+'"></div>';
+  RENDER[id](pages.firstChild);
+  window.scrollTo(0,0);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DERIVED
+   ═══════════════════════════════════════════════════════════════ */
+const openT = () => DB.tenders.filter(t=>daysTo(t.deadline)>=0);
+const openJ = () => DB.jobs.filter(j=>!j.closesAt||daysTo(j.closesAt)>=0);
+const liveAds = () => (DB.ads.ads||[]).filter(a=>a.active!==false &&
+  (!a.start||a.start<=today()) && (!a.end||a.end>=today()));
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDERERS
+   ═══════════════════════════════════════════════════════════════ */
+const RENDER = {};
+
+/* ── Board: a prioritised worklist, not a wall of metrics.
+      The content officer opens this at 08:30 and works down it. ── */
+RENDER.board = el => {
+  const pending  = DB.firms.filter(f=>f.status==='pending');
+  const unverif  = DB.firms.filter(f=>!f.verified);
+  const stale    = DB.firms.filter(f=>f.verifiedDate && daysSince(f.verifiedDate)>365);
+  const closing  = openT().filter(t=>daysTo(t.deadline)<=ADMIN.tenderWarnDays);
+  const expired  = DB.tenders.filter(t=>daysTo(t.deadline)<0);
+  const jobsGone = DB.jobs.filter(j=>j.closesAt && daysTo(j.closesAt)<0);
+  const priceAge = daysSince(DB.prices.updated);
+  const errors   = runChecks().filter(i=>i.level==='error');
+  const emptySlots = Object.keys(DB.ads.slots||{}).filter(k=>!liveAds().some(a=>a.slot===k));
+
+  const task = (cls,num,t,d,to) =>
+    '<button class="task '+cls+'" onclick="go(\''+to+'\')"><span class="bar"></span>'+
+    '<span class="num">'+num+'</span><span class="body"><span class="t">'+t+'</span>'+
+    '<span class="d">'+d+'</span></span></button>';
+
+  let jobs = [];
+  const warnings = runChecks().filter(i=>i.level==='warn');
+  if(errors.length) jobs.push(task('urgent',errors.length,'Data problems to fix','These will break the site or mislead a visitor','checks'));
+  if(warnings.length) jobs.push(task('due',warnings.length,'Things worth a look','Placeholder data, stale verifications, loose ends','checks'));
+  if(pending.length) jobs.push(task('due',pending.length,'Firms awaiting approval','Review and set them live, or reject','firms'));
+  if(closing.length) jobs.push(task('due',closing.length,'Tenders closing within '+ADMIN.tenderWarnDays+' days','Still open, flagged "Closing Soon" on the site','tenders'));
+  if(priceAge>ADMIN.stalePriceDays) jobs.push(task('urgent',priceAge,'Days since prices were updated','People quote from this. Stale is worse than absent','prices'));
+  else jobs.push(task('ok',priceAge,'Days since prices were updated','Within the weekly rhythm','prices'));
+  if(stale.length) jobs.push(task('due',stale.length,'Listings needing re-verification','Verified more than 12 months ago','firms'));
+  if(unverif.length) jobs.push(task('',unverif.length,'Listings never verified','Showing "not yet verified" to visitors','firms'));
+  if(emptySlots.length) jobs.push(task('',emptySlots.length,'Unsold advertising slots','Each shows "slot available" with your sales email','ads'));
+  if(expired.length) jobs.push(task('ok',expired.length,'Tenders past their closing date','Already hidden from the site. Delete when you like','tenders'));
+  if(jobsGone.length) jobs.push(task('ok',jobsGone.length,'Vacancies past their closing date','Already hidden from the site','jobs'));
+
+  el.innerHTML =
+    '<div class="tally">'+
+      '<div><b>'+DB.firms.filter(f=>f.status!=='pending').length+'</b><span>Firms live</span></div>'+
+      '<div><b>'+openT().length+'</b><span>Open tenders</span></div>'+
+      '<div><b>'+openJ().length+'</b><span>Open vacancies</span></div>'+
+      '<div><b>'+liveAds().length+'</b><span>Ads running</span></div>'+
+      '<div><b>'+DB.firms.filter(f=>f.tier!=='free').length+'</b><span>Paying listings</span></div>'+
+    '</div>'+
+    (jobs.length ? '<div class="board">'+jobs.join('')+'</div>'
+      : '<div class="empty"><b>Nothing needs attention</b>Everything is current. Add listings.</div>');
+};
+
+/* ── Firms ── */
+let firmFilter = {q:'',status:'',tier:''};
+RENDER.firms = el => {
+  el.innerHTML =
+    '<div class="toolbar">'+
+      '<input type="search" id="fq" placeholder="Search name, area or slug" value="'+esc(firmFilter.q)+'">'+
+      '<select id="fstatus"><option value="">Any status</option>'+
+        ['live','pending','rejected','suspended'].map(s=>'<option'+(firmFilter.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select>'+
+      '<select id="ftier"><option value="">Any tier</option>'+
+        DB.taxonomy.tiers.map(t=>'<option value="'+t.slug+'"'+(firmFilter.tier===t.slug?' selected':'')+'>'+esc(t.name)+'</option>').join('')+'</select>'+
+      '<div class="spacer"></div>'+
+      '<button class="btn btn-p" onclick="editFirm(-1)">Add firm</button>'+
+    '</div><div id="firmTable"></div>';
+  ['fq','fstatus','ftier'].forEach(id=>{
+    const n=document.getElementById(id);
+    n.addEventListener('input',()=>{
+      firmFilter={q:document.getElementById('fq').value,
+        status:document.getElementById('fstatus').value,
+        tier:document.getElementById('ftier').value};
+      paintFirms();
+    });
+  });
+  paintFirms();
+};
+
+function paintFirms(){
+  const q = firmFilter.q.toLowerCase();
+  const rows = DB.firms.map((f,i)=>({f,i})).filter(({f})=>{
+    if(q && !((f.name+' '+f.area+' '+f.slug).toLowerCase().includes(q))) return false;
+    if(firmFilter.status && (f.status||'live')!==firmFilter.status) return false;
+    if(firmFilter.tier && f.tier!==firmFilter.tier) return false;
+    return true;
+  });
+  const box = document.getElementById('firmTable');
+  if(!rows.length){ box.innerHTML='<div class="empty"><b>No firms match</b>Change the filters, or add a firm.</div>'; return; }
+  box.innerHTML = '<div class="tablewrap"><table><thead><tr>'+
+    '<th>Firm</th><th>Categories</th><th>District</th><th>Tier</th><th>Status</th><th>Verified</th><th></th>'+
+    '</tr></thead><tbody>'+ rows.map(({f,i})=>{
+      const st = f.status||'live';
+      const stPill = st==='live'?'pill-live':st==='pending'?'pill-pending':'pill-off';
+      return '<tr><td><div class="cellflex"><div class="thumb">'+
+        (f.logo?'<img src="'+esc(f.logo)+'" alt="" onerror="this.remove()">':esc(f.initials))+
+        '</div><div><span class="rowname">'+esc(f.name)+'</span>'+
+        '<span class="rowsub mono">'+esc(f.slug)+'</span></div></div></td>'+
+        '<td>'+(f.categories||[]).map(c=>esc(tName('categories',c))).join(', ')+'</td>'+
+        '<td>'+esc(tName('districts',f.district))+'</td>'+
+        '<td><span class="pill '+(f.tier==='free'?'pill-off':'pill-gold')+'">'+esc(tName('tiers',f.tier))+'</span></td>'+
+        '<td><span class="pill '+stPill+'">'+esc(st)+'</span></td>'+
+        '<td>'+(f.verified
+            ? '<span class="rowsub">'+esc(f.verifiedDate||'')+(f.verifiedDate&&daysSince(f.verifiedDate)>365?' <span class="pill pill-danger">stale</span>':'')+'</span>'
+            : '<span class="pill pill-off">no</span>')+'</td>'+
+        '<td><div class="actions">'+
+          (st==='pending'?'<button class="btn btn-sm btn-p" onclick="approve('+i+')">Approve</button>':'')+
+          '<button class="btn btn-sm" onclick="editFirm('+i+')">Edit</button></div></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+function approve(i){
+  DB.firms[i].status='live';
+  if(!DB.firms[i].verified){ DB.firms[i].verified=true; DB.firms[i].verifiedDate=today(); }
+  mark('firms'); paintFirms(); toast('Approved and set live');
+}
+
+/* ── Tenders ── */
+RENDER.tenders = el => {
+  el.innerHTML='<div class="note"><b>Closed notices disappear on their own.</b>'+
+    'Anything past its closing date is already hidden from the public site. You only need to add new ones.</div>'+
+    '<div class="toolbar"><div class="spacer"></div><button class="btn btn-p" onclick="editTender(-1)">Add tender</button></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>Reference</th><th>Title</th><th>Body</th>'+
+    '<th>Value</th><th>Closes</th><th></th></tr></thead><tbody>'+
+    DB.tenders.map((t,i)=>{
+      const d=daysTo(t.deadline);
+      const pill = d<0?'<span class="pill pill-off">closed</span>'
+        : d<=ADMIN.tenderWarnDays?'<span class="pill pill-danger">'+d+'d left</span>'
+        : d<=14?'<span class="pill pill-pending">'+d+'d left</span>'
+        : '<span class="pill pill-live">'+d+'d left</span>';
+      return '<tr><td class="mono">'+esc(t.ref)+'</td><td><span class="rowname">'+esc(t.title)+'</span>'+
+        (t.featured?'<span class="pill pill-gold">featured</span>':'')+'</td>'+
+        '<td class="rowsub">'+esc(t.org)+'</td><td class="mono">'+esc(t.value)+'</td>'+
+        '<td>'+pill+'<br><span class="rowsub mono">'+esc(t.deadline)+'</span></td>'+
+        '<td><div class="actions"><button class="btn btn-sm" onclick="editTender('+i+')">Edit</button></div></td></tr>';
+    }).join('')+'</tbody></table></div>';
+};
+
+/* ── Jobs ── */
+RENDER.jobs = el => {
+  el.innerHTML='<div class="toolbar"><div class="spacer"></div>'+
+    '<button class="btn btn-p" onclick="editJob(-1)">Add vacancy</button></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>Role</th><th>Employer</th><th>District</th>'+
+    '<th>Level</th><th>Closes</th><th></th></tr></thead><tbody>'+
+    DB.jobs.map((j,i)=>{
+      const d = j.closesAt?daysTo(j.closesAt):null;
+      const pill = d===null?'<span class="pill pill-off">no date</span>'
+        : d<0?'<span class="pill pill-off">closed</span>'
+        : '<span class="pill pill-live">'+d+'d left</span>';
+      return '<tr><td><span class="rowname">'+esc(j.title)+'</span>'+
+        (j.featured?'<span class="pill pill-gold">featured</span>':'')+'</td>'+
+        '<td class="rowsub">'+esc(j.company)+'</td><td>'+esc(tName('districts',j.district))+'</td>'+
+        '<td>'+esc(j.level||'')+'</td><td>'+pill+'</td>'+
+        '<td><div class="actions"><button class="btn btn-sm" onclick="editJob('+i+')">Edit</button></div></td></tr>';
+    }).join('')+'</tbody></table></div>';
+};
+
+/* ── Articles ── */
+RENDER.articles = el => {
+  el.innerHTML='<div class="toolbar"><div class="spacer"></div>'+
+    '<button class="btn btn-p" onclick="editArticle(-1)">Add article</button></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>Title</th><th>Category</th><th>Published</th><th></th></tr></thead><tbody>'+
+    DB.articles.map((a,i)=>'<tr><td><span class="rowname">'+esc(a.title)+'</span>'+
+      '<span class="rowsub mono">'+esc(a.slug)+'</span></td>'+
+      '<td>'+esc(a.category)+'</td><td class="mono">'+esc(a.date)+'</td>'+
+      '<td><div class="actions"><button class="btn btn-sm" onclick="editArticle('+i+')">Edit</button></div></td></tr>').join('')+
+    '</tbody></table></div>';
+};
+
+/* ── Prices: edited in place, because that is how it is collected ── */
+RENDER.prices = el => {
+  const age = daysSince(DB.prices.updated);
+  el.innerHTML =
+    (age>ADMIN.stalePriceDays
+      ? '<div class="note red"><b>Last updated '+age+' days ago.</b>People quote from this table. A stale price index is worse than none.</div>'
+      : '<div class="note"><b>Last updated '+age+' day'+(age===1?'':'s')+' ago.</b>Collect from the same three suppliers each week so the series stays comparable.</div>')+
+    '<div class="f2" style="max-width:620px;margin-bottom:18px">'+
+      '<div class="f"><label for="pUpdated">Date collected</label>'+
+        '<input type="date" id="pUpdated" value="'+esc(DB.prices.updated)+'" onchange="setPriceDate(this.value)"></div>'+
+      '<div class="f"><label for="pSources">Suppliers (comma separated)</label>'+
+        '<input type="text" id="pSources" value="'+esc((DB.prices.sources||[]).join(', '))+'" onchange="setPriceSources(this.value)"></div>'+
+    '</div>'+
+    '<div class="tablewrap"><table><thead><tr><th>Material</th><th>Price</th><th>Change</th><th>Direction</th><th></th></tr></thead><tbody>'+
+    DB.prices.items.map((p,i)=>'<tr>'+
+      '<td><input type="text" value="'+esc(p.name)+'" onchange="setPrice('+i+',\'name\',this.value)" style="width:100%;border:1px solid var(--line-2);border-radius:var(--r);padding:6px 9px"></td>'+
+      '<td><input type="text" value="'+esc(p.val)+'" onchange="setPrice('+i+',\'val\',this.value)" class="mono" style="width:100%;border:1px solid var(--line-2);border-radius:var(--r);padding:6px 9px"></td>'+
+      '<td><input type="text" value="'+esc(p.change)+'" onchange="setPrice('+i+',\'change\',this.value)" class="mono" style="width:90px;border:1px solid var(--line-2);border-radius:var(--r);padding:6px 9px"></td>'+
+      '<td><select onchange="setPriceDir('+i+',this.value)" style="border:1px solid var(--line-2);border-radius:var(--r);padding:6px 9px">'+
+        '<option value="up"'+(p.up===true?' selected':'')+'>Up</option>'+
+        '<option value="down"'+(p.up===false?' selected':'')+'>Down</option>'+
+        '<option value="flat"'+(p.up===null?' selected':'')+'>Flat</option></select></td>'+
+      '<td><div class="actions"><button class="btn btn-sm btn-d" onclick="delPrice('+i+')">Remove</button></div></td></tr>').join('')+
+    '</tbody></table></div>'+
+    '<div class="toolbar" style="margin-top:12px"><button class="btn" onclick="addPrice()">Add material</button></div>';
+};
+function setPriceDate(v){ DB.prices.updated=v; mark('prices'); go('prices'); }
+function setPriceSources(v){ DB.prices.sources=v.split(',').map(s=>s.trim()).filter(Boolean); mark('prices'); }
+function setPrice(i,k,v){ DB.prices.items[i][k]=v; mark('prices'); }
+function setPriceDir(i,v){ DB.prices.items[i].up = v==='up'?true:v==='down'?false:null; mark('prices'); }
+function delPrice(i){ DB.prices.items.splice(i,1); mark('prices'); go('prices'); }
+function addPrice(){ DB.prices.items.push({name:'New material',val:'UGX 0',change:'0%',up:null}); mark('prices'); go('prices'); }
+
+/* ── Ads ── */
+RENDER.ads = el => {
+  const slots = DB.ads.slots||{};
+  const ads = DB.ads.ads||[];
+  el.innerHTML='<div class="toolbar"><div class="spacer"></div>'+
+    '<button class="btn btn-p" onclick="editAd(-1)">Add advertisement</button></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>Slot</th><th>Advertiser</th><th>Type</th>'+
+    '<th>Runs</th><th>State</th><th></th></tr></thead><tbody>'+
+    Object.keys(slots).map(key=>{
+      const meta=slots[key];
+      const ad=ads.find(a=>a.slot===key);
+      const i=ads.indexOf(ad);
+      let state='<span class="pill pill-off">available</span>';
+      if(ad){
+        const live = ad.active!==false && (!ad.start||ad.start<=today()) && (!ad.end||ad.end>=today());
+        state = ad.active===false ? '<span class="pill pill-off">paused</span>'
+          : live ? '<span class="pill pill-live">running</span>'
+          : (ad.start>today() ? '<span class="pill pill-pending">scheduled</span>'
+                              : '<span class="pill pill-danger">expired</span>');
+      }
+      return '<tr><td><span class="rowname">'+esc(meta.label)+'</span>'+
+        '<span class="rowsub mono">'+esc(key)+(meta.size?' \u00b7 '+esc(meta.size):'')+'</span></td>'+
+        '<td>'+(ad?esc(ad.advertiser):'<span class="rowsub">\u2014</span>')+'</td>'+
+        '<td>'+(ad?(ad.video?'Video':ad.flier?'Flier':ad.image?'Image':'Text'):'<span class="rowsub">\u2014</span>')+'</td>'+
+        '<td class="mono rowsub">'+(ad?esc(ad.start||'')+' \u2192 '+esc(ad.end||''):'')+'</td>'+
+        '<td>'+state+'</td>'+
+        '<td><div class="actions">'+(ad
+          ?'<button class="btn btn-sm" onclick="editAd('+i+')">Edit</button>'
+          :'<button class="btn btn-sm" onclick="editAd(-1,\''+key+'\')">Sell</button>')+
+        '</div></td></tr>';
+    }).join('')+'</tbody></table></div>';
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECKS — catch what breaks the site or misleads a visitor
+   ═══════════════════════════════════════════════════════════════ */
+function runChecks(){
+  const out=[];
+  const add=(level,title,detail,where)=>out.push({level,title,detail,where});
+  if(!DB.firms) return out;
+
+  const catSlugs = new Set(DB.taxonomy.categories.map(c=>c.slug));
+  const distSlugs= new Set(DB.taxonomy.districts.map(d=>d.slug));
+  const accSlugs = new Set(DB.taxonomy.accreditations.map(a=>a.slug));
+  const tierSlugs= new Set(DB.taxonomy.tiers.map(t=>t.slug));
+
+  const seen={};
+  DB.firms.forEach(f=>{
+    seen[f.slug]=(seen[f.slug]||0)+1;
+    (f.categories||[]).forEach(c=>{ if(!catSlugs.has(c))
+      add('error','Unknown category','"'+c+'" is not in taxonomy.json, so this firm vanishes from that filter.',f.name); });
+    if(!distSlugs.has(f.district))
+      add('error','Unknown district','"'+f.district+'" is not in taxonomy.json.',f.name);
+    if(!tierSlugs.has(f.tier))
+      add('error','Unknown tier','"'+f.tier+'" is not a valid tier, so ranking and badges break.',f.name);
+    (f.accreditations||[]).forEach(a=>{ if(!accSlugs.has(a))
+      add('warn','Unknown accreditation','"'+a+'" is not in taxonomy.json.',f.name); });
+    if(!f.slug) add('error','Missing slug','Without a slug this firm has no page.',f.name);
+    if(!f.phone && !f.whatsapp)
+      add('error','No contact number','A listing nobody can call is worse than no listing.',f.name);
+    if(f.verified && !f.verifiedDate)
+      add('warn','Verified with no date','The site shows a verification date. Set one or clear the badge.',f.name);
+    if(f.verifiedDate && daysSince(f.verifiedDate)>365)
+      add('warn','Verification over a year old','Your own policy is annual re-verification.',f.name);
+    if(f.email && /example\.(co\.ug|com)/.test(f.email))
+      add('warn','Placeholder email','Sample data. Replace before publishing.',f.name);
+    if(/^\+2567000000/.test(f.phone||''))
+      add('warn','Placeholder phone number','Sample data. Replace before publishing.',f.name);
+  });
+  Object.keys(seen).forEach(s=>{ if(seen[s]>1)
+    add('error','Duplicate slug','"'+s+'" is used '+seen[s]+' times. Both firms fight over the same URL.',s); });
+
+  DB.tenders.forEach(t=>{ if(!t.deadline)
+    add('error','Tender with no closing date','It will never expire and will sit there looking stale.',t.ref||t.title); });
+
+  DB.jobs.forEach(j=>{
+    if(j.companySlug && !DB.firms.some(f=>f.slug===j.companySlug))
+      add('warn','Vacancy links to a missing firm','"'+j.companySlug+'" is not in firms.json, so the link goes nowhere.',j.title);
+  });
+
+  const age=daysSince(DB.prices.updated);
+  if(age>ADMIN.stalePriceDays)
+    add('error','Prices are '+age+' days old','People quote from this table.','prices.json');
+
+  (DB.ads.ads||[]).forEach(a=>{
+    if(!a.link) add('warn','Advertisement with no link','The advertiser is paying for clicks they cannot receive.',a.id);
+    if(a.image && !/^images\//.test(a.image))
+      add('warn','Unusual image path','Ad creatives normally live in images/ads/.',a.id);
+    if(a.end && a.end<today() && a.active!==false)
+      add('warn','Campaign past its end date','It has stopped showing. Archive or renew it.',a.id);
+    if(/^sample-/.test(a.id))
+      add('warn','Sample advertisement','Delete before publishing.',a.id);
+  });
+
+  const slotKeys=new Set(Object.keys(DB.ads.slots||{}));
+  (DB.ads.ads||[]).forEach(a=>{ if(!slotKeys.has(a.slot))
+    add('error','Advertisement targets a slot that does not exist','"'+a.slot+'" will never render.',a.id); });
+
+  return out;
+}
+
+RENDER.checks = el => {
+  const issues = runChecks();
+  const errs = issues.filter(i=>i.level==='error');
+  const warns = issues.filter(i=>i.level==='warn');
+  if(!issues.length){
+    el.innerHTML='<div class="empty"><b>No problems found</b>Every reference resolves and nothing is stale.</div>';
+    return;
+  }
+  const card = i => '<div class="issue '+i.level+'"><b>'+esc(i.title)+'</b><p>'+esc(i.detail)+'</p>'+
+    '<div class="where">'+esc(i.where)+'</div></div>';
+  el.innerHTML =
+    (errs.length?'<div class="note red"><b>'+errs.length+' problem'+(errs.length>1?'s':'')+' to fix.</b>'+
+      'These break something visible or mislead a visitor.</div>'+errs.map(card).join(''):'')+
+    (warns.length?'<h3 style="margin:22px 0 10px;font-size:14px">Worth a look ('+warns.length+')</h3>'+
+      warns.map(card).join(''):'');
+};
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MEDIA CHECK
+   Loads every image and video the site references, reads its real
+   pixel dimensions, and compares them against the slot it is going
+   into. Catches the two things that actually ruin creative: an
+   aspect ratio that does not match the slot (letterboxing or, worse,
+   squashing) and a file too small for the space (soft, pixelated).
+   ═══════════════════════════════════════════════════════════════ */
+let MEDIA_ISSUES = 0;
+const MEDIA_CACHE = {};
+
+function probe(src, isVideo) {
+  if (MEDIA_CACHE[src]) return Promise.resolve(MEDIA_CACHE[src]);
+  return new Promise(resolve => {
+    const done = r => { MEDIA_CACHE[src] = r; resolve(r); };
+    if (isVideo) {
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.onloadedmetadata = () => done({ ok: true, w: v.videoWidth, h: v.videoHeight, dur: v.duration });
+      v.onerror = () => done({ ok: false });
+      v.src = src;
+    } else {
+      const i = new Image();
+      i.onload = () => done({ ok: true, w: i.naturalWidth, h: i.naturalHeight });
+      i.onerror = () => done({ ok: false });
+      i.src = src;
+    }
+    setTimeout(() => done(MEDIA_CACHE[src] || { ok: false, timeout: true }), 6000);
+  });
+}
+
+function judge(probeResult, spec) {
+  // spec: {w,h} target box, or null for "any shape is fine"
+  if (!probeResult.ok) return { level: 'bad', msg: 'File not found or will not load. The slot will fall back to the placeholder.' };
+  const { w, h } = probeResult;
+  if (!spec) {
+    if (w < 400) return { level: 'warn', msg: 'Only ' + w + 'px wide. It will look soft on a large screen.' };
+    return { level: 'good', msg: 'Natural shape preserved. Nothing is cropped or stretched.' };
+  }
+  const want = spec.w / spec.h, got = w / h;
+  const off = Math.abs(got - want) / want;
+  if (w < spec.w * 0.9 || h < spec.h * 0.9)
+    return { level: 'warn', msg: 'Smaller than the ' + spec.w + '\u00d7' + spec.h + ' slot. It will be scaled up and look soft. Ask the advertiser for a larger file.' };
+  if (off > 0.12)
+    return { level: 'warn', msg: 'Aspect ratio is ' + got.toFixed(2) + ':1, the slot wants ' + want.toFixed(2) + ':1. It will letterbox with bars rather than distort \u2014 correct, but the advertiser paid for the whole box.' };
+  if (w > spec.w * 3)
+    return { level: 'warn', msg: 'Much larger than needed (' + w + 'px for a ' + spec.w + 'px slot). Compress it or mobile visitors pay for pixels they never see.' };
+  return { level: 'good', msg: 'Fits the slot. Sharp and undistorted.' };
+}
+
+function parseSize(sizeStr) {
+  const m = /^(\d+)x(\d+)$/.exec(String(sizeStr || '').trim());
+  return m ? { w: +m[1], h: +m[2] } : null;
+}
+
+RENDER.media = async el => {
+  el.innerHTML = '<div class="note"><b>How this works.</b>Every file is loaded and measured against the slot it is ' +
+    'going into. Creatives are never stretched on the live site \u2014 they letterbox instead \u2014 so the worst case is ' +
+    'wasted space, not a distorted logo. This page tells you which advertisers to go back to for a better file.</div>' +
+    '<div id="mediaList"><div class="loading">Measuring files\u2026</div></div>';
+
+  const items = [];
+  (DB.ads.ads || []).forEach(a => {
+    const spec = parseSize((DB.ads.slots[a.slot] || {}).size);
+    if (a.image) items.push({ src: a.image, label: a.advertiser, sub: 'Image ad \u00b7 ' + a.slot, spec, link: a.link });
+    if (a.flier) items.push({ src: a.flier, label: a.advertiser, sub: 'Flier \u00b7 ' + a.slot, spec: null, link: a.link });
+    if (a.video) items.push({ src: a.video, label: a.advertiser, sub: 'Video ad \u00b7 ' + a.slot, spec, link: a.link, video: true });
+  });
+  DB.firms.forEach(f => {
+    if (f.logo) items.push({ src: f.logo, label: f.name, sub: 'Logo', spec: { w: 400, h: 400 } });
+    (f.photos || []).forEach((p, i) => items.push({ src: p.src, label: f.name, sub: 'Photograph ' + (i + 1), spec: { w: 1200, h: 900 } }));
+    if (f.video) items.push({ src: f.video, label: f.name, sub: 'Firm video', spec: null, video: true });
+  });
+
+  if (!items.length) {
+    document.getElementById('mediaList').innerHTML =
+      '<div class="empty"><b>No media to check</b>No logos, photographs, fliers or videos are referenced yet.</div>';
+    MEDIA_ISSUES = 0; buildNav(); return;
+  }
+
+  const probes = await Promise.all(items.map(it => probe(it.src, it.video)));
+  let issues = 0;
+  const html = items.map((it, i) => {
+    const pr = probes[i], v = judge(pr, it.spec);
+    if (v.level !== 'good') issues++;
+    const dims = pr.ok ? pr.w + '\u00d7' + pr.h + (pr.dur ? ' \u00b7 ' + Math.round(pr.dur) + 's' : '') : 'unreadable';
+    const prev = pr.ok
+      ? (it.video ? '<video src="' + esc(it.src) + '" preload="metadata" muted></video>'
+                  : '<img src="' + esc(it.src) + '" alt="">')
+      : '';
+    return '<div class="media-row ' + v.level + '"><div class="media-prev">' + prev + '</div>' +
+      '<div class="media-info"><b>' + esc(it.label) + '</b>' +
+      '<span class="sub">' + esc(it.sub) + (it.spec ? ' \u00b7 slot ' + it.spec.w + '\u00d7' + it.spec.h : ' \u00b7 any shape') + '</span>' +
+      '<div class="media-verdict ' + v.level + '">' + esc(v.msg) + '</div>' +
+      (it.link !== undefined
+        ? '<div class="sub" style="margin-top:4px">' + (it.link
+            ? 'Clicks through to <span class="mono">' + esc(it.link) + '</span>'
+            : '<span style="color:var(--danger)">No click-through link \u2014 the advertiser is paying for clicks they cannot receive.</span>') + '</div>'
+        : '') +
+      '</div><div class="media-dims">' + dims + '</div></div>';
+  }).join('');
+
+  MEDIA_ISSUES = issues;
+  document.getElementById('mediaList').innerHTML =
+    (issues ? '<div class="note"><b>' + issues + ' file' + (issues > 1 ? 's' : '') + ' worth attention.</b>' +
+      'Nothing here breaks the site. These are the ones that will look worse than the advertiser expects.</div>' : '') + html;
+  buildNav();
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALYTICS
+   A static page cannot query the GA Data API without a server and an
+   OAuth flow, so this does not pretend to be a GA dashboard. It does
+   three things that are actually useful: tells you whether the tag is
+   installed, takes you straight to the right report, and shows what
+   the site is recording right now so you can test without waiting a
+   day for GA to process.
+   ═══════════════════════════════════════════════════════════════ */
+RENDER.analytics = el => {
+  const id = (ADMIN.ga.measurementId || '').trim();
+  const pid = (ADMIN.ga.propertyId || '').trim();
+  const base = pid ? 'https://analytics.google.com/analytics/web/#/p' + pid : 'https://analytics.google.com/';
+
+  const link = (href, title, body) =>
+    '<a class="ga-link" href="' + href + '" target="_blank" rel="noopener"><b>' + title + '</b><span>' + body + '</span></a>';
+
+  let events = [];
+  try { events = JSON.parse(sessionStorage.getItem('cs_events') || '[]'); } catch (e) {}
+  const counts = events.reduce((a, e) => { a[e.event] = (a[e.event] || 0) + 1; return a; }, {});
+
+  el.innerHTML =
+    (id
+      ? '<div class="ga-status on"><span>\u25CF</span><div><b>Measurement ID ' + esc(id) + ' is configured here.</b> ' +
+        'Confirm the same ID is set in <span class="mono">index.html \u2192 SITE.analytics.measurementId</span>, ' +
+        'or the site is not actually sending anything.</div></div>'
+      : '<div class="ga-status off"><span>\u25CF</span><div><b>No Measurement ID set.</b> ' +
+        'Nothing is being recorded. Create a GA4 property, copy the ID (it looks like G-ABC1234567) into ' +
+        '<span class="mono">SITE.analytics.measurementId</span> in index.html <em>and</em> ' +
+        '<span class="mono">ADMIN.ga.measurementId</span> in admin.html.</div></div>') +
+
+    '<h3 style="font-size:14px;margin:0 0 10px">Open the report you need</h3>' +
+    '<div class="ga-links">' +
+      link(base + '/realtime/overview', 'Live right now', 'Who is on the site this minute. Use it to confirm the tag works after you install it.') +
+      link(base + '/reports/explorer?params=_r.explorerCard..selmet=%5B%22screenPageViews%22%5D', 'Most viewed pages', 'Which firm profiles and category pages people actually open.') +
+      link(base + '/reports/explorer?params=_r.explorerCard..seldim=%5B%22eventName%22%5D', 'Events', 'listing_contact, search, ad_click and the rest.') +
+      link(base + '/reports/explorer', 'Traffic sources', 'Whether WhatsApp sharing or Google search is bringing people in.') +
+      link('https://search.google.com/search-console', 'Search Console', 'What people typed to find you. Separate from GA and just as important for a directory.') +
+      link('https://analytics.google.com/analytics/web/#/a/admin', 'GA admin', 'Data streams, users, retention settings.') +
+    '</div>' +
+
+    '<div class="note"><b>The number that matters to your sales team.</b>' +
+    'Contacts per listing. In GA go to <em>Events \u2192 listing_contact</em> and break it down by the ' +
+    '<span class="mono">firm_slug</span> parameter \u2014 you will need to register it as a custom dimension first ' +
+    '(Admin \u2192 Custom definitions). That report is what a field agent prints and puts in front of a shop owner: ' +
+    '"your listing was viewed 46 times last month and 11 people tapped your number."' +
+    '<br><br>Per-firm totals inside this dashboard need a server to query the GA Data API, or the ' +
+    '<span class="mono">listing_events</span> table in the Stage 3 Supabase schema. Both are documented in supabase/README.md.</div>' +
+
+    '<h3 style="font-size:14px;margin:22px 0 10px">What the site is recording</h3>' +
+    '<p class="note" style="margin-bottom:12px">Captured live in your own browser session, so you can test tracking ' +
+    'immediately instead of waiting for GA to process. Open the site in another tab, click around, come back and reload this page.</p>' +
+    (Object.keys(counts).length
+      ? '<div class="tablewrap"><table class="ev-table"><thead><tr><th>Event</th><th>Fired</th><th>What it means</th></tr></thead><tbody>' +
+        Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map(k =>
+          '<tr><td>' + esc(k) + '</td><td>' + counts[k] + '</td><td class="rowsub">' + esc(EVENT_DOC[k] || '') + '</td></tr>').join('') +
+        '</tbody></table></div>'
+      : '<div class="empty"><b>Nothing recorded in this session</b>Open the site in another tab, search or tap a WhatsApp button, then reload this page.</div>') +
+
+    '<h3 style="font-size:14px;margin:22px 0 10px">Every event the site sends</h3>' +
+    '<div class="tablewrap"><table class="ev-table"><thead><tr><th>Event</th><th>Meaning</th></tr></thead><tbody>' +
+    Object.keys(EVENT_DOC).map(k => '<tr><td>' + esc(k) + '</td><td class="rowsub">' + esc(EVENT_DOC[k]) + '</td></tr>').join('') +
+    '</tbody></table></div>';
+};
+
+const EVENT_DOC = {
+  page_view:            'A route was opened. Sent per page in the app, not just on first load.',
+  search:               'Someone searched. The term is in search_term \u2014 read these weekly, they tell you which categories to collect next.',
+  listing_view:         'A firm profile was opened.',
+  listing_contact:      'Someone tapped call, WhatsApp or email on a listing. The one that converts free listings to paid.',
+  listing_website:      'Someone clicked through to a firm\u2019s own website.',
+  listing_photo:        'A photograph was enlarged.',
+  listing_video:        'A firm video was played.',
+  listing_share:        'A profile link was shared.',
+  listing_not_found:    'A firm URL was opened that does not exist. Usually a changed slug \u2014 investigate, it means broken links in the wild.',
+  directory_filter:     'A sidebar filter was applied.',
+  directory_sort:       'The sort order was changed.',
+  directory_view:       'Switched between list, grid and map.',
+  directory_empty:      'A search returned nothing. These are gaps in your coverage and a shopping list for the field team.',
+  map_pin_click:        'A map pin was opened.',
+  ad_impression:        'An advertisement was rendered. Your delivery evidence.',
+  ad_click:             'An advertisement was clicked. Your renewal argument.',
+  tender_filter:        'The tenders board was filtered.',
+  job_apply:            'An Apply button was used.',
+  rfq_no_match:         'A quote request found no verified supplier. Tells you exactly which category and district to go collect.',
+  price_index_download: 'The price index CSV was downloaded. Watch this one \u2014 it is the product you can sell.'
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   PUBLISH
+   ═══════════════════════════════════════════════════════════════ */
+RENDER.export = el => {
+  el.innerHTML =
+    '<div class="note"><b>How publishing works in this version.</b>'+
+    'There is no server, so nothing saves itself. Download the files you changed, '+
+    'drop them into <span class="mono">data/</span> on GitHub, and commit. Netlify redeploys in about 30 seconds. '+
+    'Your work is held in this browser until you do.</div>'+
+    (DIRTY.size
+      ? '<div class="toolbar"><button class="btn btn-g" onclick="downloadAll()">Download '+DIRTY.size+' changed file'+(DIRTY.size>1?'s':'')+'</button>'+
+        '<button class="btn" onclick="markPublished()">Mark as published</button></div>'
+      : '<div class="note"><b>Nothing has changed yet.</b>Edit something and it will appear here.</div>')+
+    FILES.map(f=>{
+      const changed = DIRTY.has(f);
+      return '<div class="filecard'+(changed?' changed':'')+'">'+
+        '<span class="fn">data/'+f+'.json</span>'+
+        (changed?'<span class="pill pill-pending">changed</span>':'<span class="pill pill-off">unchanged</span>')+
+        '<button class="btn btn-sm" onclick="downloadOne(\''+f+'\')">Download</button>'+
+        '<button class="btn btn-sm" onclick="copyOne(\''+f+'\')">Copy</button></div>';
+    }).join('');
+};
+
+function fileText(f){ return JSON.stringify(DB[f],null,2)+'\n'; }
+function downloadOne(f){
+  const b=new Blob([fileText(f)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=f+'.json'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+function downloadAll(){ DIRTY.forEach((f,i)=>setTimeout(()=>downloadOne(f),i*260)); }
+async function copyOne(f){
+  try{ await navigator.clipboard.writeText(fileText(f)); toast('Copied — paste over the file on GitHub'); }
+  catch(e){ toast('Copy blocked. Use Download instead.'); }
+}
+function markPublished(){
+  if(!confirm('Only do this once the files are committed. Clears the changed list.')) return;
+  DIRTY.clear(); localStorage.removeItem(LSKEY); paintSave(); buildNav(); go('export'); toast('Change list cleared');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DRAWER EDITORS
+   ═══════════════════════════════════════════════════════════════ */
+function openDrawer(title,html,canDelete){
+  document.getElementById('drawerTitle').textContent=title;
+  document.getElementById('drawerBody').innerHTML=html;
+  document.getElementById('delBtn').style.display=canDelete?'':'none';
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+  const first=document.querySelector('#drawerBody input,#drawerBody select,#drawerBody textarea');
+  if(first) first.focus();
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('scrim').classList.remove('on');
+  CURRENT=null;
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDrawer(); });
+
+const val = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
+const checked = name => [...document.querySelectorAll('input[name="'+name+'"]:checked')].map(x=>x.value);
+const field = (id,label,v,hint,type)=>'<div class="f"><label for="'+id+'">'+label+'</label>'+
+  '<input type="'+(type||'text')+'" id="'+id+'" value="'+esc(v==null?'':v)+'">'+
+  (hint?'<div class="hint">'+hint+'</div>':'')+'</div>';
+const area = (id,label,v,hint)=>'<div class="f"><label for="'+id+'">'+label+'</label>'+
+  '<textarea id="'+id+'">'+esc(v||'')+'</textarea>'+(hint?'<div class="hint">'+hint+'</div>':'')+'</div>';
+const pick = (id,label,v,opts,hint)=>'<div class="f"><label for="'+id+'">'+label+'</label><select id="'+id+'">'+
+  opts.map(o=>'<option value="'+esc(o.v)+'"'+(String(v)===String(o.v)?' selected':'')+'>'+esc(o.l)+'</option>').join('')+
+  '</select>'+(hint?'<div class="hint">'+hint+'</div>':'')+'</div>';
+const boxes = (name,label,sel,opts,hint)=>'<div class="f"><label>'+label+'</label><div class="checks">'+
+  opts.map(o=>'<label><input type="checkbox" name="'+name+'" value="'+esc(o.v)+'"'+
+    ((sel||[]).includes(o.v)?' checked':'')+'>'+esc(o.l)+'</label>').join('')+'</div>'+
+  (hint?'<div class="hint">'+hint+'</div>':'')+'</div>';
+const taxOpts = k => DB.taxonomy[k].map(x=>({v:x.slug,l:x.name}));
+
+/* ── Firm editor ── */
+function editFirm(i){
+  const isNew = i<0;
+  const f = isNew ? {slug:'',name:'',initials:'',categories:[],district:'kampala',area:'',desc:'',
+    rating:4.5,reviews:0,tier:'free',status:'pending',accreditations:[],services:[],
+    phone:'',whatsapp:'',email:'',website:'',logo:'',photos:[],projects:[],
+    verified:false,verifiedDate:null,createdAt:today(),established:'',employees:''} : JSON.parse(JSON.stringify(DB.firms[i]));
+  CURRENT={file:'firms',index:i,item:f,kind:'firm'};
+
+  openDrawer(isNew?'Add firm':'Edit '+f.name,
+    '<fieldset><legend>Identity</legend>'+
+      field('e_name','Business name',f.name,'Exactly as it appears on their signage.')+
+      '<div class="f2">'+field('e_slug','Web address',f.slug,'Becomes /firms/'+(f.slug||'name')+'. Never change it once published.')+
+      field('e_initials','Initials',f.initials,'Shown when there is no logo.')+'</div>'+
+      area('e_desc','Description',f.desc,'One or two plain sentences. What do they actually sell or do?')+
+    '</fieldset>'+
+    '<fieldset><legend>Where and what</legend>'+
+      '<div class="f2">'+pick('e_district','District',f.district,taxOpts('districts'))+
+      field('e_area','Area',f.area,'e.g. Kisenyi, Kampala')+'</div>'+
+      boxes('e_cats','Categories',f.categories,taxOpts('categories'),'Pick every one that genuinely applies. A wrong category is worse than none.')+
+      boxes('e_accs','Accreditation',f.accreditations,taxOpts('accreditations'),'Only tick what you have checked against the public register.')+
+      area('e_services','Services',(f.services||[]).join('\n'),'One per line.')+
+    '</fieldset>'+
+    '<fieldset><legend>Contact</legend>'+
+      '<div class="f2">'+field('e_phone','Phone',f.phone,'+256…')+field('e_whatsapp','WhatsApp',f.whatsapp,'Usually the same number.')+'</div>'+
+      '<div class="f2">'+field('e_email','Email',f.email,'','email')+field('e_website','Website',f.website,'','url')+'</div>'+
+    '</fieldset>'+
+    '<fieldset><legend>Images</legend>'+
+      field('e_logo','Logo path',f.logo,'Upload to images/logos/ first, then put the path here. Leave blank to use initials.')+
+      '<div id="photoRep">'+photoRep(f.photos||[])+'</div>'+
+      '<button type="button" class="btn btn-sm" onclick="addPhoto()">Add photograph</button>'+
+    '</fieldset>'+
+    '<fieldset><legend>Listing status</legend>'+
+      '<div class="f3">'+
+      pick('e_tier','Tier',f.tier,taxOpts('tiers'))+
+      pick('e_status','Status',f.status||'live',[{v:'live',l:'Live'},{v:'pending',l:'Pending review'},{v:'rejected',l:'Rejected'},{v:'suspended',l:'Suspended'}])+
+      pick('e_verified','Verified',f.verified?'yes':'no',[{v:'no',l:'Not verified'},{v:'yes',l:'Verified'}])+
+      '</div>'+
+      '<div class="f2">'+field('e_verifiedDate','Date verified',f.verifiedDate||'','Shown on the listing as "Verified Aug 2026".','date')+
+      field('e_createdAt','Date added',f.createdAt||today(),'','date')+'</div>'+
+      '<div class="f3">'+field('e_rating','Rating',f.rating,'0 to 5','number')+
+      field('e_reviews','Review count',f.reviews,'','number')+
+      field('e_established','Established',f.established,'Year','number')+'</div>'+
+    '</fieldset>', !isNew);
+}
+function photoRep(photos){
+  return photos.map((p,n)=>'<div class="rep" data-photo><div class="rep-head"><b>Photograph '+(n+1)+'</b>'+
+    '<div class="spacer"></div><button type="button" class="btn btn-sm btn-d" onclick="this.closest(\'[data-photo]\').remove()">Remove</button></div>'+
+    '<div class="f"><label>File path</label><input type="text" data-p="src" value="'+esc(p.src)+'"></div>'+
+    '<div class="f2"><div class="f"><label>Alt text</label><input type="text" data-p="alt" value="'+esc(p.alt||'')+'"></div>'+
+    '<div class="f"><label>Caption</label><input type="text" data-p="caption" value="'+esc(p.caption||'')+'"></div></div></div>').join('');
+}
+function addPhoto(){
+  const box=document.getElementById('photoRep');
+  const n=box.querySelectorAll('[data-photo]').length;
+  box.insertAdjacentHTML('beforeend', photoRep([{src:'images/firms/',alt:'',caption:''}]).replace('Photograph 1','Photograph '+(n+1)));
+}
+
+/* ── Other editors ── */
+function editTender(i){
+  const isNew=i<0;
+  const t=isNew?{ref:'',title:'',org:'',deadline:'',value:'',valueUgx:0,category:'building-works',
+    featured:false,source:'PPDA portal',postedAt:today()}:JSON.parse(JSON.stringify(DB.tenders[i]));
+  CURRENT={file:'tenders',index:i,item:t,kind:'tender'};
+  openDrawer(isNew?'Add tender':'Edit tender',
+    '<fieldset><legend>Notice</legend>'+
+      field('e_ref','Reference number',t.ref,'As printed on the notice.')+
+      field('e_title','Title',t.title)+
+      field('e_org','Procuring entity',t.org)+
+    '</fieldset>'+
+    '<fieldset><legend>Value and timing</legend>'+
+      '<div class="f2">'+field('e_value','Value as displayed',t.value,'e.g. UGX 8.4B')+
+      field('e_valueUgx','Value in shillings',t.valueUgx,'Digits only. Used for sorting by value.','number')+'</div>'+
+      '<div class="f2">'+field('e_deadline','Closing date',t.deadline,'It hides itself after this date.','date')+
+      field('e_postedAt','Date posted',t.postedAt,'','date')+'</div>'+
+    '</fieldset>'+
+    '<fieldset><legend>Classification</legend>'+
+      '<div class="f2">'+field('e_category','Category',t.category,'e.g. building-works, roads-civil, consultancy')+
+      field('e_source','Source',t.source,'Where you found it.')+'</div>'+
+      pick('e_featured','Featured notice',t.featured?'yes':'no',[{v:'no',l:'No'},{v:'yes',l:'Yes — paid placement'}],
+        'Featured notices sit at the top. This is sold, so only set it for a paying advertiser.')+
+    '</fieldset>', !isNew);
+}
+
+function editJob(i){
+  const isNew=i<0;
+  const j=isNew?{slug:'',title:'',company:'',companySlug:'',district:'kampala',location:'',
+    type:'Full-time',discipline:'',salary:'',experience:'',level:'mid',
+    postedAt:today(),closesAt:'',featured:false,applyEmail:''}:JSON.parse(JSON.stringify(DB.jobs[i]));
+  CURRENT={file:'jobs',index:i,item:j,kind:'job'};
+  openDrawer(isNew?'Add vacancy':'Edit vacancy',
+    '<fieldset><legend>Role</legend>'+
+      field('e_title','Job title',j.title)+
+      field('e_slug','Web address',j.slug,'Lower case, hyphens.')+
+      '<div class="f2">'+field('e_company','Employer',j.company)+
+      pick('e_companySlug','Link to a listed firm',j.companySlug,
+        [{v:'',l:'Not listed'}].concat(DB.firms.map(f=>({v:f.slug,l:f.name}))),
+        'Links the vacancy to their profile.')+'</div>'+
+    '</fieldset>'+
+    '<fieldset><legend>Where and terms</legend>'+
+      '<div class="f2">'+pick('e_district','District',j.district,taxOpts('districts'))+
+      field('e_location','Location as displayed',j.location)+'</div>'+
+      '<div class="f2">'+field('e_type','Employment type',j.type,'Full-time, Contract…')+
+      field('e_discipline','Discipline',j.discipline,'e.g. quantity-surveying')+'</div>'+
+      '<div class="f2">'+field('e_salary','Salary range',j.salary,'e.g. UGX 3–5M/month')+
+      field('e_experience','Experience',j.experience,'e.g. 3–5 years')+'</div>'+
+      pick('e_level','Level',j.level,[{v:'entry',l:'Entry'},{v:'mid',l:'Mid'},{v:'senior',l:'Senior'},{v:'principal',l:'Principal'}])+
+    '</fieldset>'+
+    '<fieldset><legend>Listing</legend>'+
+      '<div class="f2">'+field('e_postedAt','Date posted',j.postedAt,'','date')+
+      field('e_closesAt','Closing date',j.closesAt,'Hides itself after this date.','date')+'</div>'+
+      field('e_applyEmail','Applications to',j.applyEmail,'','email')+
+      pick('e_featured','Featured',j.featured?'yes':'no',[{v:'no',l:'No'},{v:'yes',l:'Yes — paid placement'}])+
+    '</fieldset>', !isNew);
+}
+
+function editArticle(i){
+  const isNew=i<0;
+  const a=isNew?{slug:'',title:'',excerpt:'',category:'Industry News',icon:'newspaper',
+    date:today(),readTime:'3 min read',main:false,sponsored:false}:JSON.parse(JSON.stringify(DB.articles[i]));
+  CURRENT={file:'articles',index:i,item:a,kind:'article'};
+  const icons=['newspaper','clipboard','bar-chart','scale','crane','building','bulb','institution','map','cash'];
+  openDrawer(isNew?'Add article':'Edit article',
+    '<fieldset><legend>Article</legend>'+
+      field('e_title','Headline',a.title)+
+      field('e_slug','Web address',a.slug)+
+      area('e_excerpt','Summary',a.excerpt,'Two or three sentences. This is all that shows on the site in this version.')+
+    '</fieldset>'+
+    '<fieldset><legend>Presentation</legend>'+
+      '<div class="f2">'+field('e_category','Category',a.category,'e.g. Regulation, Market Prices')+
+      pick('e_icon','Icon',a.icon,icons.map(x=>({v:x,l:x})))+'</div>'+
+      '<div class="f2">'+field('e_date','Date',a.date,'','date')+
+      field('e_readTime','Reading time',a.readTime)+'</div>'+
+      pick('e_sponsored','Sponsored',a.sponsored?'yes':'no',[{v:'no',l:'No'},{v:'yes',l:'Yes — must be labelled'}],
+        'Paid editorial must be labelled. This is not optional.')+
+    '</fieldset>', !isNew);
+}
+
+function editAd(i,presetSlot){
+  const isNew=i<0;
+  const ads=DB.ads.ads||[];
+  const a=isNew?{id:'',slot:presetSlot||Object.keys(DB.ads.slots)[0],active:true,start:today(),end:'',
+    advertiser:'',image:'',flier:'',video:'',poster:'',alt:'',link:'',title:'',body:'',cta:'Learn more'}:JSON.parse(JSON.stringify(ads[i]));
+  CURRENT={file:'ads',index:i,item:a,kind:'ad'};
+  const slotOpts=Object.keys(DB.ads.slots).map(k=>({v:k,l:DB.ads.slots[k].label+' ('+(DB.ads.slots[k].size||'')+')'}));
+  openDrawer(isNew?'Sell a slot':'Edit advertisement',
+    '<fieldset><legend>Campaign</legend>'+
+      '<div class="f2">'+field('e_id','Campaign id',a.id,'e.g. crownpaints-2026-q4')+
+      field('e_advertiser','Advertiser',a.advertiser)+'</div>'+
+      pick('e_slot','Slot',a.slot,slotOpts)+
+      '<div class="f2">'+field('e_start','Starts',a.start,'','date')+
+      field('e_end','Ends',a.end,'Stops showing on its own.','date')+'</div>'+
+      pick('e_active','Running',a.active===false?'no':'yes',[{v:'yes',l:'Yes'},{v:'no',l:'Paused'}])+
+    '</fieldset>'+
+    '<fieldset><legend>Where the click goes</legend>'+
+      field('e_link','Destination link',a.link,'Every creative type is clickable. Opens in a new tab with rel="nofollow sponsored", which is what Google requires for paid links.','url')+
+    '</fieldset>'+
+    '<fieldset><legend>Creative</legend>'+
+      '<div class="hint" style="margin-bottom:12px">Fill in ONE of the four blocks below. '+
+      'Nothing is ever stretched on the site \u2014 a creative that does not match the slot letterboxes instead. '+
+      'Check it on the Media check page after saving.</div>'+
+      field('e_image','1. Banner image',a.image,'images/ads/name.png \u2014 match the slot size shown above for a perfect fit.')+
+      field('e_flier','2. Flier',a.flier,'images/ads/name.png \u2014 any shape. Keeps its natural proportions and gets an Enlarge link.')+
+      '<div class="f2">'+
+        field('e_video','3. Video (mp4)',a.video,'images/ads/name.mp4 \u2014 keep it under 5MB. Plays muted with controls.')+
+        field('e_poster','Video poster image',a.poster,'Shown before play. Same aspect ratio as the video.')+
+      '</div>'+
+      field('e_alt','Image or video description',a.alt,'What the creative says. Read aloud by screen readers and shown if the file fails to load.')+
+      '<div class="hint" style="margin:8px 0 12px"><b>4. Text advertisement</b> \u2014 no artwork needed. '+
+      'Easiest thing to sell to a first advertiser who has no design team.</div>'+
+      field('e_title','Text headline',a.title)+
+      area('e_body','Text body',a.body)+
+      field('e_cta','Button label',a.cta)+
+    '</fieldset>', !isNew);
+}
+
+/* ── Save ── */
+function saveDrawer(){
+  if(!CURRENT) return;
+  const k=CURRENT.kind, it=CURRENT.item;
+  document.querySelectorAll('#drawerBody .bad').forEach(n=>n.classList.remove('bad'));
+
+  const fail=(id,msg)=>{ const n=document.getElementById(id); if(n){n.classList.add('bad');n.focus();} toast(msg); return false; };
+
+  if(k==='firm'){
+    it.name=val('e_name'); if(!it.name) return fail('e_name','A firm needs a name');
+    it.slug=slugify(val('e_slug')||it.name); 
+    const dupe=DB.firms.some((f,n)=>f.slug===it.slug && n!==CURRENT.index);
+    if(dupe) return fail('e_slug','That web address is already used by another firm');
+    it.initials=val('e_initials')||initials(it.name);
+    it.desc=val('e_desc');
+    it.district=val('e_district'); it.area=val('e_area');
+    it.categories=checked('e_cats');
+    if(!it.categories.length) return fail('e_district','Pick at least one category');
+    it.accreditations=checked('e_accs');
+    it.services=val('e_services').split('\n').map(s=>s.trim()).filter(Boolean);
+    it.phone=val('e_phone'); it.whatsapp=val('e_whatsapp')||it.phone;
+    if(!it.phone && !it.whatsapp) return fail('e_phone','A listing nobody can call is worse than no listing');
+    it.email=val('e_email'); it.website=val('e_website'); it.logo=val('e_logo');
+    it.photos=[...document.querySelectorAll('#photoRep [data-photo]')].map(n=>({
+      src:n.querySelector('[data-p=src]').value.trim(),
+      alt:n.querySelector('[data-p=alt]').value.trim(),
+      caption:n.querySelector('[data-p=caption]').value.trim()
+    })).filter(p=>p.src && p.src!=='images/firms/');
+    it.tier=val('e_tier'); it.status=val('e_status');
+    it.verified=val('e_verified')==='yes';
+    it.verifiedDate=it.verified?(val('e_verifiedDate')||today()):null;
+    it.createdAt=val('e_createdAt')||today();
+    it.rating=parseFloat(val('e_rating'))||0;
+    it.reviews=parseInt(val('e_reviews'),10)||0;
+    it.established=parseInt(val('e_established'),10)||'';
+    if(CURRENT.index<0){ it.id=Math.max(0,...DB.firms.map(f=>f.id||0))+1; DB.firms.push(it); }
+    else DB.firms[CURRENT.index]=it;
+  }
+
+  if(k==='tender'){
+    it.ref=val('e_ref'); it.title=val('e_title'); it.org=val('e_org');
+    if(!it.title) return fail('e_title','A tender needs a title');
+    it.deadline=val('e_deadline');
+    if(!it.deadline) return fail('e_deadline','Without a closing date it will never expire');
+    it.value=val('e_value'); it.valueUgx=parseInt(val('e_valueUgx'),10)||0;
+    it.category=slugify(val('e_category')); it.source=val('e_source');
+    it.postedAt=val('e_postedAt')||today(); it.featured=val('e_featured')==='yes';
+    it.urgent=false;
+    if(CURRENT.index<0) DB.tenders.push(it); else DB.tenders[CURRENT.index]=it;
+  }
+
+  if(k==='job'){
+    it.title=val('e_title'); if(!it.title) return fail('e_title','A vacancy needs a title');
+    it.slug=slugify(val('e_slug')||it.title);
+    it.company=val('e_company'); it.companySlug=val('e_companySlug');
+    it.district=val('e_district'); it.location=val('e_location');
+    it.type=val('e_type'); it.discipline=slugify(val('e_discipline'));
+    it.salary=val('e_salary'); it.experience=val('e_experience'); it.level=val('e_level');
+    it.postedAt=val('e_postedAt')||today(); it.closesAt=val('e_closesAt');
+    it.applyEmail=val('e_applyEmail'); it.featured=val('e_featured')==='yes';
+    if(CURRENT.index<0) DB.jobs.push(it); else DB.jobs[CURRENT.index]=it;
+  }
+
+  if(k==='article'){
+    it.title=val('e_title'); if(!it.title) return fail('e_title','An article needs a headline');
+    it.slug=slugify(val('e_slug')||it.title);
+    it.excerpt=val('e_excerpt'); it.category=val('e_category'); it.icon=val('e_icon');
+    it.date=val('e_date')||today(); it.readTime=val('e_readTime');
+    it.sponsored=val('e_sponsored')==='yes';
+    if(CURRENT.index<0) DB.articles.unshift(it); else DB.articles[CURRENT.index]=it;
+  }
+
+  if(k==='ad'){
+    it.advertiser=val('e_advertiser');
+    it.id=slugify(val('e_id')||it.advertiser+'-'+today());
+    if(!it.advertiser) return fail('e_advertiser','Who is paying for this?');
+    it.slot=val('e_slot'); it.start=val('e_start'); it.end=val('e_end');
+    it.active=val('e_active')==='yes';
+    it.link=val('e_link'); if(!it.link) return fail('e_link','An advertisement with no link cannot deliver clicks');
+    it.image=val('e_image'); it.flier=val('e_flier');
+    it.video=val('e_video'); it.poster=val('e_poster'); it.alt=val('e_alt');
+    it.title=val('e_title'); it.body=val('e_body'); it.cta=val('e_cta');
+    const filled=[it.image,it.flier,it.video,it.title].filter(Boolean).length;
+    if(!filled) return fail('e_image','Give it a banner, a flier, a video or a text headline');
+    if(filled>1) return fail('e_image','Fill only one creative type. Right now '+filled+' are set and only the first will show.');
+    if((it.image||it.video||it.flier) && !it.alt)
+      return fail('e_alt','Describe the creative. Screen readers need it, and it shows if the file fails to load.');
+    DB.ads.ads = DB.ads.ads||[];
+    if(CURRENT.index<0) DB.ads.ads.push(it); else DB.ads.ads[CURRENT.index]=it;
+  }
+
+  mark(CURRENT.file);
+  const page=CURRENT.file==='ads'?'ads':CURRENT.file;
+  closeDrawer(); go(page); toast('Saved. Publish when you are ready.');
+}
+
+function deleteCurrent(){
+  if(!CURRENT || CURRENT.index<0) return;
+  if(!confirm('Delete this permanently? You can still recover it from GitHub history after publishing.')) return;
+  if(CURRENT.file==='ads') DB.ads.ads.splice(CURRENT.index,1);
+  else DB[CURRENT.file].splice(CURRENT.index,1);
+  mark(CURRENT.file);
+  const page=CURRENT.file;
+  closeDrawer(); go(page); toast('Deleted');
+}
+</script>
+</body>
+</html>

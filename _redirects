@@ -1,0 +1,35 @@
+# BuildList — Netlify redirects
+# A product of Sharplink Ventures (U) Limited
+# Docs: https://docs.netlify.com/routing/redirects/
+
+# ── Friendly paths → the matching in-app route ───────
+# The site is a single HTML file that routes on the hash, so a clean
+# path like /directory is redirected to /#/directory. This is what
+# makes printed URLs and business-card links work.
+/directory    /browse/       301
+/tenders      /#/tenders     301
+/jobs         /#/jobs        301
+/news         /#/news        301
+/prices       /#/news        301
+/advertise    /#/advertise   301
+/submit       /#/submit      301
+/add-listing  /#/submit      301
+/about        /#/about       301
+/contact      /#/about       301
+
+# ── Static pages (Stage 5) ───────────────────────────
+# /firms/*, /browse/*, /tenders/*, /news/* are REAL generated HTML
+# files with their own titles and structured data. Netlify serves
+# them directly — do not redirect them into the hash router or the
+# whole point of Stage 5 is lost.
+
+# Category shorthand: /quantity-surveyors-kampala → /browse/…
+/quantity-surveyors*      /browse/quantity-surveyors:splat      301
+/architecture-firms*      /browse/architecture-firms:splat      301
+/civil-engineering*       /browse/civil-engineering:splat       301
+/building-contractors*    /browse/building-contractors:splat    301
+/material-suppliers*      /browse/material-suppliers:splat      301
+
+# ── Catch-all ────────────────────────────────────────
+# Anything else serves the app rather than a 404.
+/*            /index.html    200

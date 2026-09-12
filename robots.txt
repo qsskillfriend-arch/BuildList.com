@@ -1,0 +1,48 @@
+# ═══════════════════════════════════════════════════
+# BUILDLIST — ROBOTS.TXT
+# A product of Sharplink Ventures (U) Limited
+# https://buildlist.com/robots.txt
+# ═══════════════════════════════════════════════════
+
+# Default: allow everything. We want to be indexed — organic search
+# is the cheapest customer acquisition channel this business has.
+User-agent: *
+Allow: /
+Crawl-delay: 1
+
+# The raw JSON is the rendered pages' source, not content in its own
+# right. Keeping it out of the index avoids duplicate-content noise.
+Disallow: /data/
+Disallow: /admin.html
+Disallow: /supabase/
+
+Sitemap: https://buildlist.com/sitemap.xml
+
+# ── Block AI training crawlers ───────────────────────
+# Our listing data is collected by hand and is the main asset of the
+# business. These directives are advisory — well-behaved crawlers
+# honour them, others ignore them. Remove any line below if you decide
+# you would rather be cited by AI assistants than excluded from them.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
