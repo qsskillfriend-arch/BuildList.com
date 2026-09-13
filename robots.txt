@@ -14,6 +14,8 @@ Crawl-delay: 1
 # right. Keeping it out of the index avoids duplicate-content noise.
 Disallow: /data/
 Disallow: /admin.html
+Disallow: /portal.html
+Disallow: /cms/
 Disallow: /supabase/
 
 Sitemap: https://buildlist.com/sitemap.xml

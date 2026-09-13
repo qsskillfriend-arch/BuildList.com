@@ -1,0 +1,390 @@
+# ═══════════════════════════════════════════════════════════════
+# BUILDLIST.COM — SVELTIA CMS
+# A product of Sharplink Ventures (U) Limited
+#
+# Git-based editing. Your team logs in at buildlist.com/cms with a
+# GitHub account, edits in a proper form interface, and the CMS
+# commits straight to the repository. Netlify rebuilds in ~30s.
+#
+# We use the GitHub backend directly, NOT Git Gateway. Netlify's own
+# docs now state Git Gateway is deprecated, that new configurations
+# are not recommended, and that they will no longer fix functionality
+# bugs in it. Going straight to GitHub avoids that dependency
+# entirely — the cost is that each editor needs a free GitHub account.
+#
+# SETUP: see supabase/PORTAL.md, section "Option A".
+# ═══════════════════════════════════════════════════════════════
+
+backend:
+  name: github
+  repo: YOUR-USERNAME/buildlist        # ← change this
+  branch: main
+  base_url: https://sveltia-cms-auth.YOUR-SUBDOMAIN.workers.dev   # ← your OAuth worker
+
+publish_mode: simple
+site_url: https://buildlist.com
+display_url: https://buildlist.com
+logo_url: /icon-192.png
+
+media_folder: images
+public_folder: /images
+
+collections:
+  # ─────────────────────────────────────────────────────────────
+  - name: firms
+    label: Firms
+    label_singular: firm
+    description: >-
+      Every listed business. New entries default to "pending" — somebody
+      telephones before it appears on the site.
+    file: data/firms.json
+    format: json
+    editor: { preview: false }
+    fields:
+      - name: firms
+        label: Firms
+        label_singular: Firm
+        widget: list
+        summary: '{{fields.name}} — {{fields.area}}'
+        sortable_fields: [name, district, tier, status]
+        fields:
+          - { name: id, label: ID, widget: number, value_type: int }
+          - { name: name, label: Business name, widget: string }
+          - { name: slug, label: Web address, widget: string,
+              hint: "Becomes /firms/<slug>. NEVER change it once published — it breaks every link the firm has shared." }
+          - { name: initials, label: Initials, widget: string, required: false,
+              hint: "Shown when there is no logo." }
+          - name: categories
+            label: Categories
+            widget: select
+            multiple: true
+            options:
+              - { label: Architecture & Design, value: architecture-design }
+              - { label: Quantity Surveying, value: quantity-surveying }
+              - { label: Civil & Structural Engineering, value: civil-structural }
+              - { label: Land Surveying, value: land-surveying }
+              - { label: Property Valuers, value: property-valuers }
+              - { label: Urban & Town Planning, value: urban-planning }
+              - { label: General Contracting, value: general-contracting }
+              - { label: Electrical Contracting, value: electrical-contracting }
+              - { label: Plumbing & Fire Fighting, value: plumbing-fire }
+              - { label: HVAC, value: hvac }
+              - { label: Structural Steel Design, value: structural-steel }
+              - { label: Landscaping & External Works, value: landscaping }
+              - { label: Building Management Systems, value: building-management }
+              - { label: ICT & Network Infrastructure, value: ict-network }
+              - { label: Facility Management, value: facility-management }
+              - { label: Health & Safety Consulting, value: health-safety }
+              - { label: Environmental & Sustainability, value: environmental }
+              - { label: Real Estate Development, value: real-estate-development }
+          - name: district
+            label: District
+            widget: select
+            options: [kampala, wakiso, mukono, jinja, entebbe, mbarara, gulu, hoima,
+                      kayunga, kabale, tororo, luweero, bushenyi, busia, mbale]
+          - { name: area, label: Area, widget: string, required: false }
+          - { name: address, label: Full address, widget: string, required: false }
+          - { name: desc, label: Description, widget: text,
+              hint: "Plain language. What do they actually sell or do?" }
+          - name: descSource
+            label: Where the description came from
+            widget: select
+            default: submitted
+            options:
+              - { label: Supplied by the business, value: submitted }
+              - { label: Compiled from public sources, value: derived }
+              - { label: From the source spreadsheet, value: sheet }
+              - { label: Researched by us, value: researched }
+            hint: "Drives the provenance line shown on the listing. Be accurate."
+          - { name: services, label: Services, widget: list, required: false }
+          - name: accreditations
+            label: Accreditation
+            widget: select
+            multiple: true
+            required: false
+            options:
+              - { label: ARB Registered, value: arb }
+              - { label: ERB Registered, value: erb }
+              - { label: SRB Registered, value: srb }
+              - { label: UIPE Member, value: uipe }
+              - { label: ISU Member, value: isu }
+              - { label: Registered Planner, value: uspe }
+              - { label: ISO Certified, value: iso }
+              - { label: PPDA Listed, value: ppda }
+            hint: "Only tick what you have checked against the public register."
+          - { name: phone, label: Phone, widget: string, required: false }
+          - { name: whatsapp, label: WhatsApp, widget: string, required: false }
+          - { name: email, label: Email, widget: string, required: false }
+          - { name: website, label: Website, widget: string, required: false }
+          - { name: logo, label: Logo, widget: image, required: false,
+              media_folder: /images/logos, public_folder: images/logos }
+          - name: photos
+            label: Photographs
+            widget: list
+            required: false
+            fields:
+              - { name: src, label: Image, widget: image,
+                  media_folder: /images/firms, public_folder: images/firms }
+              - { name: alt, label: Alt text, widget: string }
+              - { name: caption, label: Caption, widget: string, required: false }
+          - name: tier
+            label: Tier
+            widget: select
+            default: free
+            options: [free, starter, verified, premium, platinum]
+            hint: "Paid tiers mean somebody paid. Do not set this without a receipt."
+          - name: status
+            label: Status
+            widget: select
+            default: pending
+            options: [pending, live, rejected, suspended]
+          - { name: verified, label: Verified, widget: boolean, default: false,
+              hint: "Only after you telephoned, confirmed premises and checked the register." }
+          - { name: verifiedDate, label: Date verified, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, required: false, picker_utc: true }
+          - { name: rating, label: Rating, widget: number, required: false, value_type: float }
+          - { name: reviews, label: Review count, widget: number, required: false, value_type: int }
+          - { name: established, label: Year established, widget: number, required: false }
+          - { name: employees, label: Staff, widget: string, required: false }
+          - { name: lat, label: Latitude, widget: number, required: false, value_type: float }
+          - { name: lng, label: Longitude, widget: number, required: false, value_type: float }
+          - name: geoPrecision
+            label: Pin accuracy
+            widget: select
+            required: false
+            default: district
+            options:
+              - { label: Exact area, value: area }
+              - { label: District centre (approximate), value: district }
+          - { name: createdAt, label: Date added, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, required: false, picker_utc: true }
+          - name: projects
+            label: Selected projects
+            widget: list
+            required: false
+            fields:
+              - { name: name, label: Project, widget: string }
+              - { name: value, label: Value, widget: string, required: false }
+              - { name: year, label: Year, widget: number, required: false }
+
+  # ─────────────────────────────────────────────────────────────
+  - name: tenders
+    label: Tenders
+    description: Closed notices hide themselves. You only need to add new ones.
+    file: data/tenders.json
+    format: json
+    fields:
+      - name: tenders
+        label: Tenders
+        label_singular: Tender
+        widget: list
+        summary: '{{fields.title}} — closes {{fields.deadline}}'
+        fields:
+          - { name: ref, label: Reference, widget: string }
+          - { name: title, label: Title, widget: string }
+          - { name: org, label: Procuring entity, widget: string }
+          - name: clientType
+            label: Client type
+            widget: select
+            options:
+              - { label: Government, value: government }
+              - { label: Parastatal / authority, value: parastatal }
+              - { label: NGO & donor funded, value: ngo }
+              - { label: Private sector, value: private }
+          - name: category
+            label: Category
+            widget: select
+            options: [building-works, roads-civil, consultancy, water-sanitation, supply]
+          - { name: deadline, label: Closing date, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true,
+              hint: "It hides itself from the site after this date." }
+          - { name: value, label: Value as displayed, widget: string, required: false }
+          - { name: valueUgx, label: Value in shillings, widget: number, required: false,
+              value_type: int, hint: "Digits only. Used for sorting by value." }
+          - { name: featured, label: Featured (paid), widget: boolean, default: false }
+          - { name: source, label: Source, widget: string, required: false }
+          - { name: postedAt, label: Date posted, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+
+  # ─────────────────────────────────────────────────────────────
+  - name: jobs
+    label: Jobs
+    file: data/jobs.json
+    format: json
+    fields:
+      - name: jobs
+        label: Vacancies
+        label_singular: Vacancy
+        widget: list
+        summary: '{{fields.title}} — {{fields.company}}'
+        fields:
+          - { name: slug, label: Web address, widget: string }
+          - { name: title, label: Job title, widget: string }
+          - { name: company, label: Employer, widget: string }
+          - { name: companySlug, label: Linked firm slug, widget: string, required: false }
+          - name: district
+            label: District
+            widget: select
+            options: [kampala, wakiso, mukono, jinja, entebbe, mbarara, gulu, hoima, mbale]
+          - { name: location, label: Location as displayed, widget: string }
+          - { name: type, label: Employment type, widget: string }
+          - { name: discipline, label: Discipline, widget: string }
+          - { name: salary, label: Salary range, widget: string, required: false }
+          - { name: experience, label: Experience, widget: string, required: false }
+          - name: level
+            label: Level
+            widget: select
+            options: [entry, mid, senior, principal]
+          - { name: applyEmail, label: Applications to, widget: string }
+          - { name: featured, label: Featured (paid), widget: boolean, default: false }
+          - { name: postedAt, label: Posted, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+          - { name: closesAt, label: Closes, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+
+  # ─────────────────────────────────────────────────────────────
+  - name: articles
+    label: Articles
+    file: data/articles.json
+    format: json
+    fields:
+      - name: articles
+        label: Articles
+        label_singular: Article
+        widget: list
+        summary: '{{fields.title}}'
+        fields:
+          - { name: slug, label: Web address, widget: string }
+          - { name: title, label: Headline, widget: string }
+          - { name: excerpt, label: Summary, widget: text }
+          - { name: category, label: Category, widget: string }
+          - name: icon
+            label: Icon
+            widget: select
+            options: [newspaper, clipboard, bar-chart, scale, crane, building, bulb, institution, map, cash]
+          - { name: date, label: Date, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+          - { name: readTime, label: Reading time, widget: string, required: false }
+          - { name: sponsored, label: Sponsored (must be labelled), widget: boolean, default: false }
+
+  # ─────────────────────────────────────────────────────────────
+  - name: prices
+    label: Material prices
+    description: Update every Wednesday from the same three suppliers.
+    file: data/prices.json
+    format: json
+    fields:
+      - { name: updated, label: Date collected, widget: datetime,
+          date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+      - { name: sources, label: Suppliers, widget: list }
+      - { name: note, label: Note, widget: text, required: false }
+      - name: items
+        label: Materials
+        widget: list
+        summary: '{{fields.name}} — {{fields.val}}'
+        fields:
+          - { name: name, label: Material, widget: string }
+          - { name: val, label: Price, widget: string }
+          - { name: change, label: Change, widget: string }
+          - { name: up, label: Direction, widget: select, required: false,
+              options: [{ label: Up, value: true }, { label: Down, value: false }] }
+
+  # ─────────────────────────────────────────────────────────────
+  - name: spotlight
+    label: Monthly slots
+    description: >-
+      Product of the Month is PAID and labelled as advertising.
+      Benchmark Project is EDITORIAL and is never for sale.
+    file: data/spotlight.json
+    format: json
+    fields:
+      - name: product
+        label: Product of the Month (paid)
+        widget: object
+        fields:
+          - { name: active, label: Running, widget: boolean, default: true }
+          - { name: month, label: Month (YYYY-MM), widget: string }
+          - { name: monthLabel, label: Month as displayed, widget: string }
+          - { name: advertiser, label: Advertiser, widget: string }
+          - { name: name, label: Product name, widget: string }
+          - { name: tagline, label: One-line summary, widget: string }
+          - { name: body, label: Write-up, widget: text }
+          - { name: image, label: Image (4:3), widget: image, required: false,
+              media_folder: /images/spotlight, public_folder: images/spotlight }
+          - { name: alt, label: Image description, widget: string, required: false }
+          - { name: link, label: Destination link, widget: string, required: false }
+          - { name: cta, label: Button label, widget: string, required: false }
+          - { name: supplierSlug, label: Linked firm slug, widget: string, required: false }
+          - { name: rateUgx, label: Rate charged (UGX), widget: number, required: false }
+          - name: specs
+            label: Specification
+            widget: list
+            required: false
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: value, label: Value, widget: string }
+      - name: project
+        label: Benchmark Project (editorial — never sold)
+        widget: object
+        fields:
+          - { name: active, label: Running, widget: boolean, default: true }
+          - { name: month, label: Month (YYYY-MM), widget: string }
+          - { name: monthLabel, label: Month as displayed, widget: string }
+          - { name: name, label: Project name, widget: string }
+          - { name: tagline, label: One-line summary, widget: string }
+          - { name: body, label: Editorial write-up, widget: text }
+          - { name: location, label: Location, widget: string, required: false }
+          - { name: sector, label: Sector, widget: string, required: false }
+          - { name: completed, label: Completed, widget: string, required: false }
+          - { name: image, label: Image (16:9), widget: image, required: false,
+              media_folder: /images/spotlight, public_folder: images/spotlight }
+          - { name: alt, label: Image description, widget: string, required: false }
+          - { name: credit, label: Photograph credit, widget: string, required: false }
+          - name: facts
+            label: Project facts
+            widget: list
+            required: false
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: value, label: Value, widget: string }
+          - { name: lessons, label: Lessons, widget: list, required: false }
+
+  # ─────────────────────────────────────────────────────────────
+  - name: ads
+    label: Advertising
+    file: data/ads.json
+    format: json
+    fields:
+      - name: ads
+        label: Campaigns
+        label_singular: Campaign
+        widget: list
+        summary: '{{fields.advertiser}} — {{fields.slot}}'
+        fields:
+          - { name: id, label: Campaign ID, widget: string }
+          - { name: advertiser, label: Advertiser, widget: string }
+          - name: slot
+            label: Slot
+            widget: select
+            options: [home-leaderboard, home-billboard, directory-sidebar, directory-infeed,
+                      tenders-leaderboard, tenders-infeed, tenders-sidebar,
+                      jobs-leaderboard, jobs-sidebar, news-sidebar, news-sidebar-lower,
+                      footer-leaderboard]
+          - { name: active, label: Running, widget: boolean, default: true }
+          - { name: start, label: Starts, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+          - { name: end, label: Ends, widget: datetime,
+              date_format: YYYY-MM-DD, time_format: false, picker_utc: true }
+          - { name: link, label: Destination link, widget: string }
+          - { name: image, label: Banner image, widget: image, required: false,
+              media_folder: /images/ads, public_folder: images/ads }
+          - { name: flier, label: Flier, widget: image, required: false,
+              media_folder: /images/ads, public_folder: images/ads }
+          - { name: video, label: Video (mp4), widget: file, required: false,
+              media_folder: /images/ads, public_folder: images/ads }
+          - { name: poster, label: Video poster, widget: image, required: false,
+              media_folder: /images/ads, public_folder: images/ads }
+          - { name: alt, label: Creative description, widget: string, required: false }
+          - { name: title, label: Text headline, widget: string, required: false }
+          - { name: body, label: Text body, widget: text, required: false }
+          - { name: cta, label: Button label, widget: string, required: false }

@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en-UG">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Staff portal — BuildList.com</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   BUILDLIST.COM — STAFF PORTAL
+   Real login, real roles, backed by Supabase. Same workbench
+   language as admin.html: dense, cool, instrumental.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#0F1A14; --ink-2:#17251D; --forest:#1A3C2A; --gold:#C49A16;
+  --field:#F1F4F1; --surface:#FFF; --line:#DDE4DE; --line-2:#C3CEC6;
+  --text:#16211B; --text-2:#5C6B62; --text-3:#8A978F;
+  --live:#1F7A4D; --pending:#A87908; --danger:#B83232;
+  --danger-soft:#FBEDED; --live-soft:#E8F4ED; --pending-soft:#FBF3DF;
+  --r:6px; --rail:230px; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--field);color:var(--text);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--forest)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--mono);font-size:12.5px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.spacer{margin-left:auto}
+
+/* ── Sign in ─────────────────────────────────────────────────── */
+#auth{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;
+  justify-content:center;z-index:100;padding:24px}
+.auth-box{max-width:420px;width:100%}
+.auth-logo{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.auth-tile{width:40px;height:40px;background:var(--gold);border-radius:8px;display:flex;
+  align-items:center;justify-content:center}
+.auth-tile svg{width:24px;height:24px}
+.auth-logo b{color:#fff;font-size:16px;font-weight:600}
+.auth-logo b span{color:var(--gold)}
+.auth-logo small{display:block;color:#6E8377;font-size:11px;font-weight:400}
+.auth-box h1{color:#fff;font-size:19px;font-weight:600;margin-bottom:6px}
+.auth-box p.sub{color:#8FA396;font-size:13px;margin-bottom:20px;line-height:1.6}
+.auth-box label{display:block;color:#8FA396;font-size:12px;margin-bottom:5px}
+.auth-box input{width:100%;background:var(--ink-2);border:1px solid #2C3F34;color:#fff;
+  padding:11px 13px;border-radius:var(--r);margin-bottom:13px}
+.auth-box button{width:100%;background:var(--gold);border:none;color:var(--ink);
+  padding:11px;border-radius:var(--r);font-weight:600;cursor:pointer;margin-bottom:10px}
+.auth-box button.alt{background:transparent;border:1px solid #2C3F34;color:#B9C8BF}
+.auth-msg{padding:11px 14px;border-radius:var(--r);font-size:12.5px;line-height:1.6;margin-bottom:16px}
+.auth-msg.err{background:rgba(184,50,50,.16);border:1px solid rgba(184,50,50,.45);color:#F2B8B8}
+.auth-msg.ok{background:rgba(31,122,77,.16);border:1px solid rgba(31,122,77,.45);color:#A7E0C2}
+.auth-msg.warn{background:rgba(168,121,8,.16);border:1px solid rgba(168,121,8,.5);color:#E8CE8A}
+.auth-msg b{display:block;margin-bottom:3px;color:#fff}
+
+/* ── Shell ───────────────────────────────────────────────────── */
+#app{display:none;min-height:100vh}
+#app.on{display:grid;grid-template-columns:var(--rail) 1fr}
+.rail{background:var(--ink);color:#B9C8BF;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto}
+.rail-brand{padding:18px;border-bottom:1px solid #22332A}
+.rail-brand b{display:block;color:#fff;font-size:14px;font-weight:600;white-space:nowrap}
+.rail-brand b span{color:var(--gold)}
+.rail-brand small{display:block;color:#6E8377;font-size:11px;margin-top:2px}
+.rail nav{padding:10px;flex:1}
+.rail-sec{color:#5D7166;font-size:10.5px;font-weight:600;padding:14px 10px 6px;letter-spacing:.06em}
+.rail a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);
+  color:#B9C8BF;text-decoration:none;font-size:13.5px;cursor:pointer}
+.rail a:hover{background:#1B2C22;color:#fff}
+.rail a.on{background:var(--forest);color:#fff;font-weight:500}
+.rail a .n{margin-left:auto;font-family:var(--mono);font-size:11px;color:#7C9187}
+.rail-user{padding:14px 18px;border-top:1px solid #22332A;font-size:12px}
+.rail-user b{display:block;color:#fff;font-size:12.5px}
+.rail-user .role{display:inline-block;margin-top:5px;font-size:10.5px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:10px}
+.role-admin{background:var(--gold);color:var(--ink)}
+.role-editor{background:#2C5C42;color:#CFEBDC}
+.role-agent{background:#2A3F33;color:#9FB8A9}
+.rail-user button{margin-top:10px;width:100%;background:none;border:1px solid #2C3F34;
+  color:#8FA396;padding:6px;border-radius:var(--r);font-size:12px;cursor:pointer}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:0 22px;
+  height:56px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:16px;font-weight:600}
+.topbar .sub{color:var(--text-3);font-size:12.5px}
+.wrap{padding:22px;max-width:1400px;width:100%}
+
+/* ── Bits ────────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface);cursor:pointer;font-size:13px;
+  font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--forest)}
+.btn-p{background:var(--forest);border-color:var(--forest);color:#fff}
+.btn-g{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.btn-d{color:var(--danger);border-color:#E4BEBE}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.tally{display:flex;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;margin-bottom:20px;flex-wrap:wrap}
+.tally div{padding:14px 20px;border-right:1px solid var(--line);flex:1;min-width:130px}
+.tally div:last-child{border-right:none}
+.tally b{display:block;font-family:var(--mono);font-size:24px;font-weight:500;line-height:1.1}
+.tally span{color:var(--text-3);font-size:11.5px}
+
+.task{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;
+  text-align:left;width:100%;margin-bottom:10px}
+.task:hover{border-color:var(--line-2)}
+.task .bar{width:3px;align-self:stretch;border-radius:2px;background:var(--line-2)}
+.task.urgent .bar{background:var(--danger)}
+.task.due .bar{background:var(--pending)}
+.task.ok .bar{background:var(--live)}
+.task .num{font-family:var(--mono);font-size:22px;font-weight:500;min-width:38px;text-align:right}
+.task.urgent .num{color:var(--danger)}
+.task.due .num{color:var(--pending)}
+.task.ok .num{color:var(--live)}
+.task .t{display:block;font-weight:600;font-size:14px}
+.task .d{display:block;color:var(--text-2);font-size:12.5px;margin-top:2px}
+
+.tablewrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11.5px;font-weight:600;color:var(--text-2);padding:10px 14px;
+  border-bottom:1px solid var(--line);background:#FAFBFA;position:sticky;top:0;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #EDF1EE;vertical-align:middle}
+tbody tr:hover{background:#FAFBFA}
+.rowname{font-weight:600;display:block}
+.rowsub{color:var(--text-3);font-size:12px}
+.actions{display:flex;gap:6px;justify-content:flex-end}
+.toolbar{display:flex;gap:9px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.toolbar input,.toolbar select{padding:7px 11px;border:1px solid var(--line-2);
+  border-radius:var(--r);background:var(--surface)}
+.toolbar input[type=search]{min-width:230px}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;
+  font-size:11.5px;font-weight:600;white-space:nowrap}
+.pill-live{background:var(--live-soft);color:var(--live)}
+.pill-pending{background:var(--pending-soft);color:var(--pending)}
+.pill-off{background:#EEF1EF;color:var(--text-2)}
+.pill-danger{background:var(--danger-soft);color:var(--danger)}
+.pill-gold{background:#FBF2D8;color:#8A6B10}
+
+.note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:var(--r);padding:14px 17px;margin-bottom:18px;font-size:13px;line-height:1.6}
+.note b{display:block;margin-bottom:4px}
+.note.red{border-left-color:var(--danger);background:var(--danger-soft)}
+.note.demo{border-left-color:var(--pending);background:var(--pending-soft)}
+.empty{text-align:center;padding:52px 20px;color:var(--text-2);background:var(--surface);
+  border:1px dashed var(--line-2);border-radius:var(--r)}
+.empty b{display:block;font-size:15px;color:var(--text);margin-bottom:5px}
+.loading{padding:44px;text-align:center;color:var(--text-3)}
+.page{display:none}.page.on{display:block}
+.locked{opacity:.5;pointer-events:none}
+.role-hint{font-size:12px;color:var(--text-3);margin-top:6px}
+
+/* ── Drawer ──────────────────────────────────────────────────── */
+.scrim{position:fixed;inset:0;background:rgba(15,26,20,.42);z-index:40;display:none}
+.scrim.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--surface);
+  z-index:41;transform:translateX(100%);transition:transform .18s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.drawer-head{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 22px}
+.drawer-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:9px;background:#FAFBFA}
+fieldset{border:none;margin-bottom:22px}
+legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
+  padding-bottom:6px;border-bottom:1px solid var(--line);width:100%}
+.f{margin-bottom:13px}
+.f label{display:block;font-size:12.5px;font-weight:500;margin-bottom:4px}
+.f .hint{font-size:11.5px;color:var(--text-3);margin-top:3px;line-height:1.45}
+.f input,.f select,.f textarea{width:100%;padding:8px 11px;border:1px solid var(--line-2);
+  border-radius:var(--r);background:var(--surface)}
+.f textarea{min-height:74px;resize:vertical}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.checks{display:flex;flex-wrap:wrap;gap:7px}
+.checks label{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--line-2);border-radius:20px;font-size:12.5px;cursor:pointer}
+.checks label:has(input:checked){background:var(--live-soft);border-color:var(--live);
+  color:var(--live);font-weight:500}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:var(--r);z-index:60;
+  transition:transform .2s;font-size:13.5px}
+#toast.on{transform:translateX(-50%) translateY(0)}
+
+@media (max-width:900px){
+  #app.on{grid-template-columns:1fr}
+  .rail{position:static;height:auto;flex-direction:row;overflow-x:auto;align-items:center}
+  .rail-brand,.rail-user{display:none}
+  .rail nav{display:flex;gap:4px;padding:8px}
+  .rail-sec{display:none}
+  .rail a{white-space:nowrap}
+  .f2{grid-template-columns:1fr}
+  .wrap{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SIGN IN ══════════════ -->
+<div id="auth">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="auth-tile"><svg viewBox="0 0 24 24" fill="none" stroke="#1A3C2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 12 2 21 9 21 20 3 20 3 9"/><rect x="9" y="14" width="6" height="6"/></svg></span>
+      <b>BuildList<span>.com</span><small>Staff portal</small></b>
+    </div>
+    <h1>Sign in</h1>
+    <p class="sub">Use the email address your administrator added to the staff list.</p>
+    <div id="authMsg"></div>
+    <form onsubmit="return signIn(event)">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password">
+      <button type="submit" id="signInBtn">Sign in</button>
+    </form>
+    <button class="alt" onclick="magicLink()">Email me a sign-in link instead</button>
+    <button class="alt" onclick="resetPassword()">Forgot password</button>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+  <aside class="rail">
+    <div class="rail-brand">
+      <b>BuildList<span>.com</span></b>
+      <small id="modeLabel">Staff portal</small>
+    </div>
+    <nav id="nav"></nav>
+    <div class="rail-user" id="railUser"></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Board</h1>
+      <span class="sub" id="pageSub"></span>
+      <div class="spacer"></div>
+      <span class="rowsub" id="syncState"></span>
+    </div>
+    <div class="wrap" id="pages"></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true">
+  <div class="drawer-head"><h2 id="drawerTitle" style="font-size:15px">Edit</h2>
+    <div class="spacer"></div>
+    <button class="btn btn-sm" onclick="closeDrawer()">Close</button></div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot">
+    <button class="btn btn-p" onclick="saveDrawer()">Save</button>
+    <button class="btn" onclick="closeDrawer()">Cancel</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script type="module">
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+   Paste your project URL and the ANON key. The anon key is safe in
+   client code — that is exactly what the row-level security policies
+   in schema.sql are for. NEVER put the service_role key here; it
+   bypasses every policy.
+   ═══════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = '';          // e.g. 'https://abcdefgh.supabase.co'
+const SUPABASE_ANON_KEY = '';     // e.g. 'eyJhbGciOi...'
+
+/* ═══════════════════════════════════════════════════════════════
+   ROLES
+   The menu changes by role, but the menu is not the security. Every
+   restriction below is also enforced in the database by the policies
+   and the guard trigger in schema.sql — a hidden button is a courtesy,
+   a policy is a control.
+   ═══════════════════════════════════════════════════════════════ */
+const ROLES = {
+  admin: {
+    label: 'Administrator',
+    can: ['board','firms','firms.approve','firms.tier','firms.verify','firms.delete',
+          'tenders','jobs','articles','prices','spotlight','ads','analytics','staff'],
+    blurb: 'Everything, including money and staff.'
+  },
+  editor: {
+    label: 'Content officer',
+    can: ['board','firms','firms.verify','tenders','jobs','articles','prices','spotlight','analytics'],
+    blurb: 'All content. Cannot change a tier, approve a listing or touch advertising.'
+  },
+  agent: {
+    label: 'Field agent',
+    can: ['board','firms'],
+    blurb: 'Add and update firms from the field. Everything submitted goes to pending.'
+  }
+};
+const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
+
+const SESSION = { user: null, role: null, name: null, demo: false };
+let sb = null;
+const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [] };
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════════ */
+const msg = (kind, html) => { document.getElementById('authMsg').innerHTML =
+  '<div class="auth-msg ' + kind + '">' + html + '</div>'; };
+
+async function boot() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    /* Demo mode: read the committed JSON so the portal can be reviewed,
+       role gating and all, before anyone signs up for anything. */
+    msg('warn', '<b>Not connected to a database yet.</b>' +
+      'Paste your Supabase URL and anon key into <span class="mono">portal.html</span>. ' +
+      'Until then you can open it in demo mode to see how the roles work \u2014 ' +
+      'nothing you change is saved.' +
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' +
+      ['admin','editor','agent'].map(r =>
+        '<button class="btn btn-sm" onclick="demoAs(\'' + r + '\')">Preview as ' +
+        ROLES[r].label + '</button>').join('') + '</div>');
+    return;
+  }
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data } = await sb.auth.getSession();
+  if (data.session) await afterLogin(data.session.user);
+}
+
+window.demoAs = async function (role) {
+  SESSION.demo = true;
+  SESSION.role = role;
+  SESSION.name = 'Demo ' + ROLES[role].label;
+  SESSION.user = { email: 'demo@buildlist.com' };
+  const files = ['taxonomy','firms','tenders','jobs','articles','prices','spotlight','ads'];
+  const res = await Promise.all(files.map(f =>
+    fetch('data/' + f + '.json').then(r => r.json()).catch(() => null)));
+  files.forEach((f, i) => { if (res[i]) DB[f] = res[i]; });
+  DB.staff = [
+    { name: 'You', role: role, email: 'demo@buildlist.com' },
+    { name: 'Sample content officer', role: 'editor', email: 'editor@example.com' },
+    { name: 'Sample field agent', role: 'agent', email: 'agent@example.com' }
+  ];
+  startApp();
+};
+
+window.signIn = async function (e) {
+  e.preventDefault();
+  if (!sb) { msg('err', 'No database configured.'); return false; }
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true; btn.textContent = 'Signing in\u2026';
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value
+  });
+  btn.disabled = false; btn.textContent = 'Sign in';
+  if (error) { msg('err', '<b>Could not sign in.</b>' + error.message); return false; }
+  await afterLogin(data.user);
+  return false;
+};
+
+window.magicLink = async function () {
+  if (!sb) return;
+  const email = document.getElementById('email').value.trim();
+  if (!email) { msg('err', 'Enter your email address first.'); return; }
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href } });
+  msg(error ? 'err' : 'ok', error ? error.message :
+    '<b>Check your email.</b>We sent a sign-in link to ' + email + '. It expires in an hour.');
+};
+
+window.resetPassword = async function () {
+  if (!sb) return;
+  const email = document.getElementById('email').value.trim();
+  if (!email) { msg('err', 'Enter your email address first.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href });
+  msg(error ? 'err' : 'ok', error ? error.message : '<b>Sent.</b>Check your email for a reset link.');
+};
+
+async function afterLogin(user) {
+  const { data: staff, error } = await sb.from('staff')
+    .select('role,name').eq('user_id', user.id).maybeSingle();
+
+  if (error || !staff) {
+    /* An account that exists but is not on the staff list is not a bug —
+       it is the system working. Say so clearly rather than showing an
+       empty dashboard. */
+    msg('err', '<b>Your account is not on the staff list.</b>' +
+      'Signing in worked, but no role has been assigned to ' + user.email + '. ' +
+      'An administrator needs to add you under Staff. Until then you can see nothing, ' +
+      'which is deliberate.');
+    await sb.auth.signOut();
+    return;
+  }
+  SESSION.user = user; SESSION.role = staff.role; SESSION.name = staff.name || user.email;
+  await loadAll();
+  startApp();
+}
+
+window.signOut = async function () {
+  if (sb) await sb.auth.signOut();
+  location.reload();
+};
+
+async function loadAll() {
+  setSync('Loading\u2026');
+  const [firms, tenders, jobs, articles, cats, dists, accs, tiers, staff] = await Promise.all([
+    sb.from('firms').select('*').order('name'),
+    sb.from('tenders').select('*').order('deadline'),
+    sb.from('jobs').select('*').order('posted_at', { ascending: false }),
+    sb.from('articles').select('*').order('published_at', { ascending: false }),
+    sb.from('categories').select('*').order('sort'),
+    sb.from('districts').select('*'),
+    sb.from('accreditations').select('*'),
+    sb.from('tiers').select('*').order('rank'),
+    can('staff') ? sb.from('staff').select('*') : Promise.resolve({ data: [] })
+  ]);
+  DB.firms = firms.data || [];
+  DB.tenders = tenders.data || [];
+  DB.jobs = jobs.data || [];
+  DB.articles = articles.data || [];
+  DB.taxonomy = {
+    categories: cats.data || [], districts: dists.data || [],
+    accreditations: accs.data || [], tiers: tiers.data || []
+  };
+  DB.staff = staff.data || [];
+  setSync('Synced ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+}
+
+function setSync(t) { const e = document.getElementById('syncState'); if (e) e.textContent = t; }
+
+function startApp() {
+  document.getElementById('auth').style.display = 'none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('modeLabel').textContent = SESSION.demo ? 'Demo \u2014 nothing saves' : 'Staff portal';
+  document.getElementById('railUser').innerHTML =
+    '<b>' + esc(SESSION.name) + '</b>' +
+    '<span class="rowsub">' + esc(SESSION.user.email) + '</span><br>' +
+    '<span class="role role-' + SESSION.role + '">' + ROLES[SESSION.role].label + '</span>' +
+    '<button onclick="signOut()">Sign out</button>';
+  buildNav();
+  go('board');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV — built from the role, not filtered after the fact
+   ═══════════════════════════════════════════════════════════════ */
+const SECTIONS = [
+  { id:'board',     label:'Board',        group:'Daily',     perm:'board' },
+  { id:'firms',     label:'Firms',        group:'Content',   perm:'firms',    count:()=>DB.firms.length },
+  { id:'tenders',   label:'Tenders',      group:'Content',   perm:'tenders',  count:()=>DB.tenders.length },
+  { id:'jobs',      label:'Jobs',         group:'Content',   perm:'jobs',     count:()=>DB.jobs.length },
+  { id:'articles',  label:'Articles',     group:'Content',   perm:'articles', count:()=>DB.articles.length },
+  { id:'prices',    label:'Prices',       group:'Content',   perm:'prices' },
+  { id:'spotlight', label:'Monthly slots',group:'Content',   perm:'spotlight' },
+  { id:'ads',       label:'Advertising',  group:'Revenue',   perm:'ads' },
+  { id:'analytics', label:'Analytics',    group:'Revenue',   perm:'analytics' },
+  { id:'staff',     label:'Staff',        group:'Admin',     perm:'staff',    count:()=>DB.staff.length }
+];
+
+function buildNav() {
+  let html = '', group = '';
+  SECTIONS.filter(s => can(s.perm)).forEach(s => {
+    if (s.group !== group) { group = s.group; html += '<div class="rail-sec">' + group + '</div>'; }
+    const n = s.count ? s.count() : null;
+    html += '<a data-go="' + s.id + '" onclick="go(\'' + s.id + '\')" tabindex="0">' + s.label +
+            (n !== null ? '<span class="n">' + n + '</span>' : '') + '</a>';
+  });
+  document.getElementById('nav').innerHTML = html;
+}
+
+const TITLES = {
+  board:['Board','What needs doing today'],
+  firms:['Firms','Listings, verification and tiers'],
+  tenders:['Tenders','Closed notices hide themselves'],
+  jobs:['Jobs','Vacancies expire on their closing date'],
+  articles:['Articles','News and guides'],
+  prices:['Material prices','Update weekly from the same suppliers'],
+  spotlight:['Monthly slots','One paid, one editorial'],
+  ads:['Advertising','Slots, campaigns and rates'],
+  analytics:['Analytics','Traffic and contact events'],
+  staff:['Staff','Who has access, and to what']
+};
+
+window.go = function (id) {
+  const sec = SECTIONS.find(s => s.id === id);
+  if (!sec || !can(sec.perm)) { toast('You do not have access to that.'); return; }
+  document.getElementById('pageTitle').textContent = TITLES[id][0];
+  document.getElementById('pageSub').textContent = TITLES[id][1];
+  document.querySelectorAll('.rail a').forEach(a => a.classList.toggle('on', a.dataset.go === id));
+  const pages = document.getElementById('pages');
+  pages.innerHTML = '<div class="page on" data-page="' + id + '"></div>';
+  (RENDER[id] || (el => { el.innerHTML = '<div class="empty"><b>Coming next</b>Not built yet.</div>'; }))(pages.firstChild);
+  window.scrollTo(0, 0);
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const today = () => new Date().toISOString().slice(0,10);
+const daysTo = d => Math.ceil((new Date(d) - new Date()) / 86400000);
+const daysSince = d => Math.floor((new Date() - new Date(d)) / 86400000);
+window.toast = function (m) {
+  const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2600);
+};
+const openT = () => DB.tenders.filter(t => daysTo(t.deadline) >= 0);
+const fieldOf = (o, ...keys) => { for (const k of keys) if (o[k] != null) return o[k]; return ''; };
+
+const RENDER = {};
+
+/* ── Board: different work for different roles ── */
+RENDER.board = el => {
+  const pending = DB.firms.filter(f => (f.status || 'live') === 'pending');
+  const unverified = DB.firms.filter(f => !f.verified);
+  const stale = DB.firms.filter(f => f.verified_at && daysSince(f.verified_at) > 365);
+  const closing = openT().filter(t => daysTo(t.deadline) <= 3);
+  const priceAge = DB.prices ? daysSince(DB.prices.updated) : null;
+
+  const task = (cls, num, t, d, to) =>
+    '<button class="task ' + cls + '" onclick="go(\'' + to + '\')"><span class="bar"></span>' +
+    '<span class="num">' + num + '</span><span><span class="t">' + t + '</span>' +
+    '<span class="d">' + d + '</span></span></button>';
+
+  let jobs = [];
+  if (can('firms.approve') && pending.length)
+    jobs.push(task('due', pending.length, 'Firms awaiting approval', 'Review and set live, or reject', 'firms'));
+  if (!can('firms.approve') && pending.length)
+    jobs.push(task('', pending.length, 'Firms you added, awaiting approval', 'An administrator reviews these', 'firms'));
+  if (closing.length)
+    jobs.push(task('due', closing.length, 'Tenders closing within 3 days', 'Flagged "Closing Soon" on the site', 'tenders'));
+  if (can('prices') && priceAge !== null)
+    jobs.push(task(priceAge > 10 ? 'urgent' : 'ok', priceAge, 'Days since prices were updated',
+      priceAge > 10 ? 'People quote from this. Stale is worse than absent.' : 'Within the weekly rhythm', 'prices'));
+  if (stale.length)
+    jobs.push(task('due', stale.length, 'Listings needing re-verification', 'Verified over 12 months ago', 'firms'));
+  if (unverified.length)
+    jobs.push(task('', unverified.length, 'Listings never verified', 'Showing "compiled from public sources"', 'firms'));
+
+  el.innerHTML =
+    (SESSION.demo ? '<div class="note demo"><b>Demo mode.</b>Reading the committed JSON files. ' +
+      'Role gating is live, but nothing saves. Connect Supabase in portal.html for the real thing.</div>' : '') +
+    '<div class="note"><b>Signed in as ' + esc(ROLES[SESSION.role].label) + '.</b>' +
+      esc(ROLES[SESSION.role].blurb) + '</div>' +
+    '<div class="tally">' +
+      '<div><b>' + DB.firms.filter(f => (f.status||'live') === 'live').length + '</b><span>Firms live</span></div>' +
+      '<div><b>' + pending.length + '</b><span>Awaiting approval</span></div>' +
+      '<div><b>' + openT().length + '</b><span>Open tenders</span></div>' +
+      '<div><b>' + DB.firms.filter(f => f.verified).length + '</b><span>Verified</span></div>' +
+    '</div>' +
+    (jobs.length ? jobs.join('') : '<div class="empty"><b>Nothing needs attention</b>Everything is current.</div>');
+};
+
+/* ── Firms ── */
+let firmQ = '', firmStatus = '';
+RENDER.firms = el => {
+  el.innerHTML =
+    '<div class="toolbar">' +
+      '<input type="search" id="fq" placeholder="Search name or area" value="' + esc(firmQ) + '">' +
+      '<select id="fst"><option value="">Any status</option>' +
+        ['live','pending','rejected','suspended'].map(s =>
+          '<option' + (firmStatus === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' +
+      '<div class="spacer"></div>' +
+      '<button class="btn btn-p" onclick="editFirm(null)">Add firm</button>' +
+    '</div>' +
+    (can('firms.tier') ? '' :
+      '<div class="note"><b>You can add and correct listings.</b>' +
+       'Tier, approval and the verified badge are administrator-only \u2014 and that is enforced by the ' +
+       'database, not just by this menu. Anything you add arrives as "pending".</div>') +
+    '<div id="firmTable"></div>';
+  ['fq','fst'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+    firmQ = document.getElementById('fq').value;
+    firmStatus = document.getElementById('fst').value;
+    paintFirms();
+  }));
+  paintFirms();
+};
+
+function paintFirms() {
+  const q = firmQ.toLowerCase();
+  const rows = DB.firms.filter(f =>
+    (!q || (f.name + ' ' + (f.area || '')).toLowerCase().includes(q)) &&
+    (!firmStatus || (f.status || 'live') === firmStatus)).slice(0, 300);
+  const box = document.getElementById('firmTable');
+  if (!rows.length) { box.innerHTML = '<div class="empty"><b>No firms match</b>Change the filters.</div>'; return; }
+  box.innerHTML = '<div class="tablewrap"><table><thead><tr><th>Firm</th><th>District</th>' +
+    '<th>Tier</th><th>Status</th><th>Verified</th><th></th></tr></thead><tbody>' +
+    rows.map(f => {
+      const st = f.status || 'live';
+      return '<tr><td><span class="rowname">' + esc(f.name) + '</span>' +
+        '<span class="rowsub mono">' + esc(f.slug) + '</span></td>' +
+        '<td>' + esc(f.district) + '</td>' +
+        '<td><span class="pill ' + (f.tier === 'free' ? 'pill-off' : 'pill-gold') + '">' + esc(f.tier) + '</span></td>' +
+        '<td><span class="pill ' + (st === 'live' ? 'pill-live' : st === 'pending' ? 'pill-pending' : 'pill-off') + '">' + esc(st) + '</span></td>' +
+        '<td>' + (f.verified ? '<span class="rowsub">' + esc(fieldOf(f,'verified_at','verifiedDate') || '') + '</span>'
+                             : '<span class="pill pill-off">no</span>') + '</td>' +
+        '<td><div class="actions">' +
+          (can('firms.approve') && st === 'pending'
+            ? '<button class="btn btn-sm btn-p" onclick="approveFirm(\'' + esc(f.id) + '\')">Approve</button>' : '') +
+          '<button class="btn btn-sm" onclick="editFirm(\'' + esc(f.id) + '\')">Edit</button>' +
+        '</div></td></tr>';
+    }).join('') + '</tbody></table></div>' +
+    (DB.firms.length > 300 ? '<p class="role-hint">Showing the first 300. Use search to narrow.</p>' : '');
+}
+
+window.approveFirm = async function (id) {
+  if (!can('firms.approve')) return toast('Administrators only.');
+  const f = DB.firms.find(x => String(x.id) === String(id));
+  f.status = 'live';
+  if (!f.verified) { f.verified = true; f.verified_at = today(); }
+  if (!SESSION.demo) {
+    const { error } = await sb.from('firms')
+      .update({ status: 'live', verified: f.verified, verified_at: f.verified_at }).eq('id', id);
+    if (error) return toast('Rejected by the database: ' + error.message);
+  }
+  paintFirms(); toast('Approved and set live');
+};
+
+/* ── Firm editor. Commercial fields are hidden for non-admins AND
+      rejected by the database trigger if anyone tries anyway. ── */
+let CURRENT = null;
+window.editFirm = function (id) {
+  const isNew = !id;
+  const f = isNew
+    ? { name:'', slug:'', district:'kampala', area:'', description:'', phone:'', whatsapp:'',
+        email:'', website:'', tier:'free', status:'pending', verified:false }
+    : Object.assign({}, DB.firms.find(x => String(x.id) === String(id)));
+  CURRENT = { kind:'firm', id: id, item: f };
+
+  const tx = DB.taxonomy || { districts:[], tiers:[] };
+  const opt = (list, v, keyName) => list.map(x =>
+    '<option value="' + esc(x.slug) + '"' + (v === x.slug ? ' selected' : '') + '>' +
+    esc(x.name || x.slug) + '</option>').join('');
+
+  openDrawer(isNew ? 'Add firm' : 'Edit ' + f.name,
+    '<fieldset><legend>Identity</legend>' +
+      fld('e_name','Business name', f.name) +
+      '<div class="f2">' + fld('e_slug','Web address', f.slug, 'Never change once published.') +
+      fld('e_area','Area', f.area) + '</div>' +
+      '<div class="f"><label for="e_district">District</label><select id="e_district">' +
+        opt(tx.districts, f.district) + '</select></div>' +
+      area_('e_desc','Description', fieldOf(f,'description','desc')) +
+    '</fieldset>' +
+    '<fieldset><legend>Contact</legend>' +
+      '<div class="f2">' + fld('e_phone','Phone', f.phone) + fld('e_whatsapp','WhatsApp', f.whatsapp) + '</div>' +
+      '<div class="f2">' + fld('e_email','Email', f.email) + fld('e_website','Website', f.website) + '</div>' +
+    '</fieldset>' +
+    (can('firms.tier')
+      ? '<fieldset><legend>Commercial \u2014 administrators only</legend>' +
+          '<div class="f2">' +
+            '<div class="f"><label for="e_tier">Tier</label><select id="e_tier">' + opt(tx.tiers, f.tier) + '</select>' +
+              '<div class="hint">Paid tiers mean somebody paid.</div></div>' +
+            '<div class="f"><label for="e_status">Status</label><select id="e_status">' +
+              ['pending','live','rejected','suspended'].map(s =>
+                '<option' + ((f.status||'pending') === s ? ' selected' : '') + '>' + s + '</option>').join('') +
+            '</select></div>' +
+          '</div>' +
+          '<div class="f2">' +
+            '<div class="f"><label for="e_verified">Verified</label><select id="e_verified">' +
+              '<option value="no"' + (!f.verified ? ' selected' : '') + '>Not verified</option>' +
+              '<option value="yes"' + (f.verified ? ' selected' : '') + '>Verified</option></select></div>' +
+            fld('e_verified_at','Date verified', fieldOf(f,'verified_at','verifiedDate') || '') +
+          '</div>' +
+        '</fieldset>'
+      : '<fieldset><legend>Commercial</legend>' +
+          '<p class="role-hint">Tier, approval and verification are set by an administrator. ' +
+          'This listing is currently <strong>' + esc(f.status || 'pending') + '</strong> on the ' +
+          '<strong>' + esc(f.tier || 'free') + '</strong> tier.</p></fieldset>'));
+};
+
+const fld = (id, label, v, hint) => '<div class="f"><label for="' + id + '">' + label + '</label>' +
+  '<input type="text" id="' + id + '" value="' + esc(v == null ? '' : v) + '">' +
+  (hint ? '<div class="hint">' + hint + '</div>' : '') + '</div>';
+const area_ = (id, label, v) => '<div class="f"><label for="' + id + '">' + label + '</label>' +
+  '<textarea id="' + id + '">' + esc(v || '') + '</textarea></div>';
+
+window.openDrawer = function (title, html) {
+  document.getElementById('drawerTitle').textContent = title;
+  document.getElementById('drawerBody').innerHTML = html;
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+};
+window.closeDrawer = function () {
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('scrim').classList.remove('on');
+  CURRENT = null;
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+
+window.saveDrawer = async function () {
+  if (!CURRENT) return;
+  const f = CURRENT.item;
+  f.name = val('e_name'); if (!f.name) return toast('A firm needs a name');
+  f.slug = val('e_slug') || f.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  f.district = val('e_district'); f.area = val('e_area');
+  f.description = val('e_desc');
+  f.phone = val('e_phone'); f.whatsapp = val('e_whatsapp') || f.phone;
+  f.email = val('e_email'); f.website = val('e_website');
+  if (!f.phone && !f.whatsapp) return toast('A listing nobody can call is worse than no listing');
+
+  if (can('firms.tier')) {
+    f.tier = val('e_tier'); f.status = val('e_status');
+    f.verified = val('e_verified') === 'yes';
+    f.verified_at = f.verified ? (val('e_verified_at') || today()) : null;
+  } else if (!CURRENT.id) {
+    f.status = 'pending'; f.tier = 'free'; f.verified = false;
+  }
+
+  if (SESSION.demo) {
+    if (!CURRENT.id) { f.id = 'demo-' + Date.now(); DB.firms.unshift(f); }
+    closeDrawer(); paintFirms(); buildNav(); toast('Saved in demo only \u2014 nothing was written');
+    return;
+  }
+
+  const payload = {
+    name:f.name, slug:f.slug, district:f.district, area:f.area, description:f.description,
+    phone:f.phone, whatsapp:f.whatsapp, email:f.email, website:f.website
+  };
+  if (can('firms.tier')) Object.assign(payload, {
+    tier:f.tier, status:f.status, verified:f.verified, verified_at:f.verified_at });
+  else if (!CURRENT.id) Object.assign(payload, { status:'pending', tier:'free', owner_id: SESSION.user.id });
+
+  const q = CURRENT.id ? sb.from('firms').update(payload).eq('id', CURRENT.id)
+                       : sb.from('firms').insert(payload).select().single();
+  const { data, error } = await q;
+  if (error) return toast('Rejected by the database: ' + error.message);
+  if (!CURRENT.id && data) DB.firms.unshift(data);
+  closeDrawer(); paintFirms(); buildNav(); toast('Saved');
+};
+
+/* ── Staff (admin only) ── */
+RENDER.staff = el => {
+  el.innerHTML =
+    '<div class="note"><b>Roles are enforced by the database, not this menu.</b>' +
+    'Hiding a button stops an honest mistake. The policies and the guard trigger in ' +
+    '<span class="mono">schema.sql</span> stop everything else \u2014 a content officer cannot set a ' +
+    'tier even by calling the API directly.</div>' +
+    '<div class="tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Can do</th></tr></thead><tbody>' +
+    DB.staff.map(s =>
+      '<tr><td class="rowname">' + esc(s.name || '\u2014') + '</td>' +
+      '<td class="rowsub mono">' + esc(s.email || '') + '</td>' +
+      '<td><span class="role role-' + esc(s.role) + '">' + esc(ROLES[s.role] ? ROLES[s.role].label : s.role) + '</span></td>' +
+      '<td class="rowsub">' + esc(ROLES[s.role] ? ROLES[s.role].blurb : '') + '</td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<div class="note" style="margin-top:18px"><b>Adding somebody.</b>' +
+    'Supabase dashboard \u2192 Authentication \u2192 Users \u2192 Add user. Copy their UUID, then run:<br>' +
+    '<span class="mono">insert into staff (user_id, role, name) values (\'their-uuid\', \'editor\', \'Their Name\');</span>' +
+    '<br><br>Roles: <span class="mono">admin</span>, <span class="mono">editor</span>, <span class="mono">agent</span>.</div>';
+};
+
+/* ── Placeholder renderers reuse the same table pattern ── */
+['tenders','jobs','articles'].forEach(key => {
+  RENDER[key] = el => {
+    const rows = DB[key] || [];
+    el.innerHTML = rows.length
+      ? '<div class="tablewrap"><table><thead><tr><th>Title</th><th>Detail</th><th>Date</th></tr></thead><tbody>' +
+        rows.slice(0, 200).map(r =>
+          '<tr><td class="rowname">' + esc(r.title) + '</td>' +
+          '<td class="rowsub">' + esc(r.org || r.company || r.category || '') + '</td>' +
+          '<td class="mono rowsub">' + esc(r.deadline || r.closes_at || r.closesAt || r.published_at || r.date || '') + '</td></tr>').join('') +
+        '</tbody></table></div>'
+      : '<div class="empty"><b>Nothing here yet</b>Add the first one.</div>';
+  };
+});
+
+RENDER.prices = el => {
+  const p = DB.prices;
+  el.innerHTML = p
+    ? '<div class="note"><b>Last collected ' + esc(p.updated) + '.</b>' +
+      daysSince(p.updated) + ' days ago.</div>' +
+      '<div class="tablewrap"><table><thead><tr><th>Material</th><th>Price</th><th>Change</th></tr></thead><tbody>' +
+      p.items.map(i => '<tr><td>' + esc(i.name) + '</td><td class="mono">' + esc(i.val) +
+        '</td><td class="mono">' + esc(i.change) + '</td></tr>').join('') + '</tbody></table></div>'
+    : '<div class="empty"><b>No price data</b></div>';
+};
+
+RENDER.analytics = el => {
+  el.innerHTML = '<div class="note"><b>Where to look.</b>' +
+    'Per-listing view and contact counts live in the <span class="mono">listing_events</span> table and the ' +
+    '<span class="mono">firm_monthly_stats</span> view. That is what a field agent prints for a shop owner: ' +
+    '"your listing was viewed 46 times last month and 11 people tapped your number."</div>' +
+    '<div class="note"><b>Site-wide traffic</b> stays in Google Analytics \u2014 open the reports from ' +
+    '<span class="mono">admin.html</span>, which has direct links.</div>';
+};
+
+boot();
+</script>
+</body>
+</html>

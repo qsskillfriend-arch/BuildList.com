@@ -157,7 +157,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script
     <span>BuildList<span class="tld">.com</span><small>Uganda Construction Directory</small></span>
   </a>
   <nav>
-    <a href="/browse/">Directory</a><a href="/#/tenders">Tenders</a>
+    <a href="/">Home</a><a href="/browse/">Directory</a><a href="/#/tenders">Tenders</a>
     <a href="/#/jobs">Jobs</a><a href="/#/news">Prices</a><a href="/#/advertise">Advertise</a>
   </nav>
 </div></header>

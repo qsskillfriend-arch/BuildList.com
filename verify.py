@@ -56,6 +56,19 @@ with sync_playwright() as p:
         check('No advertising on the %s page' % route, n == 0, str(n))
     pg.goto(U + 'index.html'); pg.wait_for_timeout(2000)
 
+    # ═══ NAVIGATION ═══
+    nav = pg.evaluate('[...document.querySelectorAll(".nav-main .nav-link")].map(a=>a.textContent.trim())')
+    check('Home is the first nav item',
+          nav[:2] == ['Home', 'Directory'], str(nav))
+    check('Home highlights on the homepage',
+          pg.evaluate('document.getElementById("nav-home").classList.contains("active")'))
+    mnav = pg.evaluate('[...document.querySelectorAll(".mobile-nav-link")].map(a=>a.textContent.trim())')
+    check('Home is first in the mobile menu', mnav[0] == 'Home', str(mnav[:3]))
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(900)
+    check('Only the current section highlights',
+          pg.evaluate('[...document.querySelectorAll(".nav-link.active")].map(a=>a.id)') == ['nav-tenders'])
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(1800)
+
     # ═══ ROUTING ═══
     for route, expect in [('#/directory', 'page-directory'), ('#/tenders', 'page-tenders'),
                           ('#/jobs', 'page-jobs'), ('#/news', 'page-news'),
@@ -404,6 +417,36 @@ with sync_playwright() as p:
     ad.click('.toolbar button.btn-p'); ad.wait_for_timeout(600)
     ad.click('.drawer-foot .btn-p'); ad.wait_for_timeout(400)
     check('Admin validation blocks bad save', ad.evaluate('DB.firms.length') == N0 + 1)
+
+    # ═══ STAFF PORTAL ═══
+    pt = b.new_page()
+    perr = []
+    pt.on('pageerror', lambda e: perr.append(str(e)))
+    pt.goto(U + 'portal.html'); pt.wait_for_timeout(1800)
+    check('Portal offers a demo without a database',
+          pt.evaluate('document.querySelectorAll("#authMsg button").length') == 3)
+    EXPECT = {
+        'admin':  ['board','firms','tenders','jobs','articles','prices','spotlight','ads','analytics','staff'],
+        'editor': ['board','firms','tenders','jobs','articles','prices','spotlight','analytics'],
+        'agent':  ['board','firms'],
+    }
+    for role, nav in EXPECT.items():
+        pt.goto(U + 'portal.html'); pt.wait_for_timeout(1400)
+        pt.evaluate('r => demoAs(r)', role); pt.wait_for_timeout(1800)
+        got = pt.evaluate('[...document.querySelectorAll(".rail a")].map(a=>a.dataset.go)')
+        check('Portal nav for ' + role, got == nav, str(got))
+        pt.evaluate("go('firms')"); pt.wait_for_timeout(700)
+        pt.evaluate('editFirm(null)'); pt.wait_for_timeout(600)
+        has_tier = pt.evaluate('!!document.getElementById("e_tier")')
+        check('Tier field %s for %s' % ('shown' if role == 'admin' else 'hidden', role),
+              has_tier == (role == 'admin'))
+        pt.evaluate('closeDrawer()')
+        pt.evaluate("go('staff')"); pt.wait_for_timeout(500)
+        reached = pt.evaluate('document.getElementById("pageTitle").textContent')
+        check('Direct nav to Staff %s for %s' % ('allowed' if role == 'admin' else 'blocked', role),
+              (reached == 'Staff') == (role == 'admin'), reached)
+    check('Portal has no JS errors', not perr, str(perr[:2]))
+    pt.close()
 
     b.close()
 

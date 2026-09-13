@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en-UG">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Content editor — BuildList.com</title>
+<link rel="icon" href="/favicon.svg">
+<style>
+  body { margin:0; font-family: Inter, system-ui, sans-serif; }
+  #nojs { padding:40px; max-width:600px; margin:0 auto; color:#16211B; line-height:1.6; }
+  #nojs h1 { font-size:20px; }
+  #nojs code { background:#F1F4F1; padding:2px 6px; border-radius:4px; font-size:13px; }
+</style>
+</head>
+<body>
+<div id="nojs">
+  <h1>Loading the content editor…</h1>
+  <p>If this message stays on screen, the editor could not start. The two usual causes:</p>
+  <ul>
+    <li><code>cms/config.yml</code> still has the placeholder repository name in it.</li>
+    <li>The GitHub OAuth worker in <code>base_url</code> has not been deployed yet.</li>
+  </ul>
+  <p>Setup instructions are in <code>supabase/PORTAL.md</code>, section "Option A".</p>
+</div>
+<script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js" type="module"></script>
+</body>
+</html>

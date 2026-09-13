@@ -80,3 +80,6 @@ supabase/.temp/
 /news/
 
 supabase/.env
+
+# Portal secrets never belong in the repo
+supabase/.env
