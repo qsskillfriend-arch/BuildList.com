@@ -1257,7 +1257,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="trust-sub">Moderated, with a right of reply</div>
         </div>
       </div>
-      </div>
     </div>
   </div>
 
@@ -1474,12 +1473,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
     </div>
   </section>
 
-  <!-- Footer leaderboard -->
-  <div style="background:var(--parchment-d);padding:20px 0;border-top:1px solid var(--border)">
-    <div class="container">
-      <div class="ad-unit ad-leaderboard-tall ad-sponsored" data-ad="home-lower"></div>
-    </div>
-  </div>
 
 </div><!-- /page-home -->
 
@@ -1560,10 +1553,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
 
         <p class="disclosure" style="margin-bottom:14px">Featured and paid listings appear first in relevance order. Paid placement is always labelled.</p>
-
-        <div style="margin-bottom:16px">
-          <div class="ad-unit ad-strip ad-sponsored" data-ad="directory-strip"></div>
-        </div>
 
         <div class="dir-listings-list" id="dirListings"></div>
         <div class="dir-listings-grid" id="dirGrid" hidden></div>
@@ -1687,7 +1676,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
   <div style="background:var(--white);padding:16px 0;border-bottom:1px solid var(--border)">
     <div class="container">
-      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="tenders-sidebar-b"></div>
+      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="jobs-sidebar"></div>
     </div>
   </div>
   <div class="container">
@@ -1741,7 +1730,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
   <div style="background:var(--white);padding:16px 0;border-bottom:1px solid var(--border)">
     <div class="container">
-      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="jobs-sidebar"></div>
+      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="news-sidebar"></div>
     </div>
   </div>
   <div class="container">
@@ -1840,7 +1829,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           </div>
         </div>
 
-        <div class="ad-unit ad-rectangle-sm ad-sponsored" style="height:200px" data-ad="news-sidebar"></div>
+        <div class="ad-unit ad-rectangle-sm ad-sponsored" style="height:200px" data-ad="news-sidebar-lower"></div>
       </div>
     </div>
   </div>
@@ -4548,6 +4537,16 @@ const PAGE_TITLES = {
 
 /* Renders a page. Called by the router — use location.hash to navigate
    so that the back button, bookmarks and shared links all work. */
+const AD_FREE_PAGES = ['submit', 'privacy', 'terms'];
+
+/* Some pages earn more by carrying nothing. A banner beside a sign-up
+   form costs listings, and an advert on a privacy policy undermines the
+   document it sits next to. */
+function applyAdPolicy(page) {
+  const footer = document.querySelector('.footer-ad');
+  if (footer) footer.style.display = AD_FREE_PAGES.includes(page) ? 'none' : '';
+}
+
 function showPage(page, opts) {
   opts = opts || {};
   if (PAGES.indexOf(page) === -1) page = 'home';
@@ -4566,6 +4565,7 @@ function showPage(page, opts) {
 
   document.title = PAGE_TITLES[page] || PAGE_TITLES.home;
   trackPageView(page);
+  applyAdPolicy(page);
   if (page === 'privacy') paintConsentState();
   closeMobileNav();
 

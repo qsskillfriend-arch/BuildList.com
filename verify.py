@@ -32,9 +32,29 @@ with sync_playwright() as p:
           pg.evaluate('document.querySelectorAll("#priceTicker .price-item").length') > 0)
     check('Logo falls back to initials when none supplied',
           pg.evaluate('document.querySelectorAll("#featuredListings .fcard-logo").length') == 3)
-    check('Ads: one filled, rest available',
+    check('Ads: filled and available slots both render',
           pg.evaluate('document.querySelectorAll(".ad-filled").length') >= 1 and
-          pg.evaluate('document.querySelectorAll(".ad-empty").length') >= 10)
+          pg.evaluate('document.querySelectorAll(".ad-empty").length') >= 1)
+
+    # Slot keys must name the page they sit on, or advertiser reporting lies
+    slot_pages = pg.evaluate('''() => [...document.querySelectorAll('[data-ad]')]
+        .map(e => ({slot: e.dataset.ad, page: (e.closest('[id^=page-]')||{}).id || 'global'}))''')
+    bad = [x for x in slot_pages
+           if x['page'] != 'global' and not x['slot'].startswith(x['page'].replace('page-', ''))]
+    check('Ad slot keys match their page', not bad, str(bad))
+    all_keys = [x['slot'] for x in slot_pages]
+    check('No duplicate ad slot keys', len(all_keys) == len(set(all_keys)), str(all_keys))
+    registry = pg.evaluate('Object.keys(DATA.ads.slots)')
+    check('Every rendered slot is in the registry',
+          all(k in registry for k in all_keys),
+          str([k for k in all_keys if k not in registry]))
+
+    # Ad-free pages
+    for route in ['submit', 'privacy', 'terms']:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(900)
+        n = pg.evaluate('[...document.querySelectorAll("[data-ad]")].filter(e=>e.offsetHeight>0).length')
+        check('No advertising on the %s page' % route, n == 0, str(n))
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2000)
 
     # ═══ ROUTING ═══
     for route, expect in [('#/directory', 'page-directory'), ('#/tenders', 'page-tenders'),
@@ -219,6 +239,28 @@ with sync_playwright() as p:
     pg.goto(U + 'index.html#/privacy'); pg.wait_for_timeout(900)
     check('Privacy page lets you change the choice',
           pg.evaluate('!!document.getElementById("consentState")'))
+
+    # ═══ PAGE ISOLATION ═══
+    # A stray </div> once let the homepage sections escape #page-home and
+    # render on every page. This catches that class of bug structurally.
+    OWNER = {
+        'featuredListings': 'home', 'productOfMonth': 'home', 'projectOfMonth': 'home',
+        'homeTenders': 'home', 'homeJobs': 'home', 'homeNews': 'home',
+        'dirListings': 'directory', 'dirFilters': 'directory', 'rfqForm': 'directory',
+        'tendersFull': 'tenders', 'alertForm': 'tenders',
+        'jobsFull': 'jobs', 'newsArticles': 'news', 'priceIndex': 'news',
+    }
+    for marker, owner in OWNER.items():
+        got = pg.evaluate('id => document.getElementById(id)?.closest("[id^=page-]")?.id', marker)
+        check('Section %s belongs to page-%s' % (marker, owner), got == 'page-' + owner, str(got))
+
+    for route in ['home', 'directory', 'tenders', 'jobs', 'news', 'advertise', 'submit', 'about']:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(800)
+        vis = pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)')
+        leaked = [m for m, o in OWNER.items() if o != route and
+                  pg.evaluate('id => (document.getElementById(id)?.offsetHeight || 0) > 0', m)]
+        check('Page %s shows only its own content' % route,
+              vis == ['page-' + route] and not leaked, str(vis) + ' leaked=' + str(leaked))
 
     # ═══ PROVENANCE ═══
     pg.goto(U + 'index.html#/directory'); pg.wait_for_timeout(2600)
