@@ -38,8 +38,8 @@ insert into categories (slug,name,cluster,sort) values
 on conflict (slug) do nothing;
 
 insert into accreditations (slug,name) values
-  ('boraqs','BORAQS Registered'),('uipe','UIPE Member'),('uiqs','UIQS Member'),
-  ('ncic','NCIC Registered'),('iso','ISO Certified'),('ppda','PPDA Listed')
+  ('boraqs','ARB Registered'),('uipe','UIPE Member'),('uiqs','ISU Member'),
+  ('ncic','ERB Registered'),('iso','ISO Certified'),('ppda','PPDA Listed')
 on conflict (slug) do nothing;
 
 insert into ad_slots (key,label,size,rate_ugx) values

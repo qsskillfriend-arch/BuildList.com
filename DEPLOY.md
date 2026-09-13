@@ -154,7 +154,7 @@ Cloudflare Registrar does **not** sell `.ug` or `.co.ug`. Options:
 - **`.co.ug`** — register through **registry.co.ug** or a local reseller, around UGX 80,000/year
 - **`.com`** — Namecheap, Porkbun or Cloudflare Registrar, around USD 10/year
 
-For a Ugandan directory a `.co.ug` also helps you rank for Uganda-based searches and separates you from the several unrelated "BuildList" products online. If you want it, tell me and I will switch the default.
+For a Ugandan directory a `.co.ug` also helps you rank for Uganda-based searches and separates you from the several unrelated "BuildList.com" products online. If you want it, tell me and I will switch the default.
 
 ### 9b. Add the domain to Cloudflare
 

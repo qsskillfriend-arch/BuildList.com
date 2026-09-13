@@ -14,9 +14,9 @@ Two files here, and a five-minute setup.
 1. Go to **script.google.com** → **New project**
 2. Delete whatever is in the editor
 3. Paste the whole of `create-listing-form.gs`
-4. Rename the project "BuildList form" (top left)
+4. Rename the project "BuildList.com form" (top left)
 5. Press **Run** (▶)
-6. Google will warn *"Google hasn't verified this app"* → **Advanced** → **Go to BuildList form (unsafe)** → **Allow**.
+6. Google will warn *"Google hasn't verified this app"* → **Advanced** → **Go to BuildList.com form (unsafe)** → **Allow**.
    That warning is normal for a script you wrote yourself. You are granting permission to your own account, not to a third party.
 7. **View → Logs.** Your links are printed there:
    - the public link to share

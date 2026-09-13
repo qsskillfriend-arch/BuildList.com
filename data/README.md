@@ -9,7 +9,7 @@ couple of hundred listings. Do not build a CMS yet.
 
 ## Where this data came from
 
-`firms.json` holds **618 real listings** imported from `BuildList_All_Listings.xlsx`.
+`firms.json` holds **618 real listings** imported from `BuildList.com_All_Listings.xlsx`.
 
 Every firm carries a `descSource` field recording where its description came from:
 
@@ -75,6 +75,7 @@ removed, and your own About page promises it.
 | `jobs.json` | Vacancies. Also expire automatically. |
 | `articles.json` | News and guide articles. |
 | `prices.json` | Material price index plus the date it was collected. |
+| `spotlight.json` | Product of the Month (paid) and Benchmark Project (editorial), plus their archives. |
 
 ---
 

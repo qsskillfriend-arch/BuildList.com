@@ -16,11 +16,11 @@
 <meta name="theme-color" content="#1A3C2A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BuildList UG">
+<meta name="apple-mobile-web-app-title" content="BuildList.com">
 <link rel="apple-touch-icon" href="/favicon.svg">
 
 <!-- ── Open Graph — controls how links appear when shared on WhatsApp, Facebook, LinkedIn ── -->
-<meta property="og:title" content="BuildList — Construction Industry Platform">
+<meta property="og:title" content="BuildList.com — Construction Industry Platform">
 <meta property="og:description" content="Uganda's most comprehensive directory of QS firms, architects, engineers, contractors and suppliers. Plus live tenders, jobs and material prices.">
 <meta property="og:image" content="https://buildlist.com/og-image.png">
 <meta property="og:url" content="https://buildlist.com">
@@ -29,11 +29,11 @@
 <meta property="og:site_name" content="BuildList.com">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="BuildList — construction industry directory">
+<meta property="og:image:alt" content="BuildList.com — construction industry directory">
 
 <!-- ── Twitter / X Card ── -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="BuildList — Construction Industry Platform">
+<meta name="twitter:title" content="BuildList.com — Construction Industry Platform">
 <meta name="twitter:description" content="Uganda's premier construction industry directory. Tenders, jobs, verified firms and live material prices.">
 <meta name="twitter:image" content="https://buildlist.com/og-image.png">
 
@@ -57,7 +57,7 @@
       "@type": "WebSite",
       "@id": "https://buildlist.com/#website",
       "name": "BuildList.com",
-      "alternateName": "BuildList Uganda Construction Directory",
+      "alternateName": "BuildList.com Construction Directory",
       "url": "https://buildlist.com/",
       "inLanguage": "en-UG",
       "publisher": { "@id": "https://buildlist.com/#publisher" },
@@ -406,6 +406,172 @@ a { text-decoration: none; color: inherit; }
   color:var(--forest); font-weight:600; }
 
 /* ════════════════════════════════════════════
+   COOKIE NOTICE
+   A real consent gate, not decoration: analytics does not load until
+   the visitor accepts. Declining is one click and equally prominent —
+   a "decline" hidden behind a settings menu is not consent.
+════════════════════════════════════════════ */
+.cookie { position:fixed; left:16px; right:16px; bottom:16px; z-index:900;
+  background:var(--forest-deep); color:rgba(255,255,255,.88); border-radius:var(--r-lg);
+  padding:18px 22px; box-shadow:0 10px 34px rgba(0,0,0,.3);
+  display:none; gap:18px; align-items:center; max-width:940px; margin:0 auto;
+  border:1px solid rgba(196,154,22,.3); }
+.cookie.on { display:flex; }
+.cookie p { font-size:.84rem; line-height:1.6; margin:0; flex:1; }
+.cookie a { color:var(--gold); }
+.cookie-actions { display:flex; gap:9px; flex-shrink:0; }
+.cookie-actions .btn { white-space:nowrap; }
+.btn-ghost-light { background:transparent; border:1.5px solid rgba(255,255,255,.3); color:#fff; }
+.btn-ghost-light:hover { border-color:var(--gold); color:var(--gold); }
+@media (max-width:720px){
+  .cookie { flex-direction:column; align-items:stretch; padding:16px 18px; }
+  .cookie-actions .btn { flex:1; justify-content:center; }
+}
+
+/* ════════════════════════════════════════════
+   MONTHLY SPOTLIGHTS
+   Product of the Month is bought. Benchmark Project is not. They are
+   deliberately styled differently so a reader can tell at a glance
+   which is advertising and which is our own judgement — the day those
+   look alike, neither is worth anything.
+════════════════════════════════════════════ */
+.spotlights { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+@media (max-width:900px){ .spotlights { grid-template-columns:1fr; } }
+
+.spot { border-radius:var(--r-lg); overflow:hidden; display:flex; flex-direction:column; height:100%; }
+.spot-eyebrow { display:flex; align-items:center; gap:8px; font-size:.68rem; font-weight:800;
+  letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px; }
+.spot-media { position:relative; aspect-ratio:4/3; background:var(--parchment-d); overflow:hidden; }
+.spot-media img { width:100%; height:100%; object-fit:cover; display:block; }
+.spot-body { padding:22px; display:flex; flex-direction:column; gap:12px; flex:1; }
+.spot-title { font-family:var(--font-display); font-size:1.2rem; font-weight:700; line-height:1.28; margin:0; }
+.spot-tagline { font-size:.88rem; font-weight:600; margin:0; }
+.spot-text { font-size:.86rem; line-height:1.65; margin:0; flex:1; }
+.spot-month { margin-left:auto; font-weight:700; }
+
+/* ── Paid: warm gold, clearly an advertisement ── */
+.spot-product { background:var(--white); border:1px solid rgba(196,154,22,.5); }
+.spot-product .spot-eyebrow { color:#8A6B10; }
+.spot-product .spot-title { color:var(--charcoal); }
+.spot-product .spot-tagline { color:var(--gold-muted); }
+.spot-product .spot-text { color:var(--slate); }
+.spot-ad-flag { position:absolute; top:10px; left:10px; background:rgba(0,0,0,.72); color:#fff;
+  font-size:.62rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  padding:3px 9px; border-radius:12px; }
+.spot-specs { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin:0;
+  padding-top:12px; border-top:1px solid var(--border); }
+.spot-spec { font-size:.78rem; }
+.spot-spec dt { color:var(--muted); margin:0; }
+.spot-spec dd { margin:1px 0 0; font-weight:700; color:var(--charcoal); }
+
+/* ── Editorial: dark, unmistakably not an advert ── */
+.spot-project { background:var(--forest-deep); color:rgba(255,255,255,.82);
+  border:1px solid rgba(255,255,255,.08); }
+.spot-project .spot-eyebrow { color:var(--gold); }
+.spot-project .spot-title { color:#fff; }
+.spot-project .spot-tagline { color:var(--gold); }
+.spot-project .spot-text { color:rgba(255,255,255,.78); }
+.spot-project .spot-media { aspect-ratio:16/9; }
+.spot-project .spot-media img { opacity:.92; }
+.spot-facts { display:flex; flex-wrap:wrap; gap:6px; }
+.spot-fact { font-size:.72rem; background:rgba(255,255,255,.08); color:rgba(255,255,255,.85);
+  padding:3px 10px; border-radius:12px; }
+.spot-lessons { margin:0; padding-left:0; list-style:none; }
+.spot-lessons li { font-size:.83rem; line-height:1.6; color:rgba(255,255,255,.8);
+  padding-left:20px; position:relative; margin-bottom:7px; }
+.spot-lessons li::before { content:'\2014'; position:absolute; left:0; color:var(--gold); }
+.spot-credit { font-size:.7rem; color:rgba(255,255,255,.45); }
+.spot-editorial-note { font-size:.72rem; color:rgba(255,255,255,.5); padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.1); }
+
+/* ════════════════════════════════════════════
+   FEATURED CARDS
+   Self-contained so nothing inherits the dark-header styling that
+   was turning the firm name white on a white card. Equal heights,
+   clamped description, and the name always readable.
+════════════════════════════════════════════ */
+.fcard { position:relative; background:var(--white); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:20px; display:flex; flex-direction:column; gap:12px;
+  height:100%; overflow:hidden; }
+.fcard.is-paid { border-color:rgba(196,154,22,.55); box-shadow:0 1px 0 rgba(196,154,22,.2); }
+.fcard-ribbon { position:absolute; top:12px; right:-6px; background:var(--gold);
+  color:var(--forest-deep); font-size:.6rem; font-weight:800; padding:3px 12px 3px 9px;
+  letter-spacing:.06em; text-transform:uppercase; border-radius:3px 0 0 3px; }
+.fcard-head { display:flex; gap:12px; align-items:flex-start; }
+.fcard-logo { width:44px; height:44px; border-radius:var(--r-sm); background:var(--forest);
+  color:var(--gold); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:700; font-size:.92rem; flex-shrink:0; }
+.fcard-logo.has-logo { background:#fff !important; padding:5px; }
+.fcard-logo.has-logo img { width:100%; height:100%; object-fit:contain; display:block; }
+.fcard-id { flex:1; min-width:0; }
+.fcard-name { display:block; font-family:var(--font-display); font-weight:700; font-size:1rem;
+  line-height:1.3; color:var(--forest); text-decoration:none;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.fcard-name:hover { text-decoration:underline; }
+.fcard-cat { display:block; font-size:.76rem; color:var(--muted); margin-top:3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fcard-desc { font-size:.84rem; color:var(--slate); line-height:1.55; margin:0; flex:1;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.fcard-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.fcard-tag { font-size:.7rem; background:var(--green-soft); color:var(--forest);
+  padding:2px 8px; border-radius:11px; white-space:nowrap; }
+.fcard-foot { display:flex; align-items:center; gap:10px; font-size:.78rem; color:var(--muted);
+  padding-top:11px; border-top:1px solid var(--border); }
+.fcard-loc { display:flex; align-items:center; gap:5px; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fcard-rating { margin-left:auto; white-space:nowrap; color:var(--gold-muted); }
+.fcard-actions { display:flex; gap:8px; }
+.fcard-actions .btn { flex:1; justify-content:center; }
+.listings-grid { align-items:stretch; }
+
+/* ════════════════════════════════════════════
+   LEGAL DOCUMENTS
+════════════════════════════════════════════ */
+.legal { max-width: 760px; margin: 0 auto; padding: 36px 0 64px; }
+.legal h2 { font-size: 1.15rem; margin: 32px 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border); }
+.legal h3 { font-size: .98rem; margin: 20px 0 8px; color: var(--forest); }
+.legal p, .legal li { font-size: .92rem; line-height: 1.72; color: var(--slate); margin-bottom: 12px; }
+.legal ul, .legal ol { padding-left: 22px; margin-bottom: 14px; }
+.legal li { margin-bottom: 7px; }
+.legal .updated { font-size: .82rem; color: var(--muted); margin-bottom: 8px; }
+.legal-toc { background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 20px 24px; margin-bottom: 28px; }
+.legal-toc a { display: block; padding: 4px 0; font-size: .88rem; }
+.legal-draft { background: var(--gold-pale); border: 1px solid rgba(196,154,22,.45);
+  border-radius: var(--r-md); padding: 16px 20px; margin-bottom: 26px; font-size: .86rem;
+  line-height: 1.65; color: #6B5308; }
+.legal-draft strong { display: block; margin-bottom: 4px; color: #4A3A05; }
+
+/* ════════════════════════════════════════════
+   PAGINATION
+════════════════════════════════════════════ */
+.pager { display:flex; align-items:center; justify-content:center; gap:6px;
+  flex-wrap:wrap; margin:28px 0 8px; }
+.pager button { min-width:38px; height:38px; padding:0 11px; border:1px solid var(--border);
+  background:var(--white); border-radius:var(--r-sm); cursor:pointer; font-size:.86rem;
+  font-weight:600; color:var(--slate); font-family:var(--font-body); }
+.pager button:hover:not(:disabled):not(.current) { border-color:var(--forest); color:var(--forest); }
+.pager button.current { background:var(--forest); border-color:var(--forest); color:#fff; cursor:default; }
+.pager button:disabled { opacity:.4; cursor:not-allowed; }
+.pager .gap { color:var(--muted); padding:0 2px; user-select:none; }
+.badge-client { background:var(--forest); color:#fff; }
+.tab-n { display:inline-block; margin-left:7px; font-size:.68rem; font-weight:700;
+  background:rgba(0,0,0,.09); color:inherit; padding:1px 6px; border-radius:10px; }
+.tab-btn.active .tab-n { background:rgba(255,255,255,.25); }
+.tab-btn.is-empty { opacity:.55; }
+.tab-btn { cursor:pointer; font-family:var(--font-body); }
+.pager-info { text-align:center; font-size:.82rem; color:var(--muted); margin-bottom:4px; }
+.pager-size { display:flex; align-items:center; gap:7px; font-size:.82rem; color:var(--muted);
+  justify-content:center; margin-top:10px; }
+.pager-size select { padding:4px 8px; border:1px solid var(--border); border-radius:var(--r-sm);
+  background:var(--white); font-family:var(--font-body); font-size:.82rem; }
+@media (max-width:560px){
+  .pager button { min-width:34px; height:34px; padding:0 8px; font-size:.8rem; }
+  .pager .page-num:not(.current):not(.edge) { display:none; }
+}
+
+/* ════════════════════════════════════════════
    DIRECTORY VIEWS — list, grid, map
 ════════════════════════════════════════════ */
 [hidden] { display:none !important; }
@@ -527,7 +693,10 @@ a { text-decoration: none; color: inherit; }
 .skeleton { background:linear-gradient(90deg,#EEE 25%,#F6F6F6 50%,#EEE 75%); background-size:200% 100%;
             animation:shimmer 1.3s infinite; border-radius:var(--r-md); height:88px; margin-bottom:12px; }
 @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-.verified-stamp { font-size:.72rem; color:var(--muted); }
+.verified-stamp { font-size:.72rem; color:var(--muted); display:inline-flex; align-items:center; gap:5px; }
+.verified-stamp.prov-verified { color:#1F7A4D; font-weight:600; }
+.verified-stamp.prov-submitted { color:var(--muted); }
+.verified-stamp.prov-compiled { color:var(--muted); font-style:italic; }
 .data-error { background:var(--red-soft); border:1px solid rgba(184,50,50,.3); color:var(--red);
               padding:16px 20px; border-radius:var(--r-md); font-size:.88rem; }
 
@@ -963,13 +1132,9 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
   <div class="header-main">
     <div class="container">
-      <a class="logo-wrap" href="#/home" aria-label="BuildList — home">
+      <a class="logo-wrap" href="#/home" aria-label="BuildList.com — home">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1A3C2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="3 9 12 2 21 9 21 20 3 20 3 9"/>
-            <rect x="9" y="14" width="6" height="6"/>
-            <line x1="12" y1="2" x2="12" y2="9"/>
-          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1A3C2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 12 2 21 9 21 20 3 20 3 9"/><rect x="9" y="14" width="6" height="6"/></svg>
         </div>
         <div>
           <div class="logo-text">BuildList<span class="logo-tld">.com</span></div>
@@ -1068,7 +1233,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div class="trust-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-shield-check"></use></svg></div>
         <div>
           <div class="trust-text">Register-Checked</div>
-          <div class="trust-sub">Checked against BORAQS, UIPE and URSB</div>
+          <div class="trust-sub">Checked against ARB, ERB, SRB and URSB</div>
         </div>
       </div>
       <div class="trust-item">
@@ -1092,12 +1257,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="trust-sub">Moderated, with a right of reply</div>
         </div>
       </div>
-      <div class="trust-item">
-        <div class="trust-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-smartphone"></use></svg></div>
-        <div>
-          <div class="trust-text">Mobile Optimised</div>
-          <div class="trust-sub">Works on any device</div>
-        </div>
       </div>
     </div>
   </div>
@@ -1184,6 +1343,16 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       </div>
       <p class="disclosure" id="featuredNote" style="margin-bottom:14px"></p>
         <div class="listings-grid" id="featuredListings"></div>
+      </div>
+    </section>
+
+    <!-- Monthly spotlights: one paid, one editorial. -->
+    <section class="section" style="padding-top:0">
+      <div class="container">
+        <div class="spotlights">
+          <div id="productOfMonth"></div>
+          <div id="projectOfMonth"></div>
+        </div>
     </div>
   </section>
 
@@ -1281,7 +1450,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div style="text-align:center;padding:28px 20px">
           <div style="font-size:2.5rem;margin-bottom:14px"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-shield-check"></use></svg></div>
           <h3>Build Verified Trust</h3>
-          <p style="font-size:.84rem;margin-top:8px">BORAQS and UIPE verification badges signal professional credibility to every potential client.</p>
+          <p style="font-size:.84rem;margin-top:8px">ARB and UIPE verification badges signal professional credibility to every potential client.</p>
         </div>
         <div style="text-align:center;padding:28px 20px">
           <div style="font-size:2.5rem;margin-bottom:14px"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bar-chart"></use></svg></div>
@@ -1398,6 +1567,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 
         <div class="dir-listings-list" id="dirListings"></div>
         <div class="dir-listings-grid" id="dirGrid" hidden></div>
+        <nav id="dirPager" aria-label="Directory pages"></nav>
         <div class="panel" id="rfqPanel" style="margin-bottom:20px">
           <h3>Get quotes without driving around</h3>
           <p>Describe what you need once. We pass it to up to five verified suppliers in that category
@@ -1445,12 +1615,11 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       <div>
         <!-- Tabs -->
         <div class="tab-bar">
-          <div class="tab-btn active">All Tenders</div>
-          <div class="tab-btn">Government</div>
-          <div class="tab-btn">NGO / Donor</div>
-          <div class="tab-btn">Private Sector</div>
-          <div class="tab-btn">Consultancy</div>
-          <div class="tab-btn">Closed</div>
+          <button type="button" class="tab-btn active" data-client="" onclick="setTenderClient('')">All tenders</button>
+          <button type="button" class="tab-btn" data-client="government" onclick="setTenderClient('government')">Government</button>
+          <button type="button" class="tab-btn" data-client="parastatal" onclick="setTenderClient('parastatal')">Parastatal</button>
+          <button type="button" class="tab-btn" data-client="ngo" onclick="setTenderClient('ngo')">NGO &amp; donor</button>
+          <button type="button" class="tab-btn" data-client="private" onclick="setTenderClient('private')">Private sector</button>
         </div>
 
         <!-- Filter bar -->
@@ -1658,7 +1827,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="news-sidebar-item">
             <div class="news-sidebar-thumb"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-scale"></use></svg></div>
             <div>
-              <div class="news-sidebar-title">BORAQS Releases Updated Mandatory CPD Requirements for 2025</div>
+              <div class="news-sidebar-title">ARB Releases Updated Mandatory CPD Requirements for 2025</div>
               <div class="news-sidebar-date">8 Jun 2025</div>
             </div>
           </div>
@@ -1690,6 +1859,15 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
   <section class="section">
     <div class="container">
+      <div class="panel" style="max-width:820px;margin:0 auto 28px">
+        <h3>Product of the Month</h3>
+        <p>One manufacturer or distributor per calendar month, on the homepage and in the weekly digest.
+        We write it up as a short article rather than running it as a banner, because a write-up gets read
+        and a banner gets ignored. You supply the facts and approve the copy.</p>
+        <p style="margin-bottom:0"><strong>From UGX 800,000 per month.</strong> Labelled as advertising,
+        as everything paid on this site is. It does not affect any firm's ranking, and it is separate
+        from the Benchmark Project slot, which is editorial and not for sale.</p>
+      </div>
       <p class="disclosure" id="mediaKitNote" style="text-align:center;max-width:720px;margin:0 auto 24px"></p>
       <div class="stats-grid-adv">
         <div class="stat-card-adv">
@@ -1838,7 +2016,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   <div class="page-header">
     <div class="container">
       <div class="breadcrumb"><span onclick="showPage('home')">Home</span><span class="breadcrumb-sep">/</span><span>Add Your Firm</span></div>
-      <h1>List Your Firm on BuildList</h1>
+      <h1>List Your Firm on BuildList.com</h1>
       <p class="page-header-sub">Join the firms already reaching Uganda's construction industry every day</p>
     </div>
   </div>
@@ -1932,14 +2110,14 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="form-section">
             <h3>Professional Credentials</h3>
             <div class="form-grid">
-              <div class="form-group"><label class="form-label">BORAQS Registration No. <span class="optional">(if applicable)</span></label><input class="form-input" placeholder="e.g. QS/001234 or AR/005678" name="boraqs-registration-no-if-applicable"></div>
+              <div class="form-group"><label class="form-label">ARB Registration No. <span class="optional">(if applicable)</span></label><input class="form-input" placeholder="e.g. QS/001234 or AR/005678" name="boraqs-registration-no-if-applicable"></div>
               <div class="form-group"><label class="form-label">UIPE Membership No. <span class="optional">(if applicable)</span></label><input class="form-input" placeholder="e.g. UIPE/2024/0123" name="uipe-membership-no-if-applicable"></div>
               <div class="form-group"><label class="form-label">URSB Company Reg. No.</label><input class="form-input" placeholder="Company registration number" name="ursb-company-reg-no"></div>
               <div class="form-group"><label class="form-label">Tax Identification No. (TIN)</label><input class="form-input" placeholder="URA TIN number" name="tax-identification-no-tin"></div>
             </div>
             <div style="background:var(--blue-soft);border-radius:var(--r-sm);padding:12px 16px;font-size:.82rem;color:var(--blue);display:flex;gap:8px;align-items:flex-start">
               <span style="font-size:1rem;flex-shrink:0"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
-              <span>Firms that provide verifiable professional registration numbers receive a <strong>Verified badge</strong> visible to all site visitors. Our team checks all credentials against the BORAQS and UIPE registers before publishing.</span>
+              <span>Firms that provide verifiable professional registration numbers receive a <strong>Verified badge</strong> visible to all site visitors. Our team checks all credentials against the ARB and UIPE registers before publishing.</span>
             </div>
           </div>
 
@@ -1955,7 +2133,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 
           <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
             <button class="btn btn-primary btn-lg" type="submit">Submit Listing →</button>
-            <p style="font-size:.78rem;color:var(--muted)">By submitting you agree to our <a href="#/about" style="color:var(--forest)">Terms of Service</a> and <a href="#/about" style="color:var(--forest)">Privacy Policy</a>. We publish only the contact details you provide here, and you can ask us to remove your listing at any time.</p>
+            <p style="font-size:.78rem;color:var(--muted)">By submitting you agree to our <a href="#/terms" style="color:var(--forest)">Terms of Service</a> and our <a href="#/privacy" style="color:var(--forest)">Privacy Policy</a>. We publish only the contact details you provide here, and you can ask us to remove your listing at any time.</p>
           </div>
         </form>
 
@@ -1965,7 +2143,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
             <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-clipboard"></use></svg> Your Selection</h4>
             <div class="tier-summary-item"><span>Membership tier</span><span id="selectedTierName" style="font-weight:700;color:var(--forest)">Free</span></div>
             <div class="tier-summary-item"><span>Annual fee</span><span id="selectedTierPrice" style="font-family:var(--font-mono);font-weight:700">UGX 0</span></div>
-            <div class="tier-summary-item"><span>BORAQS verification</span><span>Included</span></div>
+            <div class="tier-summary-item"><span>ARB verification</span><span>Included</span></div>
             <div class="tier-summary-item" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><span>Total due</span><span id="selectedTierTotal" style="font-family:var(--font-mono);font-size:1.05rem;color:var(--forest)">UGX 0</span></div>
             <p style="font-size:.75rem;color:var(--muted);margin-top:10px">Payment accepted via MTN MoMo, Airtel Money, bank transfer, or card. Free listings are published immediately.</p>
           </div>
@@ -1998,7 +2176,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
     <div class="container">
       <div class="eyebrow" style="margin-bottom:14px">A product of Sharplink Ventures (U) Limited · Kampala, Uganda</div>
       <h1 style="color:#fff;margin-bottom:16px">Built for Uganda's<br>Built Environment</h1>
-      <p style="color:rgba(255,255,255,.65);max-width:600px;margin:0 auto;font-size:1rem">BuildList exists because Uganda's construction industry needed a professional, current, searchable home on the internet. We are building it.</p>
+      <p style="color:rgba(255,255,255,.65);max-width:600px;margin:0 auto;font-size:1rem">BuildList.com exists because Uganda's construction industry needed a professional, current, searchable home on the internet. We are building it.</p>
     </div>
   </div>
 
@@ -2007,13 +2185,13 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       <div class="mission-text">
         <div class="eyebrow" style="margin-bottom:10px">Our Mission</div>
         <h2>Make Uganda's Construction Industry Visible, Connected and Accountable</h2>
-        <p style="margin-top:16px">Before BuildList, Uganda's construction professionals were nearly invisible online. Firms with decades of experience, BORAQS-registered practitioners, and specialist contractors had no shared professional home on the internet.</p>
-        <p style="margin-top:14px">We built BuildList to change that — to create a single, authoritative, trusted platform where the entire built environment ecosystem can be found, evaluated and engaged. A platform that reflects the genuine quality of Uganda's construction professionals.</p>
+        <p style="margin-top:16px">Before BuildList.com, Uganda's construction professionals were nearly invisible online. Firms with decades of experience, ARB-registered practitioners, and specialist contractors had no shared professional home on the internet.</p>
+        <p style="margin-top:14px">We built BuildList.com to change that — to create a single, authoritative, trusted platform where the entire built environment ecosystem can be found, evaluated and engaged. A platform that reflects the genuine quality of Uganda's construction professionals.</p>
         <div class="mission-values">
           <div class="mission-value">
             <div class="mission-value-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-shield-check"></use></svg></div>
             <div class="mission-value-title">Verified First</div>
-            <div class="mission-value-text">Professional listings are cross-checked against the public BORAQS, UIPE and URSB registers before a verified badge is issued.</div>
+            <div class="mission-value-text">Professional listings are cross-checked against the public ARB, ERB, SRB and URSB registers before a verified badge is issued.</div>
           </div>
           <div class="mission-value">
             <div class="mission-value-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-flag"></use></svg></div>
@@ -2068,15 +2246,15 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       <p style="color:var(--muted);max-width:620px;margin:0 auto">Before a listing receives a verified badge we check the firm's registration against the public registers maintained by the bodies below, and confirm the phone number and premises ourselves.</p>
     </div>
     <div class="partner-logos" style="margin-bottom:56px">
-      <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-institution"></use></svg> BORAQS Uganda</div>
+      <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-institution"></use></svg> Architects Registration Board</div>
       <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-tool"></use></svg> UIPE</div>
       <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-clipboard"></use></svg> PPDA Uganda</div>
       <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-building"></use></svg> URSB</div>
-      <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-ruler"></use></svg> UIQS</div>
-      <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-globe"></use></svg> NCIC</div>
+      <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-ruler"></use></svg> ISU</div>
+      <div class="partner-logo"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-globe"></use></svg> ERB</div>
     </div>
     <p class="disclosure" style="text-align:center;max-width:760px;margin:-32px auto 56px">
-      <strong>Disclosure.</strong> These are independent statutory and professional bodies. BuildList references their
+      <strong>Disclosure.</strong> These are independent statutory and professional bodies. BuildList.com references their
       publicly available registers to verify listings. We are not affiliated with, endorsed by, or acting as an agent of any of
       them, and a verified badge on this site is a record check — not a guarantee of workmanship, solvency or contractual performance.
     </p>
@@ -2088,7 +2266,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
     </div>
     <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:40px;align-items:start;margin-bottom:64px" class="owner-grid">
       <div>
-        <p>BuildList is owned and operated by <strong>Sharplink Ventures (U) Limited</strong>, a private company
+        <p>BuildList.com is owned and operated by <strong>Sharplink Ventures (U) Limited</strong>, a private company
         limited by shares registered with the Uganda Registration Services Bureau and registered for tax with the Uganda
         Revenue Authority. The platform is one of the company's trading divisions, with its own management accounts.</p>
         <p style="margin-top:14px">We publish this because a directory only works if people trust who is behind it. If a firm
@@ -2171,7 +2349,275 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
 </div><!-- /page-about -->
 
+<!-- ═══════════════════════════════════════
+     PAGE: PRIVACY
+═══════════════════════════════════════ -->
+<div id="page-privacy" class="hidden">
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb"><a href="#/home">Home</a><span class="breadcrumb-sep">/</span><span>Privacy Policy</span></div>
+      <h1 class="page-title">Privacy Policy</h1>
+      <p class="page-header-sub">What data we handle, why, and how to have your listing removed.</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="legal">
+      <p class="updated">Last updated: <span id="privacyUpdated">11 September 2026</span> &middot; Version 1.0</p>
+      <div class="legal-draft"><strong>Template — must be reviewed by a Ugandan advocate before you rely on it.</strong>This is a working draft written for BuildList.com’s actual operation, not a generic download. It is a sound starting point and will save you money at the lawyer’s office, but it is not legal advice and it has not been checked against current Ugandan case law. Have it reviewed, fill in the bracketed details, then delete this notice.</div>
+      
+      <p>BuildList.com is operated by <strong>Sharplink Ventures (U) Limited</strong>, a company registered in
+      Uganda (URSB registration number [insert], TIN [insert]), with its registered office at [insert address],
+      Kampala. In this policy "we" and "us" mean Sharplink Ventures (U) Limited.</p>
+
+      <p>This policy explains what personal data we handle, why, and what you can require us to do about it. It is
+      written to comply with the <strong>Data Protection and Privacy Act, 2019</strong> and the Data Protection and
+      Privacy Regulations, 2021.</p>
+
+      <h2>1. Two kinds of people this policy covers</h2>
+      <p>We handle data about two different groups, and the rules differ for each.</p>
+      <h3>Listed businesses</h3>
+      <p>If your business appears in our directory, we publish information about it: the business name, category,
+      district and area, a telephone number, and where supplied an email address, website, description, logo and
+      photographs. Where the person named is a sole trader or where a personal mobile number is used as the business
+      number, that information is personal data and this policy applies to it.</p>
+      <h3>Visitors and subscribers</h3>
+      <p>If you browse the site, submit an enquiry, request a quotation, or subscribe to our digest, we handle the
+      data you give us and limited technical data described in section 4.</p>
+
+      <h2>2. What we collect, and why</h2>
+      <ul>
+        <li><strong>Business listing data</strong> — name, category, location, contact details, description, images.
+        Purpose: to publish a directory that helps customers find suppliers. Lawful basis: consent, which we obtain
+        before publishing.</li>
+        <li><strong>Enquiry and quotation data</strong> — your name, telephone number, email and the details of what
+        you need. Purpose: to pass your request to the suppliers you selected. Lawful basis: performance of the
+        service you asked for.</li>
+        <li><strong>Digest subscription data</strong> — email address and, if given, name and firm. Purpose: to send
+        the weekly digest. Lawful basis: consent.</li>
+        <li><strong>Listing submission data</strong> — everything on the sign-up form, including the name and role of
+        the person submitting. Purpose: to verify and publish the listing. Lawful basis: consent.</li>
+        <li><strong>Technical data</strong> — see section 4.</li>
+      </ul>
+
+      <h2>3. Where listing data comes from</h2>
+      <p>We are explicit about this because it matters. Listings reach us three ways:</p>
+      <ol>
+        <li><strong>Submitted by the business</strong> through our sign-up form, with consent recorded at the point of
+        submission.</li>
+        <li><strong>Collected by our field team</strong> in person, with consent recorded on the visit.</li>
+        <li><strong>Compiled from publicly available sources</strong> — public professional registers, published
+        directories and businesses’ own public advertising. <strong>Where a listing was compiled this way, we contact
+        the business by telephone to confirm the details and obtain consent before publishing it.</strong> A listing
+        that has not cleared that call is not published.</li>
+      </ol>
+
+      <h2>4. Analytics and cookies</h2>
+      <p>We use Google Analytics to understand which pages are used and which listings receive enquiries. This records
+      technical data including approximate location derived from IP address, device and browser type, pages viewed,
+      and actions such as tapping a telephone number. IP anonymisation is enabled.</p>
+      <p>We record, per listing, how many times its page was viewed and how many times a visitor tapped its contact
+      button. We share these figures with the listed business, because they are about that business. We do not share
+      the identity of the visitor, because we do not hold it.</p>
+      <p>We do not use advertising cookies, we do not operate behavioural retargeting, and we do not sell data to
+      advertisers. Advertisers on this site receive counts of impressions and clicks, never visitor identities.</p>
+      <p>You can block analytics in your browser settings or with any standard blocker. The site works normally with
+      analytics blocked.</p>
+
+      <h3>Changing your choice</h3>
+      <p>Analytics only runs if you accepted the cookie notice. You can change your mind at any
+      time:</p>
+      <p><button class="btn btn-outline btn-sm" onclick="setConsent('accepted')">Allow analytics</button>
+      <button class="btn btn-outline btn-sm" onclick="setConsent('declined')">Turn analytics off</button>
+      <span id="consentState" class="disclosure" style="margin-left:10px"></span></p>
+
+      <h2>5. Who we share data with</h2>
+      <ul>
+        <li><strong>Suppliers you choose</strong> — when you submit a quotation request, it goes to the suppliers
+        shown to you before you sent it, so they can contact you directly.</li>
+        <li><strong>Service providers</strong> — our website host (Netlify), form processor, analytics provider
+        (Google) and email platform. Each processes data on our instructions.</li>
+        <li><strong>Nobody else.</strong> We do not sell, rent or trade personal data. We do not supply our listing
+        database or subscriber list to third parties.</li>
+      </ul>
+      <p>Some of these providers are located outside Uganda. Where data is transferred abroad we rely on the
+      provider’s contractual data protection commitments, as permitted under section 19 of the Act.</p>
+
+      <h2>6. How long we keep it</h2>
+      <ul>
+        <li>Published listings: for as long as the listing is live, plus 12 months after removal for audit purposes.</li>
+        <li>Consent records: for the life of the listing plus 6 years, because they are our evidence that publication
+        was lawful.</li>
+        <li>Quotation requests: 24 months.</li>
+        <li>Digest subscriptions: until you unsubscribe, then we keep only your email on a suppression list so we do
+        not accidentally add you again.</li>
+        <li>Analytics: 14 months, Google’s default retention.</li>
+      </ul>
+
+      <h2>7. Your rights</h2>
+      <p>Under the Data Protection and Privacy Act, 2019 you may ask us to:</p>
+      <ul>
+        <li><strong>Remove your listing.</strong> We action removal requests within <strong>48 hours</strong>. You do
+        not have to give a reason.</li>
+        <li><strong>Correct anything inaccurate.</strong> Usually done the same day.</li>
+        <li><strong>Tell you what we hold</strong> about you, and provide a copy.</li>
+        <li><strong>Stop sending you the digest</strong> — every message carries an unsubscribe link.</li>
+        <li><strong>Withdraw consent</strong> at any time, which for a listing means removal.</li>
+      </ul>
+      <p>Contact <a href="mailto:hello@buildlist.com">hello@buildlist.com</a> or WhatsApp
+      <span data-site="phone">+256 700 000 000</span>. If you are not satisfied with our response you may complain to
+      the <strong>Personal Data Protection Office</strong>, National Information Technology Authority – Uganda
+      (NITA-U), Kampala.</p>
+
+      <h2>8. Security</h2>
+      <p>The site is served over HTTPS. Administrative access is restricted to named staff. We do not store payment
+      card details at any point; where payment is taken it is handled by a licensed payment provider. We keep the
+      minimum data necessary, which is itself a security measure.</p>
+      <p>If a breach occurs that is likely to affect your rights, we will notify you and the Personal Data Protection
+      Office as required by the Act.</p>
+
+      <h2>9. Children</h2>
+      <p>This is a business-to-business service and is not directed at children. We do not knowingly collect data from
+      anyone under 18.</p>
+
+      <h2>10. Changes</h2>
+      <p>If we change this policy materially we will update the date above and, for changes affecting listed
+      businesses or subscribers, tell you directly.</p>
+
+      <h2>11. Contact</h2>
+      <p>Sharplink Ventures (U) Limited &middot; [insert registered address], Kampala, Uganda<br>
+      <a href="mailto:hello@buildlist.com">hello@buildlist.com</a> &middot;
+      <span data-site="phone">+256 700 000 000</span></p>
+
+    </div>
+  </div>
+</div><!-- /page-privacy -->
+
+<!-- ═══════════════════════════════════════
+     PAGE: TERMS
+═══════════════════════════════════════ -->
+<div id="page-terms" class="hidden">
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb"><a href="#/home">Home</a><span class="breadcrumb-sep">/</span><span>Terms of Service</span></div>
+      <h1 class="page-title">Terms of Service</h1>
+      <p class="page-header-sub">The rules for using BuildList.com, and what a verified badge does and does not mean.</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="legal">
+      <p class="updated">Last updated: <span id="termsUpdated">11 September 2026</span> &middot; Version 1.0</p>
+      <div class="legal-draft"><strong>Template — must be reviewed by a Ugandan advocate before you rely on it.</strong>This is a working draft written for BuildList.com’s actual operation, not a generic download. It is a sound starting point and will save you money at the lawyer’s office, but it is not legal advice and it has not been checked against current Ugandan case law. Have it reviewed, fill in the bracketed details, then delete this notice.</div>
+      
+      <p>These terms govern your use of BuildList.com, operated by <strong>Sharplink Ventures (U) Limited</strong>
+      ("we", "us"). By using the site you accept them. If you do not accept them, do not use the site.</p>
+
+      <h2>1. What BuildList.com is</h2>
+      <p>BuildList.com is a directory. We publish information about construction industry businesses in Uganda so that
+      customers can find and contact them. We also publish tender notices, job vacancies, industry articles and an
+      indicative material price index.</p>
+      <p><strong>We are an information service and nothing more.</strong> We are not a party to any contract you make
+      with a business you find here. We do not supply construction goods or services, we do not act as an agent for
+      any listed business, and we take no commission on work that results from a listing.</p>
+
+      <h2>2. What a "verified" badge means, and what it does not</h2>
+      <p>This is the most important section on this page, so it is stated plainly.</p>
+      <p>A verified badge means that, on the date shown, we did the following and each check passed:</p>
+      <ul>
+        <li>We telephoned the number listed and reached the business.</li>
+        <li>We confirmed the business name, the category and the location.</li>
+        <li>Where a professional registration is claimed, we checked it against the relevant public register
+        (Architects Registration Board, Engineers Registration Board, Surveyors Registration Board, or URSB).</li>
+      </ul>
+      <p><strong>A verified badge is a record and contact check. It is not:</strong></p>
+      <ul>
+        <li>a guarantee of the quality, safety or timeliness of any work;</li>
+        <li>a statement that the business is solvent, insured or bonded;</li>
+        <li>a recommendation, endorsement or certification by us;</li>
+        <li>a warranty that the registration remains current after the date shown.</li>
+      </ul>
+      <p>Satisfy yourself independently before engaging anyone. Ask for references, check registrations yourself, and
+      put your agreement in writing.</p>
+
+      <h2>3. Our relationship with the professional bodies</h2>
+      <p>We reference public registers maintained by the Architects Registration Board, the Engineers Registration
+      Board, the Surveyors Registration Board, the Uganda Institution of Professional Engineers, the Institution of
+      Surveyors of Uganda, the Uganda Registration Services Bureau and the PPDA.</p>
+      <p><strong>We are not affiliated with, endorsed by, licensed by, or acting as an agent of any of them.</strong>
+      Referencing a public register does not imply any relationship.</p>
+
+      <h2>4. Accuracy of information</h2>
+      <p>We take reasonable care, but a directory of hundreds of businesses will contain errors and information goes
+      out of date. Telephone numbers change, businesses close, prices move. We do not warrant that any information on
+      this site is complete, current or accurate, and you should verify anything you intend to rely on.</p>
+      <p>The <strong>material price index</strong> is indicative, collected from a small number of named suppliers on
+      the date shown. It is a guide to market movement, not a quotation, and must not be used as a basis for pricing a
+      contract.</p>
+      <p><strong>Tender notices</strong> are republished for information. Always confirm the reference, requirements
+      and closing date with the procuring entity before bidding.</p>
+
+      <h2>5. Advertising and paid placement</h2>
+      <p>Some listings are paid. Paid tiers rank above free listings in the default search order, and this is disclosed
+      on the directory page itself. Banners, fliers, videos and sponsored articles are labelled as advertising.</p>
+      <p>Paying us does not buy a verified badge, a favourable review, or the removal of a competitor. Ranking within a
+      tier is not for sale.</p>
+      <p>Where a listed business is owned or part-owned by Sharplink Ventures (U) Limited, its profile carries a
+      visible "Group company" tag.</p>
+
+      <h2>6. Using the site</h2>
+      <p>You may browse, search and contact listed businesses freely. You may not:</p>
+      <ul>
+        <li>scrape, harvest or bulk-copy the directory, or any substantial part of it, by any means;</li>
+        <li>use contact details obtained here to send unsolicited bulk marketing;</li>
+        <li>submit false, misleading or fraudulent listings or reviews;</li>
+        <li>impersonate a business you do not represent;</li>
+        <li>attempt to interfere with the operation or security of the site.</li>
+      </ul>
+      <p>The compiled directory is our database and our property. Individual factual details about a business belong to
+      that business; the selection, verification and arrangement of them is our work.</p>
+
+      <h2>7. Reviews</h2>
+      <p>Reviews are moderated before publication. We do not publish allegations of criminal conduct, personal abuse,
+      or claims we cannot reasonably attribute to a genuine customer. A listed business has a right of reply to any
+      review about it. We may decline to publish a review without giving reasons.</p>
+
+      <h2>8. Liability</h2>
+      <p>To the fullest extent permitted by Ugandan law:</p>
+      <ul>
+        <li>The site is provided "as is". We do not guarantee uninterrupted availability.</li>
+        <li>We are not liable for any loss arising from your dealings with a business listed here, including defective
+        work, non-delivery, overcharging or dispute.</li>
+        <li>We are not liable for indirect or consequential loss, loss of profit, or loss of contract.</li>
+        <li>Nothing in these terms excludes liability for death or personal injury caused by our negligence, or for
+        fraud.</li>
+      </ul>
+
+      <h2>9. Links to other sites</h2>
+      <p>Listings and advertisements link to third-party websites. We do not control them and are not responsible for
+      their content or their privacy practices.</p>
+
+      <h2>10. Changes and termination</h2>
+      <p>We may change these terms, and we may add, amend, suspend or remove any listing or feature at our discretion.
+      Material changes will be reflected in the date above.</p>
+
+      <h2>11. Law and jurisdiction</h2>
+      <p>These terms are governed by the laws of the Republic of Uganda, and the courts of Uganda have exclusive
+      jurisdiction.</p>
+
+      <h2>12. Contact</h2>
+      <p>Sharplink Ventures (U) Limited &middot; [insert registered address], Kampala, Uganda<br>
+      <a href="mailto:hello@buildlist.com">hello@buildlist.com</a></p>
+
+    </div>
+  </div>
+</div><!-- /page-terms -->
+
+
+
 </main>
+
+<!-- Cookie notice. Rendered by JS so it never appears for someone who
+     has already answered, and never at all if analytics is unconfigured. -->
+<div class="cookie" id="cookieNotice" role="region" aria-label="Cookie notice"></div>
 
 <!-- ═══════════════════════════════════════
      FOOTER (always visible)
@@ -2202,42 +2648,44 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
         <div class="footer-col">
           <h5>Directory</h5>
-          <a href="#/directory">Browse All Firms</a>
-          <a href="#/directory">Quantity Surveyors</a>
-          <a href="#/directory">Architecture Firms</a>
-          <a href="#/directory">Civil Engineers</a>
-          <a href="#/directory">Building Contractors</a>
-          <a href="#/directory">Material Suppliers</a>
-          <a href="#/directory">All Categories</a>
+          <a href="#/directory">Browse all firms</a>
+          <a href="#/directory?cat=architecture-design">Architecture &amp; Design</a>
+          <a href="#/directory?cat=quantity-surveying">Quantity Surveying</a>
+          <a href="#/directory?cat=civil-structural">Civil &amp; Structural Engineering</a>
+          <a href="#/directory?cat=general-contracting">General Contracting</a>
+          <a href="#/directory?cat=electrical-contracting">Electrical Contracting</a>
+          <a href="#/directory?cat=plumbing-fire">Plumbing &amp; Fire Fighting</a>
+          <a href="#/directory?cat=land-surveying">Land Surveying</a>
+          <a href="/browse/">All categories</a>
         </div>
         <div class="footer-col">
           <h5>Platform</h5>
-          <a href="#/tenders">Tenders Board</a>
-          <a href="#/jobs">Jobs Board</a>
-          <a href="#/news">Industry News</a>
-          <a href="#/news">Material Prices</a>
-          <a href="#/advertise">Advertise With Us</a>
-          <a href="#/submit">Add Your Firm</a>
-          <a href="#/submit">Post a Tender</a>
+          <a href="#/tenders">Tenders board</a>
+          <a href="#/jobs">Jobs board</a>
+          <a href="#/news">Industry news</a>
+          <a href="#/news">Material price index</a>
+          <a href="#/directory">Request a quotation</a>
+          <a href="#/advertise">Advertise with us</a>
+          <a href="#/submit">Add your firm</a>
         </div>
         <div class="footer-col">
           <h5>Company</h5>
-          <a href="#/about">About BuildList</a>
+          <a href="#/about">About BuildList.com</a>
           <a href="#/about">Sharplink Ventures (U) Ltd</a>
-          <a href="#/about">Our Team</a>
-          <a href="#/about">Contact Us</a>
-          <a href="#/advertise">Media Kit</a>
-          <a href="#/about">Privacy Policy</a>
-          <a href="#/about">Terms of Service</a>
-          <a href="#/about">How We Verify Listings</a>
+          <a href="#/about">Our team</a>
+          <a href="#/about">Contact us</a>
+          <a href="#/advertise">Media kit</a>
+          <a href="#/about">How we verify listings</a>
+          <a href="#/privacy">Privacy policy</a>
+          <a href="#/terms">Terms of service</a>
         </div>
       </div>
     </div>
   </div>
   <div class="footer-bottom">
     <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <span>© <span id="year">2026</span> BuildList — a product of <strong style="color:rgba(255,255,255,.6)">Sharplink Ventures (U) Limited</strong>. All rights reserved.</span>
-      <span>Listings cross-checked against the public BORAQS, UIPE and URSB registers. Not affiliated with, or endorsed by, those bodies.</span>
+      <span>© <span id="year">2026</span> BuildList.com — a product of <strong style="color:rgba(255,255,255,.6)">Sharplink Ventures (U) Limited</strong>. All rights reserved.</span>
+      <span>Listings cross-checked against the public ARB, ERB, SRB and URSB registers. Not affiliated with, or endorsed by, those bodies.</span>
     </div>
   </div>
 </footer>
@@ -2299,11 +2747,11 @@ const SITE = {
    All content lives in /data/*.json so a non-developer can edit it
    without touching this file. Adding fifty firms is a JSON edit.
    ═══════════════════════════════════════════════════════════════ */
-const DATA = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, ads: null, 'price-history': null };
+const DATA = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, ads: null, 'price-history': null, spotlight: null };
 let DATA_READY = false;
 
 async function loadData() {
-  const files = ['taxonomy', 'firms', 'tenders', 'jobs', 'articles', 'prices', 'ads', 'price-history'];
+  const files = ['taxonomy', 'firms', 'tenders', 'jobs', 'articles', 'prices', 'ads', 'price-history', 'spotlight'];
   const results = await Promise.all(files.map(f =>
     fetch('data/' + f + '.json', { cache: 'no-cache' })
       .then(r => { if (!r.ok) throw new Error(f + ': HTTP ' + r.status); return r.json(); })
@@ -2332,6 +2780,14 @@ const tierRank = slug => {
    ═══════════════════════════════════════════════════════════════ */
 const FILTERS = { q: '', categories: [], districts: [], tiers: [], accreditations: [], minRating: 0, sort: 'relevance' };
 
+/* 618 listings in one scroll is unusable on a phone. 24 per page keeps
+   the page light on a slow connection and gives someone a reachable
+   end to the list. The map is deliberately never paged — a map with a
+   quarter of the pins on it would be misleading. */
+const PAGE_SIZES = [24, 48, 96];
+let PAGE = 1;
+let PAGE_SIZE = 24;
+
 function readFiltersFromUrl() {
   const qs = (location.hash.split('?')[1]) || '';
   const p = new URLSearchParams(qs);
@@ -2342,8 +2798,15 @@ function readFiltersFromUrl() {
   FILTERS.accreditations = (p.get('acc')  || '').split(',').filter(Boolean);
   FILTERS.minRating      = parseFloat(p.get('rating') || '0') || 0;
   FILTERS.sort           = p.get('sort') || 'relevance';
-  const v = p.get('view');
-  if (v && v !== VIEW) setView(v, true);
+  PAGE     = Math.max(1, parseInt(p.get('page') || '1', 10) || 1);
+  const ps = parseInt(p.get('per') || '', 10);
+  if (PAGE_SIZES.includes(ps)) PAGE_SIZE = ps;
+  /* No view in the URL means list. Without this the layout persists
+     across navigations, so a link shared from the map view opens as a
+     list for the sender and a map for them — the URL must fully
+     describe what you see. */
+  const v = p.get('view') || 'list';
+  if (v !== VIEW) setView(v, true);
 }
 
 function writeFiltersToUrl(replace) {
@@ -2356,6 +2819,8 @@ function writeFiltersToUrl(replace) {
   if (FILTERS.minRating)             p.set('rating', String(FILTERS.minRating));
   if (FILTERS.sort !== 'relevance')  p.set('sort', FILTERS.sort);
   if (VIEW !== 'list')               p.set('view', VIEW);
+  if (PAGE > 1)                      p.set('page', String(PAGE));
+  if (PAGE_SIZE !== 24)              p.set('per', String(PAGE_SIZE));
   const qs = p.toString();
   const url = '#/directory' + (qs ? '?' + qs : '');
   if (replace) history.replaceState(null, '', url);
@@ -2427,11 +2892,72 @@ function facetCounts(items, key) {
 /* Loads GA4 only if a measurement ID is configured. Events fired before
    the script arrives are queued by gtag's own dataLayer, so nothing is
    lost during the first seconds of a page view. */
+/* ── Consent ─────────────────────────────────────────────────────
+   Uganda's Data Protection and Privacy Act, 2019 requires a lawful
+   basis for processing. For analytics that basis is consent, so the
+   tag genuinely does not load until it is given. The choice is stored
+   for a year and can be changed from the privacy page. */
+const CONSENT_KEY = 'buildlist-consent';
+
+function getConsent() {
+  try {
+    const raw = localStorage.getItem(CONSENT_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    if (!v || !v.at) return null;
+    if (Date.now() - v.at > 365 * 86400000) return null;  // ask again after a year
+    return v.choice;
+  } catch (e) { return null; }
+}
+
+function setConsent(choice) {
+  try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ choice: choice, at: Date.now() })); }
+  catch (e) {}
+  document.getElementById('cookieNotice').classList.remove('on');
+  if (choice === 'accepted') initAnalytics();
+  else window.CS_ANALYTICS = 'declined';
+  paintConsentState();
+}
+
+function paintConsentState() {
+  const el = document.getElementById('consentState');
+  if (!el) return;
+  const c = getConsent();
+  el.textContent = c === 'accepted' ? 'Currently: analytics allowed.'
+    : c === 'declined' ? 'Currently: analytics off.'
+    : 'Currently: not yet answered.';
+}
+
+function renderCookieNotice() {
+  const el = document.getElementById('cookieNotice');
+  if (!el) return;
+  const id = (SITE.analytics && SITE.analytics.measurementId || '').trim();
+  // Nothing to consent to if no analytics is configured.
+  if (!id || getConsent()) return;
+  el.innerHTML =
+    '<p><strong style="color:#fff">We would like to count visits.</strong><br>' +
+    'We use Google Analytics to see which listings people find useful, so we can tell a listed ' +
+    'business how many enquiries it received. We do not use advertising cookies and we do not ' +
+    'sell anything about you. The site works exactly the same if you decline. ' +
+    '<a href="#/privacy">Read our privacy policy</a>.</p>' +
+    '<div class="cookie-actions">' +
+      '<button class="btn btn-ghost-light btn-sm" onclick="setConsent(\'declined\')">Decline</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="setConsent(\'accepted\')">Accept</button>' +
+    '</div>';
+  el.classList.add('on');
+}
+
 function initAnalytics() {
   const id = (SITE.analytics && SITE.analytics.measurementId || '').trim();
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
   if (!id) { window.CS_ANALYTICS = 'not-configured'; return; }
+  const consent = getConsent();
+  if (consent !== 'accepted') {
+    window.CS_ANALYTICS = consent === 'declined' ? 'declined' : 'awaiting-consent';
+    return;
+  }
+  if (window.CS_ANALYTICS === 'active') return;
 
   const sc = document.createElement('script');
   sc.async = true;
@@ -2512,13 +3038,51 @@ function stars(rating) {
          '\u2605'.repeat(full) + '<span style="color:var(--parchment-dd)">' + '\u2605'.repeat(5 - full) + '</span></span>';
 }
 
-function verifiedLine(firm) {
-  if (!firm.verified || !firm.verifiedDate) {
-    return '<span class="verified-stamp">Not yet verified \u2014 listing supplied by the business</span>';
+/* ── Provenance ──────────────────────────────────────────────────
+   Where a listing came from, stated accurately. There are three real
+   states and they are not interchangeable:
+
+     verified   we telephoned, confirmed the premises and checked the
+                relevant public register, on the date shown
+     submitted  the business sent it to us through the sign-up form or
+                gave it to a field agent in person
+     compiled   we built it from public registers and directories. The
+                business has not confirmed it and may not know of it
+
+   The old wording said "supplied by the business" for everything
+   unverified, which was untrue for records we compiled ourselves —
+   and an unmakeable defence if a number turns out wrong. */
+const PROVENANCE = {
+  verified: {
+    label: d => 'Verified ' + d,
+    detail: 'We telephoned this business, confirmed its premises and checked the relevant public register on this date.',
+    icon: 'shield-check'
+  },
+  submitted: {
+    label: () => 'Supplied by the business',
+    detail: 'This business sent us these details itself. We have not independently checked them.',
+    icon: 'info'
+  },
+  compiled: {
+    label: () => 'Compiled from public sources',
+    detail: 'We built this listing from public registers and directories. The business has not confirmed it yet. Details may be out of date.',
+    icon: 'info'
   }
-  const d = new Date(firm.verifiedDate);
-  return '<span class="verified-stamp">' + ico('shield-check') + ' Verified ' +
-         d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) + '</span>';
+};
+
+function provenanceOf(firm) {
+  if (firm.verified && firm.verifiedDate) return 'verified';
+  return firm.descSource === 'submitted' ? 'submitted' : 'compiled';
+}
+
+function verifiedLine(firm) {
+  const kind = provenanceOf(firm);
+  const p = PROVENANCE[kind];
+  const date = firm.verifiedDate
+    ? new Date(firm.verifiedDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+    : '';
+  return '<span class="verified-stamp prov-' + kind + '" title="' + esc(p.detail) + '">' +
+         ico(p.icon) + ' ' + esc(p.label(date)) + '</span>';
 }
 
 function emptyState(title, body, actions) {
@@ -2732,23 +3296,26 @@ function renderFeatured() {
     return;
   }
   el.innerHTML = featured.map(l => `
-    <div class="listing-card platinum">
-      ${l.tier === 'platinum' ? `<span class="platinum-ribbon">\u2605 ${esc(NAMES.tier[l.tier])}</span>` : ''}
-      <div class="listing-card-top">
-        ${logoMarkup(l, 'listing-logo')}
-        <div style="flex:1">
-          <a class="listing-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>
-          <div class="listing-cat">${esc(NAMES.category[l.categories[0]] || '')}</div>
+    <div class="fcard ${l.tier === 'platinum' ? 'is-paid' : ''}">
+      ${l.tier === 'platinum' ? '<span class="fcard-ribbon">\u2605 Featured</span>' : ''}
+      <div class="fcard-head">
+        ${logoMarkup(l, 'fcard-logo')}
+        <div class="fcard-id">
+          <a class="fcard-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>
+          <span class="fcard-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</span>
         </div>
       </div>
-      <p class="listing-desc">${esc(l.desc)}</p>
-      <div class="listing-tags">${(l.accreditations || []).map(a => `<span class="listing-tag">${esc(NAMES.accreditation[a] || a)}</span>`).join('')}</div>
-      <div class="listing-card-footer">
-        <span class="listing-location">${ico('pin')} ${esc(l.area)}</span>
-        ${l.reviews > 0 ? `<span class="listing-rating">${stars(l.rating)} <strong>${l.rating}</strong> <span class="rating-count">(${l.reviews})</span></span>` : ''}
+      <p class="fcard-desc">${esc(l.desc)}</p>
+      ${(l.accreditations || []).length
+        ? `<div class="fcard-tags">${l.accreditations.slice(0, 3).map(a =>
+            `<span class="fcard-tag">${esc(NAMES.accreditation[a] || a)}</span>`).join('')}</div>`
+        : ''}
+      <div class="fcard-foot">
+        <span class="fcard-loc">${ico('pin')} ${esc(l.area)}</span>
+        ${l.reviews > 0 ? `<span class="fcard-rating">${stars(l.rating)} ${l.rating}</span>` : ''}
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <a class="btn btn-primary btn-sm" href="#/firms/${esc(l.slug)}">View Profile</a>
+      <div class="fcard-actions">
+        <a class="btn btn-primary btn-sm" href="#/firms/${esc(l.slug)}">View profile</a>
         <button class="btn btn-outline btn-sm" onclick="contactFirm('${esc(l.slug)}','whatsapp','${esc(l.whatsapp)}')">${ico('whatsapp')} WhatsApp</button>
       </div>
     </div>`).join('');
@@ -2835,6 +3402,116 @@ function renderNewsArticles() {
     </div>`).join('');
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   MONTHLY SPOTLIGHTS
+   ═══════════════════════════════════════════════════════════════ */
+function renderProductOfMonth() {
+  const el = document.getElementById('productOfMonth');
+  const p = DATA.spotlight && DATA.spotlight.product;
+  if (!el) return;
+
+  if (!p || p.active === false) {
+    /* Unsold inventory sells itself, same as every other slot. */
+    el.innerHTML =
+      '<div class="spot spot-product"><div class="spot-body">' +
+      '<div class="spot-eyebrow">' + ico('award') + ' Product of the Month</div>' +
+      '<h3 class="spot-title">This month is available</h3>' +
+      '<p class="spot-text">One manufacturer or distributor per month, on the homepage and in the ' +
+      'weekly digest. Written up properly rather than run as a banner, so it reads as information ' +
+      'and gets read.</p>' +
+      '<div class="spot-specs"><div class="spot-spec"><dt>Rate</dt><dd>From UGX 800,000</dd></div>' +
+      '<div class="spot-spec"><dt>Runs for</dt><dd>One calendar month</dd></div></div>' +
+      '<a class="btn btn-primary btn-sm" href="#/advertise" style="align-self:flex-start">Book a month</a>' +
+      '</div></div>';
+    return;
+  }
+
+  const supplier = p.supplierSlug && DATA.firms.find(f => f.slug === p.supplierSlug);
+  el.innerHTML =
+    '<div class="spot spot-product">' +
+      (p.image ? '<div class="spot-media">' +
+        '<img src="' + esc(p.image) + '" alt="' + esc(p.alt || p.name) + '" loading="lazy">' +
+        '<span class="spot-ad-flag">Advertisement</span></div>' : '') +
+      '<div class="spot-body">' +
+        '<div class="spot-eyebrow">' + ico('award') + ' Product of the Month' +
+          '<span class="spot-month">' + esc(p.monthLabel || '') + '</span></div>' +
+        '<h3 class="spot-title">' + esc(p.name) + '</h3>' +
+        (p.tagline ? '<p class="spot-tagline">' + esc(p.tagline) + '</p>' : '') +
+        '<p class="spot-text">' + esc(p.body) + '</p>' +
+        ((p.specs || []).length
+          ? '<dl class="spot-specs">' + p.specs.map(sp =>
+              '<div class="spot-spec"><dt>' + esc(sp.label) + '</dt><dd>' + esc(sp.value) + '</dd></div>').join('') +
+            '</dl>' : '') +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          (p.link ? '<a class="btn btn-primary btn-sm" href="' + esc(p.link) + '" target="_blank" ' +
+            'rel="nofollow sponsored noopener" ' +
+            'onclick="track(\'spotlight_click\',{kind:\'product\',advertiser:\'' + esc(p.advertiser) + '\'})">' +
+            esc(p.cta || 'Find out more') + '</a>' : '') +
+          (supplier ? '<a class="btn btn-outline btn-sm" href="#/firms/' + esc(supplier.slug) + '">' +
+            esc(supplier.name) + '</a>' : '') +
+        '</div>' +
+        '<p class="disclosure">Paid placement by ' + esc(p.advertiser) +
+        '. We write the copy; the advertiser supplies the facts and checks them. ' +
+        'Being featured here is not a recommendation and does not affect any firm\u2019s ranking.</p>' +
+      '</div></div>';
+  track('spotlight_impression', { kind: 'product', advertiser: p.advertiser });
+}
+
+function renderProjectOfMonth() {
+  const el = document.getElementById('projectOfMonth');
+  const p = DATA.spotlight && DATA.spotlight.project;
+  if (!el) return;
+
+  if (!p || p.active === false) {
+    el.innerHTML =
+      '<div class="spot spot-project"><div class="spot-body">' +
+      '<div class="spot-eyebrow">' + ico('crane') + ' Benchmark Project</div>' +
+      '<h3 class="spot-title">Nominate a project</h3>' +
+      '<p class="spot-text">Each month we write up one Ugandan project worth studying \u2014 what the ' +
+      'brief was, what was difficult, and what other firms can take from it. Tell us about one you ' +
+      'worked on.</p>' +
+      '<a class="btn btn-primary btn-sm" href="#/about" style="align-self:flex-start">Suggest a project</a>' +
+      '<p class="spot-editorial-note">Editorial. This slot is not for sale.</p>' +
+      '</div></div>';
+    return;
+  }
+
+  const linked = (p.firmSlugs || [])
+    .map(sl => DATA.firms.find(f => f.slug === sl)).filter(Boolean);
+
+  el.innerHTML =
+    '<div class="spot spot-project">' +
+      (p.image ? '<div class="spot-media">' +
+        '<img src="' + esc(p.image) + '" alt="' + esc(p.alt || p.name) + '" loading="lazy"></div>' : '') +
+      '<div class="spot-body">' +
+        '<div class="spot-eyebrow">' + ico('crane') + ' Benchmark Project' +
+          '<span class="spot-month">' + esc(p.monthLabel || '') + '</span></div>' +
+        '<h3 class="spot-title">' + esc(p.name) + '</h3>' +
+        (p.tagline ? '<p class="spot-tagline">' + esc(p.tagline) + '</p>' : '') +
+        '<div class="spot-facts">' +
+          (p.location ? '<span class="spot-fact">' + esc(p.location) + '</span>' : '') +
+          (p.sector ? '<span class="spot-fact">' + esc(p.sector) + '</span>' : '') +
+          (p.completed ? '<span class="spot-fact">Completed ' + esc(p.completed) + '</span>' : '') +
+        '</div>' +
+        '<p class="spot-text">' + esc(p.body) + '</p>' +
+        ((p.facts || []).length
+          ? '<dl class="spot-specs">' + p.facts.map(fa =>
+              '<div class="spot-spec"><dt style="color:rgba(255,255,255,.5)">' + esc(fa.label) +
+              '</dt><dd style="color:#fff">' + esc(fa.value) + '</dd></div>').join('') + '</dl>' : '') +
+        ((p.lessons || []).length
+          ? '<ul class="spot-lessons">' + p.lessons.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : '') +
+        (linked.length
+          ? '<div style="display:flex;gap:8px;flex-wrap:wrap">' + linked.map(f =>
+              '<a class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)" ' +
+              'href="#/firms/' + esc(f.slug) + '">' + esc(f.name) + '</a>').join('') + '</div>' : '') +
+        (p.credit ? '<p class="spot-credit">' + esc(p.credit) + '</p>' : '') +
+        '<p class="spot-editorial-note">Editorial. Chosen on merit by our team. ' +
+        'This slot is not for sale and no firm named here has paid to appear.</p>' +
+      '</div></div>';
+  track('spotlight_impression', { kind: 'project', project: p.name });
+}
+
 /* ═══════════════════════════════════════════════════════════════
    RENDER: DIRECTORY
    ═══════════════════════════════════════════════════════════════ */
@@ -2899,20 +3576,18 @@ function renderActiveFilters() {
 function renderDirListings() {
   const el = document.getElementById('dirListings');
   if (!el) return;
-  const results = filterFirms(DATA.firms, FILTERS);
+  const all = filterFirms(DATA.firms, FILTERS);
+  paintDirCount(all.length);
 
-  const countEl = document.getElementById('dirCount');
-  if (countEl) {
-    countEl.innerHTML = results.length === DATA.firms.length
-      ? 'Showing all <strong>' + results.length + '</strong> listed firms'
-      : 'Showing <strong>' + results.length + '</strong> of ' + DATA.firms.length + ' listed firms';
-  }
-
-  if (!results.length) {
+  if (!all.length) {
     el.innerHTML = directoryEmpty();
+    renderPager(0);
     track('directory_empty', { query: FILTERS.q, categories: FILTERS.categories.join(',') });
     return;
   }
+
+  const results = pageSlice(all);
+  renderPager(all.length);
 
   el.innerHTML = results.map((l, i) => {
     const ad = i === 4 ? `
@@ -2950,6 +3625,11 @@ function renderDirListings() {
 }
 
 function renderDirectory() {
+  /* The URL is the single source of truth for filter, view and page
+     state. Every mutator writes the URL before calling this, so
+     re-reading here means the rendered page can never disagree with
+     the address bar — which is what a shared link depends on. */
+  readFiltersFromUrl();
   renderDirFilters();
   renderActiveFilters();
   renderCurrentView();
@@ -2960,7 +3640,84 @@ function renderDirectory() {
 }
 
 /* ── Filter mutators ── */
-function applyAndRender() { writeFiltersToUrl(true); renderDirectory(); }
+function applyAndRender(keepPage) {
+  if (!keepPage) PAGE = 1;
+  writeFiltersToUrl(true);
+  renderDirectory();
+}
+
+function gotoPage(n, total) {
+  const last = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  PAGE = Math.min(Math.max(1, n), last);
+  writeFiltersToUrl(false);   // pushState, so Back returns to the previous page
+  renderDirectory();
+  const anchor = document.querySelector('.dir-main-header');
+  if (anchor) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    anchor.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }
+  track('directory_page', { page: PAGE, per: PAGE_SIZE });
+}
+
+function setPageSize(n) {
+  PAGE_SIZE = parseInt(n, 10) || 24;
+  PAGE = 1;
+  applyAndRender(true);
+}
+
+/* Renders the page controls. Shows first, last, current and its
+   neighbours, with gaps between — so 618 listings never produce
+   26 numbered buttons. */
+function renderPager(total) {
+  const el = document.getElementById('dirPager');
+  if (!el) return;
+  const last = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  if (VIEW === 'map' || total === 0) { el.innerHTML = ''; return; }
+
+  const from = (PAGE - 1) * PAGE_SIZE + 1;
+  const to = Math.min(PAGE * PAGE_SIZE, total);
+
+  let html = '<div class="pager-info">Showing <strong>' + from + '\u2013' + to +
+             '</strong> of ' + total.toLocaleString() + '</div>';
+
+  if (last > 1) {
+    const btn = (n, label, cls) =>
+      '<button type="button" class="' + (cls || '') + '"' +
+      (n === PAGE ? ' aria-current="page"' : '') +
+      ' onclick="gotoPage(' + n + ',' + total + ')">' + (label || n) + '</button>';
+
+    html += '<div class="pager">';
+    html += '<button type="button" onclick="gotoPage(' + (PAGE - 1) + ',' + total + ')"' +
+            (PAGE === 1 ? ' disabled' : '') + ' aria-label="Previous page">Prev</button>';
+
+    const nums = new Set([1, last, PAGE, PAGE - 1, PAGE + 1]);
+    if (PAGE <= 3) { nums.add(2); nums.add(3); }
+    if (PAGE >= last - 2) { nums.add(last - 1); nums.add(last - 2); }
+    const list = [...nums].filter(n => n >= 1 && n <= last).sort((a, b) => a - b);
+
+    let prev = 0;
+    list.forEach(n => {
+      if (n - prev > 1) html += '<span class="gap">\u2026</span>';
+      const cls = 'page-num' + (n === PAGE ? ' current' : '') +
+                  (n === 1 || n === last ? ' edge' : '');
+      html += btn(n, String(n), cls);
+      prev = n;
+    });
+
+    html += '<button type="button" onclick="gotoPage(' + (PAGE + 1) + ',' + total + ')"' +
+            (PAGE === last ? ' disabled' : '') + ' aria-label="Next page">Next</button>';
+    html += '</div>';
+  }
+
+  html += '<div class="pager-size"><label for="perPage">Show</label>' +
+          '<select id="perPage" onchange="setPageSize(this.value)">' +
+          PAGE_SIZES.map(n => '<option value="' + n + '"' +
+            (n === PAGE_SIZE ? ' selected' : '') + '>' + n + ' per page</option>').join('') +
+          '</select></div>';
+
+  el.innerHTML = html;
+}
 
 function toggleFilter(key, slug) {
   const arr = FILTERS[key];
@@ -3242,8 +3999,11 @@ function renderCurrentView() {
 function renderDirGrid() {
   const el = document.getElementById('dirGrid');
   if (!el) return;
-  const results = filterFirms(DATA.firms, FILTERS);
-  if (!results.length) { el.innerHTML = directoryEmpty(); return; }
+  const all = filterFirms(DATA.firms, FILTERS);
+  paintDirCount(all.length);
+  if (!all.length) { el.innerHTML = directoryEmpty(); renderPager(0); return; }
+  const results = pageSlice(all);
+  renderPager(all.length);
   el.innerHTML = results.map(l => `
     <div class="gcard ${l.tier === 'platinum' ? 'platinum' : ''}">
       <div class="gcard-top">
@@ -3298,7 +4058,10 @@ function loadLeaflet() {
 async function renderDirMap() {
   const wrap = document.getElementById('dirMap');
   if (!wrap) return;
-  const results = filterFirms(DATA.firms, FILTERS).filter(f => f.lat && f.lng);
+  const all = filterFirms(DATA.firms, FILTERS);
+  paintDirCount(all.length);
+  renderPager(all.length);   // returns empty markup for the map view
+  const results = all.filter(f => f.lat && f.lng);
 
   if (!results.length) {
     wrap.innerHTML = '<div class="map-fallback">' + directoryEmpty() + '</div>';
@@ -3361,6 +4124,34 @@ function renderMapFallback(results) {
     ).join('') + '</div></div>';
 }
 
+/* Returns just the slice for the current page. */
+function pageSlice(all) {
+  const last = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+  if (PAGE > last) PAGE = last;
+  const start = (PAGE - 1) * PAGE_SIZE;
+  return all.slice(start, start + PAGE_SIZE);
+}
+
+/* Headline counts are published as a rounded floor with a plus, so the
+   figure never has to be restated as listings are added or removed
+   day to day. Filtered results show the exact number, because someone
+   who has narrowed a search needs to know precisely what they are
+   looking at. */
+function plusCount(n) {
+  if (n < 25) return String(n);
+  const step = n >= 500 ? 50 : n >= 100 ? 25 : 10;
+  return (Math.floor(n / step) * step).toLocaleString() + '+';
+}
+
+function paintDirCount(n) {
+  const el = document.getElementById('dirCount');
+  if (!el) return;
+  const filtered = n !== DATA.firms.length;
+  el.innerHTML = filtered
+    ? 'Showing <strong>' + n.toLocaleString() + '</strong> matching firms'
+    : 'Showing all <strong>' + plusCount(n) + '</strong> listed firms';
+}
+
 function directoryEmpty() {
   return emptyState(
     'No firms match yet',
@@ -3415,6 +4206,13 @@ function renderProfile(firm) {
           <h3>About</h3>
           <p>${esc(firm.desc)}</p>
           <div style="margin-top:14px">${verifiedLine(firm)}</div>
+          <p class="disclosure" style="margin-top:8px">${esc(PROVENANCE[provenanceOf(firm)].detail)}${
+            provenanceOf(firm) === 'compiled'
+              ? ' If this is your business, you can correct or remove it at any time \u2014 we action removals within 48 hours.'
+              : ''}</p>
+          ${provenanceOf(firm) !== 'verified'
+            ? `<a class="btn btn-outline btn-sm" href="#/submit" style="margin-top:10px">This is my business \u2014 update it</a>`
+            : ''}
         </div>
 
         ${(firm.services || []).length ? `
@@ -3541,7 +4339,41 @@ function openJobs() {
     .sort((a, b) => (b.featured - a.featured) || (new Date(b.postedAt) - new Date(a.postedAt)));
 }
 
-const TENDER_FILTER = { category: '', status: '', sort: 'deadline' };
+const TENDER_FILTER = { category: '', status: '', sort: 'deadline', client: '' };
+
+/* Who is procuring changes how you bid: government work needs PPDA
+   compliance and pays late, NGO work is donor-audited, private work
+   is negotiated. Contractors filter on this before anything else. */
+const CLIENT_TYPES = {
+  government: 'Government',
+  parastatal: 'Parastatal / authority',
+  ngo:        'NGO & donor funded',
+  private:    'Private sector'
+};
+
+function setTenderClient(type) {
+  TENDER_FILTER.client = type;
+  document.querySelectorAll('.tab-btn[data-client]').forEach(b =>
+    b.classList.toggle('active', b.dataset.client === type));
+  track('tender_client_filter', { client: type || 'all' });
+  renderTendersFull();
+}
+
+function paintTenderTabs() {
+  const open = openTenders();
+  document.querySelectorAll('.tab-btn[data-client]').forEach(b => {
+    const key = b.dataset.client;
+    const n = key ? open.filter(t => t.clientType === key).length : open.length;
+    let badge = b.querySelector('.tab-n');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'tab-n';
+      b.appendChild(badge);
+    }
+    badge.textContent = n;
+    b.classList.toggle('is-empty', n === 0);
+  });
+}
 function setTenderFilter() {
   TENDER_FILTER.category = (document.getElementById('tenderCategory') || {}).value || '';
   TENDER_FILTER.status   = (document.getElementById('tenderStatus')   || {}).value || '';
@@ -3553,9 +4385,11 @@ function setTenderFilter() {
 function renderTendersFull() {
   const el = document.getElementById('tendersFull');
   if (!el) return;
+  paintTenderTabs();
   let list = openTenders();
   if (TENDER_FILTER.category) list = list.filter(t => t.category === TENDER_FILTER.category);
   if (TENDER_FILTER.status === 'urgent') list = list.filter(t => t.urgent);
+  if (TENDER_FILTER.client) list = list.filter(t => t.clientType === TENDER_FILTER.client);
 
   const sorters = {
     deadline: (a, b) => new Date(a.deadline) - new Date(b.deadline),
@@ -3568,8 +4402,13 @@ function renderTendersFull() {
   if (countEl) countEl.innerHTML = 'Showing <strong>' + list.length + '</strong> open notice' + (list.length === 1 ? '' : 's');
 
   if (!list.length) {
-    el.innerHTML = emptyState('No open tenders match',
-      'Closed notices are removed automatically. Try a different category, or subscribe to be told when a matching notice appears.',
+    const who = TENDER_FILTER.client ? (CLIENT_TYPES[TENDER_FILTER.client] || '').toLowerCase() : '';
+    el.innerHTML = emptyState(
+      who ? 'No open ' + who + ' tenders right now' : 'No open tenders match',
+      who
+        ? 'We publish these as they appear and closed notices are removed automatically. Set an alert and we will message you the moment one is advertised.'
+        : 'Closed notices are removed automatically. Try a different category, or set an alert for the ones you want.',
+      '<button class="btn btn-primary" onclick="document.getElementById(\'alertForm\').scrollIntoView({behavior:\'smooth\'})">Set a tender alert</button>' +
       '<button class="btn btn-outline" onclick="resetTenderFilter()">Clear filters</button>');
     return;
   }
@@ -3582,6 +4421,7 @@ function renderTendersFull() {
             ${t.featured ? '<span class="badge badge-platinum">\u2605 Featured Notice</span>' : ''}
             ${t.urgent ? `<span class="badge badge-urgent">${ico('clock')} Closing Soon</span>` : ''}
             <span class="badge badge-verified">${esc(t.category.replace(/-/g, ' '))}</span>
+            ${t.clientType ? `<span class="badge badge-client">${esc(CLIENT_TYPES[t.clientType] || t.clientType)}</span>` : ''}
           </div>
           <div class="tender-full-title">${esc(t.title)}</div>
           <div class="tender-full-org">${esc(t.org)}</div>
@@ -3599,6 +4439,7 @@ function renderTendersFull() {
 }
 function resetTenderFilter() {
   ['tenderCategory', 'tenderStatus'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  setTenderClient('');
   setTenderFilter();
 }
 
@@ -3676,6 +4517,8 @@ function renderAll() {
   renderHomeJobs();
   renderHomeNews();
   renderNewsArticles();
+  renderProductOfMonth();
+  renderProjectOfMonth();
   renderDirectory();
   renderTendersFull();
   renderJobsFull();
@@ -3687,7 +4530,7 @@ function renderAll() {
 }
 
 // ── PAGE ROUTING ──────────────────────────────────────────────────
-const PAGES = ['home','directory','profile','tenders','jobs','news','advertise','submit','about'];
+const PAGES = ['home','directory','profile','tenders','jobs','news','advertise','submit','about','privacy','terms'];
 
 const PAGE_TITLES = {
   home:      SITE.name + ' — Uganda\'s Construction Industry Directory',
@@ -3698,7 +4541,9 @@ const PAGE_TITLES = {
   news:      'Industry News & Material Prices — ' + SITE.name,
   advertise: 'Advertise With Us — ' + SITE.name,
   submit:    'Add Your Firm — ' + SITE.name,
-  about:     'About & Ownership — ' + SITE.name
+  about:     'About & Ownership — ' + SITE.name,
+  privacy:   'Privacy Policy — ' + SITE.name,
+  terms:     'Terms of Service — ' + SITE.name
 };
 
 /* Renders a page. Called by the router — use location.hash to navigate
@@ -3721,6 +4566,7 @@ function showPage(page, opts) {
 
   document.title = PAGE_TITLES[page] || PAGE_TITLES.home;
   trackPageView(page);
+  if (page === 'privacy') paintConsentState();
   closeMobileNav();
 
   if (!opts.silent && location.hash.split('?')[0] !== '#/' + page) location.hash = '#/' + page;
@@ -3817,7 +4663,7 @@ function paintStats() {
   document.querySelectorAll('[data-stat]').forEach(el => {
     const key = el.getAttribute('data-stat');
     if (!(key in v)) return;
-    el.textContent = (key === 'visitors' || key === 'subs') ? fmt(v[key]) : v[key].toLocaleString();
+    el.textContent = (key === 'visitors' || key === 'subs') ? fmt(v[key]) : plusCount(v[key]);
   });
 
   document.querySelectorAll('[data-site]').forEach(el => {
@@ -3871,13 +4717,12 @@ function animateCounter(id, target) {
   const el = document.getElementById(id);
   if (!el || !target) { if (el) el.textContent = '0'; return; }
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const suffix = target >= 1000 ? '+' : '';
-  if (reduce) { el.textContent = target.toLocaleString() + suffix; return; }
+  if (reduce) { el.textContent = plusCount(target); return; }
   const duration = 1100, start = performance.now();
   function step(now) {
     const p = Math.min((now - start) / duration, 1);
     const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(target * eased).toLocaleString() + (p === 1 ? suffix : '');
+    el.textContent = p === 1 ? plusCount(target) : Math.round(target * eased).toLocaleString();
     if (p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
@@ -3887,6 +4732,7 @@ function animateCounter(id, target) {
 document.addEventListener('DOMContentLoaded', async () => {
   // Show the shell immediately, then fill it once the data arrives.
   initAnalytics();
+  renderCookieNotice();
   showLoading();
 
   try {

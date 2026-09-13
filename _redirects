@@ -16,6 +16,10 @@
 /add-listing  /#/submit      301
 /about        /#/about       301
 /contact      /#/about       301
+/privacy      /#/privacy     301
+/privacy-policy /#/privacy   301
+/terms        /#/terms       301
+/terms-of-service /#/terms   301
 
 # ── Static pages (Stage 5) ───────────────────────────
 # /firms/*, /browse/*, /tenders/*, /news/* are REAL generated HTML

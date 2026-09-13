@@ -155,28 +155,44 @@
   ],
   "accreditations": [
     {
-      "slug": "boraqs",
-      "name": "BORAQS Registered"
+      "slug": "arb",
+      "name": "ARB Registered",
+      "full": "Architects Registration Board"
+    },
+    {
+      "slug": "erb",
+      "name": "ERB Registered",
+      "full": "Engineers Registration Board"
+    },
+    {
+      "slug": "srb",
+      "name": "SRB Registered",
+      "full": "Surveyors Registration Board"
     },
     {
       "slug": "uipe",
-      "name": "UIPE Member"
+      "name": "UIPE Member",
+      "full": "Uganda Institution of Professional Engineers"
     },
     {
-      "slug": "uiqs",
-      "name": "UIQS Member"
+      "slug": "isu",
+      "name": "ISU Member",
+      "full": "Institution of Surveyors of Uganda"
     },
     {
-      "slug": "ncic",
-      "name": "NCIC Registered"
+      "slug": "uspe",
+      "name": "Registered Planner",
+      "full": "Uganda Society of Professional Planners"
     },
     {
       "slug": "iso",
-      "name": "ISO Certified"
+      "name": "ISO Certified",
+      "full": "International Organization for Standardization"
     },
     {
       "slug": "ppda",
-      "name": "PPDA Listed"
+      "name": "PPDA Listed",
+      "full": "Public Procurement and Disposal of Public Assets Authority"
     }
   ],
   "tiers": [

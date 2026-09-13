@@ -215,6 +215,26 @@ can still buy one over WhatsApp.
 }
 ```
 
+## Monthly spotlight artwork
+
+Two slots on the homepage, in `images/spotlight/`.
+
+| Slot | Shape | Size | Notes |
+|---|---|---|---|
+| Product of the Month | 4:3 | 1200 × 900 | The advertiser's own product photograph. Plain background works best. |
+| Benchmark Project | 16:9 | 1600 × 900 | A real site or building photograph. **Get permission and credit the photographer.** |
+
+Both under 300KB. Edit the entries under **Monthly slots** in the admin dashboard.
+
+**The two slots follow different rules, and the difference matters.** Product of
+the Month is sold and is labelled as advertising wherever it appears. Benchmark
+Project is editorial, chosen on merit, and is never for sale. The admin editor
+enforces this — the project form has no advertiser or link field at all, and
+`sponsored` is forced to false on save.
+
+Keep that line. The moment the project slot can be bought, readers stop trusting
+it, and you have lost the thing that makes anyone read the homepage twice.
+
 ### Checking a creative before it goes live
 
 Open the admin dashboard and go to **Media check**. It loads every image and

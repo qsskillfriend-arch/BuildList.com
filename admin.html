@@ -384,7 +384,7 @@ const ADMIN = {
   tenderWarnDays: 3
 };
 
-const FILES = ['taxonomy','firms','tenders','jobs','articles','prices','ads'];
+const FILES = ['taxonomy','firms','tenders','jobs','articles','prices','ads','spotlight'];
 const DB = {};
 let DIRTY = new Set();
 let CURRENT = null;   // {file, index, item}
@@ -672,6 +672,7 @@ const SECTIONS = [
   {id:'prices',   label:'Prices',    group:'Content',
      flag:()=>daysSince(DB.prices.updated)>ADMIN.stalePriceDays?1:0},
   {id:'ads',      label:'Advertising',group:'Revenue', count:()=>liveAds().length},
+  {id:'spotlight',label:'Monthly slots',group:'Revenue', flag:()=>spotlightStale()},
   {id:'media',    label:'Media check', group:'Revenue', flag:()=>MEDIA_ISSUES},
   {id:'analytics',label:'Analytics',   group:'Revenue'},
   {id:'checks',   label:'Checks',    group:'Publish', flag:()=>runChecks().filter(i=>i.level==='error').length},
@@ -707,6 +708,7 @@ const TITLES = {
   prices:['Material prices','Update weekly from the same three suppliers'],
   ads:['Advertising','Thirteen slots, scheduled by date'],
   checks:['Checks','Problems to fix before publishing'],
+  spotlight:['Monthly slots','Product of the Month (paid) and Benchmark Project (editorial)'],
   media:['Media check','Every image and video, measured against its slot'],
   analytics:['Analytics','Where to look, and what the site is recording'],
   export:['Publish','Download changed files and commit them']
@@ -1046,6 +1048,134 @@ RENDER.checks = el => {
 };
 
 
+
+/* ═══════════════════════════════════════════════════════════════
+   MONTHLY SLOTS
+   Both run for a calendar month. The flag fires when either is still
+   showing last month's entry, because a stale "Product of the Month"
+   is worse than an empty one — the advertiser paid for a month, not
+   a permanent placement.
+   ═══════════════════════════════════════════════════════════════ */
+function thisMonth() { return new Date().toISOString().slice(0, 7); }
+
+function spotlightStale() {
+  if (!DB.spotlight) return 0;
+  let n = 0;
+  ['product', 'project'].forEach(k => {
+    const x = DB.spotlight[k];
+    if (x && x.active !== false && x.month !== thisMonth()) n++;
+  });
+  return n;
+}
+
+RENDER.spotlight = el => {
+  const sp = DB.spotlight || {};
+  const p = sp.product || {}, j = sp.project || {};
+  const stale = k => (sp[k] && sp[k].active !== false && sp[k].month !== thisMonth());
+
+  const card = (key, title, sub, obj, paid) =>
+    '<div class="filecard' + (stale(key) ? ' changed' : '') + '" style="align-items:flex-start">' +
+    '<div style="flex:1">' +
+      '<b style="display:block;font-size:14px">' + title + '</b>' +
+      '<span class="rowsub">' + sub + '</span>' +
+      '<div style="margin-top:8px;font-size:13px">' +
+        (obj.active === false
+          ? '<span class="pill pill-off">not running</span>'
+          : stale(key)
+            ? '<span class="pill pill-danger">showing ' + esc(obj.monthLabel || obj.month || '?') + '</span>'
+            : '<span class="pill pill-live">current</span>') +
+        ' <strong style="margin-left:8px">' + esc(obj.name || '\u2014') + '</strong>' +
+        (paid && obj.advertiser ? '<span class="rowsub"> \u00b7 ' + esc(obj.advertiser) + '</span>' : '') +
+      '</div>' +
+    '</div>' +
+    '<button class="btn btn-sm" onclick="editSpotlight(\'' + key + '\')">Edit</button></div>';
+
+  el.innerHTML =
+    (spotlightStale()
+      ? '<div class="note"><b>' + spotlightStale() + ' slot still showing an older month.</b>' +
+        'Rotate it or switch it off. An advertiser bought one month; leaving it up looks generous but ' +
+        'makes the slot worthless to sell again.</div>'
+      : '') +
+    '<div class="note"><b>Two slots, two different rules.</b>' +
+    '<strong>Product of the Month</strong> is paid and labelled as advertising everywhere it appears. ' +
+    '<strong>Benchmark Project</strong> is editorial and must never be sold \u2014 the moment it is for sale, ' +
+    'nobody trusts it, and you lose the thing that makes people read the homepage.</div>' +
+    card('product', 'Product of the Month', 'Paid \u00b7 one advertiser per calendar month', p, true) +
+    card('project', 'Benchmark Project', 'Editorial \u00b7 chosen on merit, never sold', j, false);
+};
+
+function editSpotlight(key) {
+  const isProduct = key === 'product';
+  const o = JSON.parse(JSON.stringify((DB.spotlight || {})[key] || {}));
+  CURRENT = { file: 'spotlight', index: key, item: o, kind: 'spotlight' };
+
+  const rows = (name, list, labels) =>
+    '<div id="' + name + 'Rep">' + (list || []).map((r, i) =>
+      '<div class="rep" data-pair><div class="rep-head"><b>' + labels + ' ' + (i + 1) + '</b>' +
+      '<div class="spacer"></div><button type="button" class="btn btn-sm btn-d" ' +
+      'onclick="this.closest(\'[data-pair]\').remove()">Remove</button></div>' +
+      '<div class="f2"><div class="f"><label>Label</label><input type="text" data-p="label" value="' + esc(r.label) + '"></div>' +
+      '<div class="f"><label>Value</label><input type="text" data-p="value" value="' + esc(r.value) + '"></div></div></div>').join('') +
+    '</div><button type="button" class="btn btn-sm" onclick="addPair(\'' + name + 'Rep\')">Add row</button>';
+
+  openDrawer(isProduct ? 'Product of the Month' : 'Benchmark Project',
+    '<fieldset><legend>' + (isProduct ? 'Campaign' : 'Editorial') + '</legend>' +
+      '<div class="f2">' +
+        pick('e_active', 'Running', o.active === false ? 'no' : 'yes', [{v:'yes',l:'Yes'},{v:'no',l:'No \u2014 show the "available" placeholder'}]) +
+        field('e_month', 'Month', o.month || thisMonth(), 'Format YYYY-MM. Drives the stale warning.') +
+      '</div>' +
+      field('e_monthLabel', 'Month as displayed', o.monthLabel || '', 'e.g. September 2026') +
+      (isProduct
+        ? field('e_advertiser', 'Advertiser', o.advertiser || '', 'Shown in the paid-placement disclosure. Required.')
+        : '') +
+    '</fieldset>' +
+    '<fieldset><legend>Content</legend>' +
+      field('e_name', isProduct ? 'Product name' : 'Project name', o.name || '') +
+      field('e_tagline', 'One-line summary', o.tagline || '') +
+      area('e_body', isProduct ? 'Write-up' : 'Editorial write-up', o.body || '',
+           isProduct ? 'Written by you from facts the advertiser supplies. Plain language, same voice as the rest of the site.'
+                     : 'The brief, what was difficult, what others can learn. Do not flatter the client.') +
+      (isProduct ? '' :
+        '<div class="f3">' +
+          field('e_location', 'Location', o.location || '') +
+          field('e_sector', 'Sector', o.sector || '') +
+          field('e_completed', 'Completed', o.completed || '') +
+        '</div>') +
+    '</fieldset>' +
+    '<fieldset><legend>Image</legend>' +
+      field('e_image', 'Image path', o.image || '',
+            isProduct ? 'images/spotlight/name.png \u2014 4:3, 1200\u00d7900.' : 'images/spotlight/name.png \u2014 16:9, 1600\u00d7900.') +
+      field('e_alt', 'Image description', o.alt || '', 'For screen readers, and shown if the file fails to load.') +
+      (isProduct ? '' : field('e_credit', 'Photograph credit', o.credit || '',
+            'Name the photographer. Publishing someone\u2019s site photo without credit or permission is how you lose a contact.')) +
+    '</fieldset>' +
+    (isProduct
+      ? '<fieldset><legend>Link and specification</legend>' +
+          '<div class="f2">' + field('e_link', 'Destination link', o.link || '', '', 'url') +
+          field('e_cta', 'Button label', o.cta || 'Find out more') + '</div>' +
+          pick('e_supplierSlug', 'Link to a listed firm', o.supplierSlug || '',
+               [{v:'',l:'Not listed'}].concat(DB.firms.slice(0, 400).map(f => ({v:f.slug,l:f.name})))) +
+          field('e_rateUgx', 'Rate charged (UGX)', o.rateUgx || '', 'Your record only. Not shown on the site.', 'number') +
+          '<div class="f"><label>Specification rows</label>' + rows('spec', o.specs, 'Spec') + '</div>' +
+        '</fieldset>'
+      : '<fieldset><legend>Project facts and lessons</legend>' +
+          '<div class="f"><label>Fact rows</label>' + rows('spec', o.facts, 'Fact') + '</div>' +
+          area('e_lessons', 'Lessons (one per line)', (o.lessons || []).join('\n'),
+               'Concrete and transferable. "Use quality materials" is not a lesson.') +
+        '</fieldset>'),
+    false);
+}
+
+function addPair(boxId) {
+  const box = document.getElementById(boxId);
+  const n = box.querySelectorAll('[data-pair]').length + 1;
+  box.insertAdjacentHTML('beforeend',
+    '<div class="rep" data-pair><div class="rep-head"><b>Row ' + n + '</b><div class="spacer"></div>' +
+    '<button type="button" class="btn btn-sm btn-d" onclick="this.closest(\'[data-pair]\').remove()">Remove</button></div>' +
+    '<div class="f2"><div class="f"><label>Label</label><input type="text" data-p="label" value=""></div>' +
+    '<div class="f"><label>Value</label><input type="text" data-p="value" value=""></div></div></div>');
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MEDIA CHECK
    Loads every image and video the site references, reads its real
@@ -1179,8 +1309,9 @@ RENDER.analytics = el => {
   el.innerHTML =
     (id
       ? '<div class="ga-status on"><span>\u25CF</span><div><b>Measurement ID ' + esc(id) + ' is configured here.</b> ' +
-        'Confirm the same ID is set in <span class="mono">index.html \u2192 SITE.analytics.measurementId</span>, ' +
-        'or the site is not actually sending anything.</div></div>'
+        'Confirm the same ID is set in <span class="mono">index.html \u2192 SITE.analytics.measurementId</span>. ' +
+        'Note that the tag only loads for visitors who accept the cookie notice, so your figures ' +
+        'undercount total traffic by whatever share declines \u2014 that is expected and lawful.</div></div>'
       : '<div class="ga-status off"><span>\u25CF</span><div><b>No Measurement ID set.</b> ' +
         'Nothing is being recorded. Create a GA4 property, copy the ID (it looks like G-ABC1234567) into ' +
         '<span class="mono">SITE.analytics.measurementId</span> in index.html <em>and</em> ' +
@@ -1616,6 +1747,38 @@ function saveDrawer(){
     it.date=val('e_date')||today(); it.readTime=val('e_readTime');
     it.sponsored=val('e_sponsored')==='yes';
     if(CURRENT.index<0) DB.articles.unshift(it); else DB.articles[CURRENT.index]=it;
+  }
+
+  if(k==='spotlight'){
+    const isProduct = CURRENT.index === 'product';
+    it.active = val('e_active')==='yes';
+    it.month = val('e_month') || thisMonth();
+    it.monthLabel = val('e_monthLabel');
+    it.name = val('e_name'); if(!it.name) return fail('e_name','Give it a name');
+    it.tagline = val('e_tagline'); it.body = val('e_body');
+    it.image = val('e_image'); it.alt = val('e_alt');
+    if(it.image && !it.alt) return fail('e_alt','Describe the image');
+    const pairs = [...document.querySelectorAll('#specRep [data-pair]')].map(n=>({
+      label:n.querySelector('[data-p=label]').value.trim(),
+      value:n.querySelector('[data-p=value]').value.trim()
+    })).filter(x=>x.label && x.value);
+    if(isProduct){
+      it.advertiser = val('e_advertiser');
+      if(it.active && !it.advertiser) return fail('e_advertiser','Who is paying for this month?');
+      it.link = val('e_link'); it.cta = val('e_cta');
+      it.supplierSlug = val('e_supplierSlug');
+      it.rateUgx = parseInt(val('e_rateUgx'),10) || 0;
+      it.specs = pairs; it.sponsored = true;
+    } else {
+      it.location = val('e_location'); it.sector = val('e_sector');
+      it.completed = val('e_completed'); it.credit = val('e_credit');
+      it.facts = pairs;
+      it.lessons = val('e_lessons').split('\n').map(x=>x.trim()).filter(Boolean);
+      it.sponsored = false;   // never sold
+    }
+    DB.spotlight[CURRENT.index] = it;
+    mark('spotlight'); closeDrawer(); go('spotlight'); toast('Saved. Publish when ready.');
+    return;
   }
 
   if(k==='ad'){

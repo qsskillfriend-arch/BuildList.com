@@ -9,11 +9,11 @@
  *   1. Go to script.google.com  →  New project
  *   2. Delete whatever is in the editor
  *   3. Paste this entire file
- *   4. Rename the project "BuildList form" (top left)
+ *   4. Rename the project "BuildList.com form" (top left)
  *   5. Press Run (▶). Choose buildListingForm if asked.
  *   6. Google asks for permission the first time:
  *        "Google hasn't verified this app" → Advanced →
- *        "Go to BuildList form (unsafe)" → Allow
+ *        "Go to BuildList.com form (unsafe)" → Allow
  *      That warning is normal for your own scripts. You are granting
  *      permission to yourself, not to a third party.
  *   7. View → Logs. The edit link and public link are printed there.
@@ -25,8 +25,8 @@
 
 const CONFIG = {
   title: 'Add your business to BuildList.com — free',
-  formFileName: 'BuildList — Listing Collection',
-  sheetName: 'BuildList — Listing Responses',
+  formFileName: 'BuildList.com — Listing Collection',
+  sheetName: 'BuildList.com — Listing Responses',
   contactEmail: 'hello@buildlist.com',
   whatsapp: '+256 700 000 000',
 
@@ -56,7 +56,7 @@ const CONFIG = {
   districts: ['Kampala','Wakiso','Mukono','Jinja','Entebbe','Mbarara','Gulu','Hoima',
               'Kayunga','Kabale','Tororo','Luweero','Bushenyi','Busia','Mbale','Other'],
 
-  accreditations: ['BORAQS Registered','UIPE Member','UIQS Member','NCIC Registered',
+  accreditations: ['ARB Registered','UIPE Member','ISU Member','ERB Registered',
                    'ISO Certified','PPDA Listed','None of these']
 };
 
@@ -300,7 +300,7 @@ function buildListingForm() {
       .setRequired(false);
 
   form.addTextItem()
-      .setTitle('Who told you about BuildList?')
+      .setTitle('Who told you about BuildList.com?')
       .setHelpText('Optional — helps us know which of our agents and referrals are working. ' +
                    'A name, a WhatsApp group, or where you saw the sticker.')
       .setRequired(false);
@@ -367,7 +367,7 @@ function dailySubmissionDigest() {
 
   MailApp.sendEmail({
     to: CONFIG.contactEmail,
-    subject: fresh.length + ' new BuildList listing' + (fresh.length > 1 ? 's' : '') + ' to verify',
+    subject: fresh.length + ' new BuildList.com listing' + (fresh.length > 1 ? 's' : '') + ' to verify',
     body: 'New submissions in the last 24 hours:\n\n' + body +
           '\n\nCall each one to confirm the number works, then add them in the admin dashboard.\n\n' +
           ss.getUrl()

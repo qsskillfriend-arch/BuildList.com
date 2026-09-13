@@ -22,15 +22,16 @@ with sync_playwright() as p:
           'Sharplink Ventures (U) Limited' in pg.inner_text('.owner-badge'))
     check('Data loaded', pg.evaluate('DATA_READY'))
     NF = pg.evaluate('DATA.firms.length')
-    check('Hero stat matches dataset',
-          pg.evaluate('document.getElementById("stat-firms").textContent').replace(',', '') == str(NF),
-          pg.evaluate('document.getElementById("stat-firms").textContent') + ' vs ' + str(NF))
+    PS = pg.evaluate('PAGE_SIZE')
+    check('Hero stat is a rounded floor with a plus',
+          pg.evaluate('document.getElementById("stat-firms").textContent') == pg.evaluate('plusCount(%d)' % NF),
+          pg.evaluate('document.getElementById("stat-firms").textContent'))
     check('Featured firms render',
-          pg.evaluate('document.querySelectorAll("#featuredListings .listing-card").length') == 3)
+          pg.evaluate('document.querySelectorAll("#featuredListings .fcard").length') == 3)
     check('Price ticker renders',
           pg.evaluate('document.querySelectorAll("#priceTicker .price-item").length') > 0)
-    check('Logo fallback to initials when none supplied',
-          pg.evaluate('document.querySelectorAll("#featuredListings .listing-logo").length') == 3)
+    check('Logo falls back to initials when none supplied',
+          pg.evaluate('document.querySelectorAll("#featuredListings .fcard-logo").length') == 3)
     check('Ads: one filled, rest available',
           pg.evaluate('document.querySelectorAll(".ad-filled").length') >= 1 and
           pg.evaluate('document.querySelectorAll(".ad-empty").length') >= 10)
@@ -54,21 +55,23 @@ with sync_playwright() as p:
 
     # ═══ SEARCH + FILTERS ═══
     pg.goto(U + 'index.html#/directory'); pg.wait_for_timeout(1400)
-    check('Directory lists all firms',
-          pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length') == NF)
+    check('Directory pages the results',
+          pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length') == min(PS, NF))
+    check('Pager reports the exact range',
+          '1–%d of %d' % (min(PS, NF), NF) in pg.inner_text('.pager-info'),
+          pg.inner_text('.pager-info'))
     check('Facet counts computed (not hardcoded)',
           '0' in pg.evaluate('[...document.querySelectorAll(".filter-count")].map(e=>e.textContent).join(",")'))
     KLA = pg.evaluate('DATA.firms.filter(f=>f.district==="kampala").length')
     pg.evaluate('document.getElementById("f-districts-kampala").click()'); pg.wait_for_timeout(1200)
     check('Sidebar filter works',
-          pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length') == KLA,
-          str(KLA))
+          pg.evaluate('filterFirms(DATA.firms, FILTERS).length') == KLA, str(KLA))
     check('Filter writes to URL', 'dist=kampala' in pg.evaluate('location.hash'))
     check('Active filter chip appears',
           pg.evaluate('document.querySelectorAll("#dirActiveFilters .chip").length') == 1)
     pg.evaluate('document.querySelector("#dirActiveFilters .chip button").click()'); pg.wait_for_timeout(1200)
     check('Chip removal restores results',
-          pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length') == NF)
+          pg.evaluate('filterFirms(DATA.firms, FILTERS).length') == NF)
 
     TERM = pg.evaluate('DATA.firms[0].name.split(" ")[0].toLowerCase()')
     pg.goto(U + 'index.html#/directory?q=' + TERM); pg.wait_for_timeout(1500)
@@ -89,8 +92,8 @@ with sync_playwright() as p:
 
     # ═══ VIEWS ═══
     pg.click('[data-view=grid]'); pg.wait_for_timeout(800)
-    check('Grid view renders',
-          pg.evaluate('document.querySelectorAll("#dirGrid .gcard").length') == NF)
+    check('Grid view renders one page',
+          pg.evaluate('document.querySelectorAll("#dirGrid .gcard").length') == min(PS, NF))
     check('Grid hides list', pg.evaluate('document.getElementById("dirListings").offsetHeight') == 0)
     check('Grid in URL', 'view=grid' in pg.evaluate('location.hash'))
     pg.click('[data-view=map]'); pg.wait_for_timeout(9500)
@@ -98,17 +101,17 @@ with sync_playwright() as p:
           pg.evaluate('LEAFLET_STATE') == 'ready' or
           pg.evaluate('!!document.querySelector(".map-fallback")'),
           'leaflet=' + str(pg.evaluate('LEAFLET_STATE')))
-    check('Map fallback lists results with directions',
+    check('Map is never paged',
           pg.evaluate('LEAFLET_STATE') == 'ready' or
           pg.evaluate('document.querySelectorAll("#dirMap a[href*=openstreetmap]").length') == NF)
     pg.click('[data-view=list]'); pg.wait_for_timeout(700)
     check('Back to list view',
-          pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length') == NF)
+          pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length') == min(PS, NF))
     CAT = pg.evaluate('DATA.taxonomy.categories[0].slug')
     NCAT = pg.evaluate('DATA.firms.filter(f=>f.categories.includes(DATA.taxonomy.categories[0].slug)).length')
     pg.goto(U + 'index.html#/directory?view=grid&cat=' + CAT); pg.wait_for_timeout(1800)
     check('Deep link: view + filter together',
-          pg.evaluate('document.querySelectorAll("#dirGrid .gcard").length') == NCAT and
+          pg.evaluate('document.querySelectorAll("#dirGrid .gcard").length') == min(PS, NCAT) and
           pg.evaluate('document.querySelector(".dir-tab.active").dataset.view') == 'grid', str(NCAT))
 
     # ═══ STAGE 6 ═══
@@ -162,6 +165,136 @@ with sync_playwright() as p:
           'Sharplink Ventures (U) Limited' in pg.inner_text('#page-about'))
     check('Regulator disclosure present',
           'not affiliated with' in pg.inner_text('#page-about').lower())
+
+    # ═══ PAGINATION ═══
+    pg.goto(U + 'index.html#/directory?page=3'); pg.wait_for_timeout(1800)
+    check('Deep link to page 3', '49–72' in pg.inner_text('.pager-info'), pg.inner_text('.pager-info'))
+    pg.goto(U + 'index.html#/directory?per=48'); pg.wait_for_timeout(2600)
+    _rows = pg.evaluate('document.querySelectorAll("#dirListings .dir-listing-row").length')
+    _sz = pg.evaluate('PAGE_SIZE')
+    check('Page size is settable', _rows == min(48, NF),
+          'rows=%s PAGE_SIZE=%s' % (_rows, _sz))
+    pg.goto(U + 'index.html#/directory?page=3'); pg.wait_for_timeout(1500)
+    pg.evaluate('document.getElementById("f-districts-kampala").click()'); pg.wait_for_timeout(1200)
+    check('Filtering returns to page 1', pg.evaluate('PAGE') == 1)
+
+    # ═══ LEGAL PAGES ═══
+    for route, title in [('privacy', 'Privacy Policy'), ('terms', 'Terms of Service')]:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(800)
+        check('Legal page: ' + title,
+              title in pg.inner_text('#page-' + route) and len(pg.inner_text('#page-' + route)) > 1500)
+    check('Legal pages carry the review warning',
+          'reviewed by a Ugandan advocate' in pg.inner_text('#page-terms'))
+    check('Listing Agreement removed site-wide',
+          pg.evaluate('!document.getElementById("page-listing-agreement")') and
+          'listing-agreement' not in pg.content())
+
+    # ═══ TENDER CLIENT FILTER ═══
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(2000)
+    tabs = pg.evaluate('[...document.querySelectorAll(".tab-btn[data-client]")].map(b=>b.dataset.client)')
+    check('Tender client tabs present',
+          set(tabs) == {'', 'government', 'parastatal', 'ngo', 'private'}, str(tabs))
+    check('Tabs carry live counts',
+          pg.evaluate('document.querySelectorAll(".tab-btn .tab-n").length') == 5)
+    pg.evaluate('resetTenderFilter()')          # an earlier test left a status filter set
+    pg.click('[data-client=government]')
+    gov = pg.evaluate('DATA.tenders.filter(t=>t.clientType==="government" && new Date(t.deadline)>=new Date()).length')
+    pg.wait_for_function('n => document.querySelectorAll("#tendersFull .tender-card-full").length === n',
+                         arg=gov, timeout=5000)
+    check('Government filter works',
+          pg.evaluate('document.querySelectorAll("#tendersFull .tender-card-full").length') == gov and
+          pg.evaluate('TENDER_FILTER.client') == 'government', str(gov))
+    pg.click('[data-client=ngo]'); pg.wait_for_timeout(900)
+    check('Empty tab explains itself and offers alerts',
+          'Set a tender alert' in pg.inner_text('#tendersFull'))
+    check('Every tender is classified',
+          pg.evaluate('DATA.tenders.every(t=>!!t.clientType)'))
+
+    # ═══ COOKIE CONSENT ═══
+    check('Consent helpers exist', pg.evaluate('typeof getConsent === "function" && typeof setConsent === "function"'))
+    check('No tag loads without consent',
+          pg.evaluate('!document.querySelector("script[src*=googletagmanager]")'))
+    check('Notice hidden when analytics unconfigured',
+          pg.evaluate('!document.getElementById("cookieNotice").classList.contains("on")'))
+    pg.goto(U + 'index.html#/privacy'); pg.wait_for_timeout(900)
+    check('Privacy page lets you change the choice',
+          pg.evaluate('!!document.getElementById("consentState")'))
+
+    # ═══ PROVENANCE ═══
+    pg.goto(U + 'index.html#/directory'); pg.wait_for_timeout(2600)
+    check('Compiled listings are not claimed as supplied',
+          'supplied by the business' not in pg.inner_text('#dirListings').lower())
+    cases = [
+        ({'descSource': 'derived',   'verified': False, 'verifiedDate': None}, 'compiled',  'Compiled from public sources'),
+        ({'descSource': 'sheet',     'verified': False, 'verifiedDate': None}, 'compiled',  'Compiled from public sources'),
+        ({'descSource': 'submitted', 'verified': False, 'verifiedDate': None}, 'submitted', 'Supplied by the business'),
+        ({'descSource': 'submitted', 'verified': True,  'verifiedDate': '2026-09-01'}, 'verified', 'Verified'),
+    ]
+    for obj, kind, text in cases:
+        html = pg.evaluate('o => verifiedLine(o)', obj)
+        check('Provenance: ' + kind + ' (' + obj['descSource'] + ')',
+              ('prov-' + kind) in html and text in html, html[:70])
+    check('Every listing has a provenance state',
+          pg.evaluate('DATA.firms.every(f => ["verified","submitted","compiled"].includes(provenanceOf(f)))'))
+    pg.goto(U + 'index.html#/firms/' + SLUG); pg.wait_for_timeout(1400)
+    check('Profile explains the provenance in full',
+          'public registers and directories' in pg.inner_text('#profileContent'))
+    check('Unverified profile offers a claim route',
+          'This is my business' in pg.inner_text('#profileContent'))
+
+    # ═══ MONTHLY SPOTLIGHTS ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2600)
+    check('Product of the Month renders', pg.evaluate('!!document.querySelector(".spot-product")'))
+    check('Benchmark Project renders', pg.evaluate('!!document.querySelector(".spot-project")'))
+    check('Paid slot is labelled as advertising',
+          'Advertisement' in pg.inner_text('.spot-product') or
+          pg.evaluate('!!document.querySelector(".spot-ad-flag")'))
+    check('Editorial slot states it is not for sale',
+          'not for sale' in pg.inner_text('.spot-project'))
+    check('Editorial slot is never sponsored',
+          pg.evaluate('DATA.spotlight.project.sponsored') is False)
+    check('Paid slot links carry nofollow sponsored',
+          pg.evaluate('''[...document.querySelectorAll('.spot-product a[target=_blank]')]
+            .every(a => a.rel.includes('sponsored'))'''))
+    check('Spotlight images keep their aspect ratio',
+          pg.evaluate('''[...document.querySelectorAll('.spot-media img')]
+            .every(i => i.clientWidth > 0 && i.clientHeight > 0)'''))
+
+    # ═══ FEATURED CARDS ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2500)
+    check('Featured cards render', pg.evaluate('document.querySelectorAll(".fcard").length') == 3)
+    check('Firm name is visible, not white-on-white',
+          pg.evaluate('''(()=>{const e=document.querySelector('.fcard-name');
+            return e && getComputedStyle(e).color !== 'rgb(255, 255, 255)'
+                   && e.getBoundingClientRect().height > 0;})()'''))
+    check('Featured cards are equal height',
+          pg.evaluate('''(()=>{const h=[...document.querySelectorAll('.fcard')]
+            .map(c=>Math.round(c.getBoundingClientRect().height));
+            return new Set(h).size === 1;})()'''))
+    check('No content overflows a featured card',
+          pg.evaluate('''[...document.querySelectorAll('.fcard')]
+            .every(c => c.scrollHeight <= c.clientHeight + 1)'''))
+
+    # ═══ REGISTERS ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2000)
+    body_all = pg.evaluate('document.body.innerText')
+    for dead in ['BORAQS', 'NCIC', 'UIQS']:
+        check('Removed from site: ' + dead, dead not in body_all)
+    accs = pg.evaluate('DATA.taxonomy.accreditations.map(a=>a.slug)')
+    check('Real Ugandan registers present',
+          all(a in accs for a in ['arb', 'erb', 'srb', 'isu']), str(accs))
+    check('Mobile Optimised removed from trust bar',
+          'Mobile Optimised' not in body_all)
+    check('Brand is BuildList.com throughout',
+          'BuildList.com' in body_all)
+
+    # ═══ FOOTER LINKS ═══
+    dead_links = pg.evaluate('''[...document.querySelectorAll('.footer-col a')]
+        .map(a => a.getAttribute('href')).filter(h => !h || h === '#')''')
+    check('No dead footer links', len(dead_links) == 0, str(dead_links))
+    cat_links = pg.evaluate('''[...document.querySelectorAll('.footer-col a')]
+        .map(a => a.getAttribute('href')).filter(h => h.includes('cat='))''')
+    check('Footer category links are filtered views', len(cat_links) >= 5, str(len(cat_links)))
 
     # ═══ ACCESSIBILITY / MOBILE ═══
     check('Skip link exists', pg.evaluate('!!document.querySelector(".skip-link")'))

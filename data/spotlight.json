@@ -1,0 +1,58 @@
+{
+  "_readme": "Two monthly slots. 'product' is PAID — a manufacturer or distributor buys the month, and it is labelled as advertising everywhere it appears. 'project' is EDITORIAL — chosen by us on merit and never sold, because the moment it is for sale nobody trusts it. Keep that line. Past entries move into the archives so each month's work keeps earning.",
+
+  "product": {
+    "active": true,
+    "month": "2026-09",
+    "monthLabel": "September 2026",
+    "sponsored": true,
+    "advertiser": "Sample Manufacturer Ltd",
+    "name": "Sample Product — replace this entry",
+    "tagline": "One line on what it is and who it is for.",
+    "body": "Two or three sentences on what makes it worth a builder's attention: what problem it solves, where it is used, and what it costs. Written by us from information the advertiser supplies, in the same plain language as the rest of the site.",
+    "specs": [
+      { "label": "Category", "value": "Roofing" },
+      { "label": "Typical price", "value": "UGX 42,000 per sheet" },
+      { "label": "Available at", "value": "Kampala, Wakiso, Mukono" },
+      { "label": "Warranty", "value": "10 years" }
+    ],
+    "image": "images/spotlight/sample-product.png",
+    "alt": "Sample product image — replace with the advertiser's own photograph",
+    "link": "https://example.com",
+    "cta": "See stockists",
+    "supplierSlug": "",
+    "rateUgx": 800000
+  },
+
+  "project": {
+    "active": true,
+    "month": "2026-09",
+    "monthLabel": "September 2026",
+    "sponsored": false,
+    "name": "Sample Project — replace this entry",
+    "tagline": "What makes this project worth studying.",
+    "body": "A short editorial write-up: the brief, what was difficult about it, and what other firms can learn. Two or three paragraphs is plenty. The point is not to flatter the client, it is to give a quantity surveyor or site manager something they can use on their own job.",
+    "location": "Kampala",
+    "sector": "Commercial",
+    "completed": "2026",
+    "facts": [
+      { "label": "Client", "value": "[insert]" },
+      { "label": "Contractor", "value": "[insert]" },
+      { "label": "Consultant", "value": "[insert]" },
+      { "label": "Floor area", "value": "[insert]" },
+      { "label": "Duration", "value": "[insert]" }
+    ],
+    "lessons": [
+      "One concrete, transferable lesson.",
+      "A second one — what would you do differently.",
+      "A third, ideally about cost or programme."
+    ],
+    "image": "images/spotlight/sample-project.png",
+    "alt": "Sample project photograph — replace with a real one, with permission",
+    "credit": "Photograph: [who took it]",
+    "firmSlugs": []
+  },
+
+  "productArchive": [],
+  "projectArchive": []
+}

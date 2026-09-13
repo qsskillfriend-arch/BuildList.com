@@ -1,4 +1,4 @@
-# BuildList
+# BuildList.com
 
 ### Uganda's Construction Industry Directory
 **A product of Sharplink Ventures (U) Limited**
@@ -36,7 +36,7 @@ any advertiser paying seven figures a month will ask to see them.
 
 ### Regulator partnership claims were removed
 
-The About page previously claimed "Official data partnerships with BORAQS,
+The About page previously claimed "Official data partnerships with ARB,
 UIPE, and PPDA". Unless you hold signed agreements, that is a real exposure. It
 now says you check listings against those bodies' **public registers**, with an
 explicit disclosure that you are not affiliated with or endorsed by them.
@@ -211,7 +211,7 @@ buildlist/
 cd buildlist
 git init
 git add .
-git commit -m "Initial commit — BuildList"
+git commit -m "Initial commit — BuildList.com"
 git remote add origin https://github.com/YOUR-USERNAME/buildlist.git
 git branch -M main
 git push -u origin main
@@ -263,7 +263,7 @@ Near the top of the `<script>` block in `index.html`:
 
 ```javascript
 const SITE = {
-  name:      'BuildList',
+  name:      'BuildList.com',
   owner:     'Sharplink Ventures (U) Limited',
   domain:    'buildlist.com',
   email:     'hello@buildlist.com',
@@ -315,7 +315,7 @@ Find `const LISTINGS` in the `<script>` block:
   rating: 4.8,
   reviews: 47,
   tier: 'platinum',    // 'free' | 'verified' | 'premium' | 'platinum'
-  tags: ['BORAQS Reg.', 'ISO 9001']
+  tags: ['ARB Reg.', 'ISO 9001']
 }
 ```
 
@@ -365,7 +365,7 @@ If you add AdSense, note that `netlify.toml` contains a Content Security Policy.
 ## Roadmap
 
 ### Phase 1 — Content (Months 1–3)
-- [ ] Add 100+ real firm listings from the BORAQS and UIPE public registers
+- [ ] Add 100+ real firm listings from the ARB, ERB and SRB public registers
 - [ ] Weekly manual tender updates from the PPDA portal
 - [ ] Publish the first 10 SEO articles on Uganda construction keywords
 - [ ] Connect Google Analytics
@@ -440,4 +440,4 @@ Advertising: **advertising@buildlist.com**
 
 © 2026 Sharplink Ventures (U) Limited. All rights reserved.
 
-BuildList is a product of Sharplink Ventures (U) Limited, registered in Uganda. This codebase is proprietary. Do not redistribute or deploy copies without written permission.
+BuildList.com is a product of Sharplink Ventures (U) Limited, registered in Uganda. This codebase is proprietary. Do not redistribute or deploy copies without written permission.

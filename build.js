@@ -81,7 +81,11 @@ a{color:var(--forest)}
 .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
 header{background:var(--forest);padding:14px 0}
 header .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.logo{color:#fff;font-weight:700;font-size:1.05rem;text-decoration:none;letter-spacing:-.015em}
+.logo{color:#fff;font-weight:700;font-size:1.05rem;text-decoration:none;letter-spacing:-.015em;
+ display:flex;align-items:center;gap:11px}
+.logo-tile{width:40px;height:40px;background:var(--gold);border-radius:8px;display:flex;
+ align-items:center;justify-content:center;flex-shrink:0}
+.logo-tile svg{width:24px;height:24px}
 .logo .tld{color:var(--gold)}
 .logo small{display:block;font-size:.62rem;color:var(--gold);letter-spacing:.08em;font-weight:600;margin-top:1px}
 header nav{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
@@ -148,7 +152,10 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script
 </head>
 <body>
 <header><div class="wrap">
-  <a class="logo" href="/">BuildList<span class="tld">.com</span><small>A product of Sharplink Ventures (U) Limited</small></a>
+  <a class="logo" href="/">
+    <span class="logo-tile"><svg viewBox="0 0 24 24" fill="none" stroke="#1A3C2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 12 2 21 9 21 20 3 20 3 9"/><rect x="9" y="14" width="6" height="6"/></svg></span>
+    <span>BuildList<span class="tld">.com</span><small>Uganda Construction Directory</small></span>
+  </a>
   <nav>
     <a href="/browse/">Directory</a><a href="/#/tenders">Tenders</a>
     <a href="/#/jobs">Jobs</a><a href="/#/news">Prices</a><a href="/#/advertise">Advertise</a>
@@ -159,9 +166,11 @@ ${hero ? `<div class="hero"><div class="wrap">${hero}</div></div>` : ''}
 <main><div class="wrap">${body}</div></main>
 <footer><div class="wrap">
   &copy; ${new Date().getFullYear()} BuildList.com &mdash; a product of Sharplink Ventures (U) Limited.
-  Listings are cross-checked against the public BORAQS, UIPE and URSB registers.
+  Listings are cross-checked against the public ARB, ERB, SRB and URSB registers.
   Not affiliated with, or endorsed by, those bodies.
-  <a href="/#/about">About</a>
+  <a href="/#/about">About</a> &middot;
+  <a href="/#/privacy">Privacy</a> &middot;
+  <a href="/#/terms">Terms</a>
 </div></footer>
 </body>
 </html>`;
@@ -207,9 +216,13 @@ liveFirms.forEach(f => {
   const body = `<div class="two"><div>
     <div class="sec"><h2>About ${esc(f.name)}</h2><p>${esc(f.desc)}</p>
       ${f.established ? `<p class="note" style="margin-top:10px">Established ${f.established}${f.employees ? `, ${esc(f.employees)} staff` : ''}.</p>` : ''}
-      <p class="note" style="margin-top:10px">${f.verified
-        ? `Verified ${new Date(f.verifiedDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}. A verified badge is a record and contact check, not a guarantee of workmanship.`
-        : 'This listing has not yet been verified by our team.'}</p></div>
+      <p class="note" style="margin-top:10px">${
+        f.verified && f.verifiedDate
+          ? `Verified ${new Date(f.verifiedDate).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}. We telephoned this business, confirmed its premises and checked the relevant public register on that date. A verified badge is a record and contact check, not a guarantee of workmanship.`
+          : f.descSource === 'submitted'
+            ? 'Supplied by the business. These details were sent to us by the business itself and have not been independently checked.'
+            : 'Compiled from public sources. We built this listing from public registers and directories; the business has not confirmed it yet, so details may be out of date. If this is your business you can correct or remove it at any time \u2014 <a href="/#/submit">tell us here</a>.'
+      }</p></div>
     ${(f.services || []).length ? `<div class="sec"><h2>Services</h2>
       ${f.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>` : ''}
     ${(f.photos || []).length ? `<div class="sec"><h2>Photographs</h2><div class="grid">
@@ -243,7 +256,7 @@ liveFirms.forEach(f => {
 });
 
 /* ═══════════════ 2. CATEGORY + CATEGORY×DISTRICT PAGES ═══════════════
-   These are the money pages. Nobody searches "BuildList";
+   These are the money pages. Nobody searches "BuildList.com";
    they search "quantity surveyor Kampala".
    ════════════════════════════════════════════════════════════════ */
 const comboLinks = [];
@@ -329,7 +342,7 @@ openTenders.forEach(t => {
       <p style="margin-top:11px"><b>Estimated value</b><br>${esc(t.value)}</p>
       <p style="margin-top:11px"><b>Closing date</b><br>${esc(t.deadline)} (${days} day${days === 1 ? '' : 's'} remaining)</p>
       <p style="margin-top:11px"><b>Source</b><br>${esc(t.source || '')}</p>
-      <p class="note" style="margin-top:16px">BuildList publishes tender notices for information.
+      <p class="note" style="margin-top:16px">BuildList.com publishes tender notices for information.
       Always confirm details and submission requirements with the procuring entity before bidding.</p>
       <p style="margin-top:14px"><a class="btn" href="/#/tenders">See all open tenders</a></p></div>`,
     jsonld: { '@context': 'https://schema.org', '@type': 'WebPage', name: t.title, url }
@@ -359,6 +372,8 @@ D.articles.forEach(a => {
 const urls = [
   { loc: `${SITE_URL}/`, pri: '1.0', freq: 'daily' },
   { loc: `${SITE_URL}/browse/`, pri: '0.95', freq: 'daily' },
+  { loc: `${SITE_URL}/privacy`, pri: '0.3', freq: 'yearly' },
+  { loc: `${SITE_URL}/terms`, pri: '0.3', freq: 'yearly' },
   ...comboLinks.map(l => ({ loc: SITE_URL + l.href, pri: '0.9', freq: 'weekly' })),
   ...liveFirms.map(f => ({ loc: `${SITE_URL}/firms/${f.slug}/`, pri: '0.8', freq: 'weekly' })),
   ...openTenders.map(t => ({ loc: `${SITE_URL}/tenders/${String(t.ref || t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70)}/`, pri: '0.7', freq: 'daily' })),
