@@ -1,5 +1,5 @@
 {
-  "_readme": "Every ad slot is driven from this file. A slot with no active ad shows an 'advertisement slot available' placeholder with your sales email. Four creative types are supported: image (banner), video (mp4), flier (full natural shape, opens enlarged) and text (no artwork). Every type is clickable via 'link'. See images/README.md for sizes.",
+  "_readme": "Every ad slot is driven from this file. Slot keys name the page they sit on, so impression and click reports match where the advertiser actually appeared. A slot with no active ad shows an 'available' placeholder with your sales email. Four creative types: image, video, flier and text. The Add-your-firm, Privacy and Terms pages deliberately carry no advertising.",
   "slots": {
     "home-leaderboard": {
       "label": "Homepage leaderboard",
@@ -11,20 +11,10 @@
       "size": "970x250",
       "accepts": "image, video or text"
     },
-    "home-lower": {
-      "label": "Homepage lower leaderboard",
-      "size": "970x90",
-      "accepts": "image, video or text"
-    },
     "directory-sidebar": {
       "label": "Directory sidebar",
       "size": "300x250",
       "accepts": "image, flier or video"
-    },
-    "directory-strip": {
-      "label": "Directory top strip",
-      "size": "970x90",
-      "accepts": "image, video or text"
     },
     "directory-infeed": {
       "label": "Directory in-feed",
@@ -52,19 +42,24 @@
       "accepts": "image, video or text"
     },
     "jobs-sidebar": {
-      "label": "Jobs sidebar",
+      "label": "Jobs board sidebar",
       "size": "300x250",
-      "accepts": "image, video or text"
+      "accepts": "image, flier or video"
     },
     "news-sidebar": {
-      "label": "News sidebar",
+      "label": "News & prices sidebar",
       "size": "300x250",
-      "accepts": "image, video or text"
+      "accepts": "image, flier or video"
     },
     "footer-leaderboard": {
       "label": "Footer leaderboard",
       "size": "728x90",
       "accepts": "image, video or text"
+    },
+    "news-sidebar-lower": {
+      "label": "News sidebar, lower",
+      "size": "300x250",
+      "accepts": "image, flier or video"
     }
   },
   "ads": [
