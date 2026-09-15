@@ -159,6 +159,55 @@ tbody tr:hover{background:#FAFBFA}
 .locked{opacity:.5;pointer-events:none}
 .role-hint{font-size:12px;color:var(--text-3);margin-top:6px}
 
+/* ── Media library ─────────────────────────────────────────────── */
+.drop{border:2px dashed var(--line-2);border-radius:10px;padding:34px 24px;text-align:center;
+  background:var(--white);margin-bottom:20px;transition:all .15s}
+.drop.over{border-color:var(--forest);background:var(--live-soft)}
+.drop h3{font-size:16px;margin-bottom:5px}
+.drop p{color:var(--text-2);font-size:13px;max-width:52ch;margin:0 auto 14px;line-height:1.6}
+.drop input{display:none}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
+.mcard{background:var(--white);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mthumb{aspect-ratio:4/3;background:#F4F6F4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Crect width='7' height='7' fill='%23EDEFED'/%3E%3Crect x='7' y='7' width='7' height='7' fill='%23EDEFED'/%3E%3C/svg%3E");
+  display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+.mthumb img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.mmeta{padding:10px 12px;font-size:12px}
+.mmeta b{display:block;font-size:12.5px;word-break:break-all;line-height:1.35}
+.mmeta .dim{font-family:var(--mono);color:var(--text-3);font-size:11px;margin-top:3px}
+.mact{display:flex;gap:6px;padding:0 12px 11px}
+.mact button{flex:1;font-size:11.5px;padding:4px 6px}
+.upq{background:var(--white);border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.upq div.row{display:flex;gap:12px;align-items:center;padding:11px 15px;border-bottom:1px solid var(--line);font-size:13px}
+.upq div.row:last-child{border-bottom:none}
+.upq .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upq .st{font-size:12px;white-space:nowrap}
+.bar{height:5px;background:var(--line);border-radius:3px;width:110px;overflow:hidden}
+.bar i{display:block;height:5px;background:var(--forest);width:0}
+
+/* ── Article editor ────────────────────────────────────────────── */
+.edgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media(max-width:980px){.edgrid{grid-template-columns:1fr}}
+.edtools{display:flex;gap:5px;flex-wrap:wrap;padding:9px;border:1px solid var(--line-2);
+  border-bottom:none;border-radius:6px 6px 0 0;background:#FAFBFA}
+.edtools button{padding:5px 10px;font-size:12.5px;border:1px solid var(--line);background:var(--white);
+  border-radius:4px;cursor:pointer}
+.edtools button:hover{border-color:var(--forest)}
+#edBody{width:100%;min-height:440px;border:1px solid var(--line-2);border-radius:0 0 6px 6px;
+  padding:16px;font-family:var(--mono);font-size:13.5px;line-height:1.7;resize:vertical}
+.preview{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:24px 26px;
+  max-height:640px;overflow-y:auto}
+.preview h1{font-size:23px;margin:0 0 10px}
+.preview h2{font-size:17px;margin:22px 0 8px}
+.preview p{font-size:14.5px;line-height:1.72;margin-bottom:13px;color:var(--text)}
+.preview ul{margin:0 0 13px 20px}.preview li{font-size:14.5px;line-height:1.7;margin-bottom:5px}
+.preview blockquote{border-left:3px solid var(--gold,#C49A16);margin:0 0 14px;padding:4px 0 4px 15px;
+  color:var(--text-2);font-style:italic}
+.preview figure{margin:0 0 16px}
+.preview figure img{width:100%;height:auto;border-radius:6px;display:block}
+.preview figcaption{font-size:12px;color:var(--text-3);margin-top:6px}
+.preview a{color:var(--forest)}
+.wc{font-size:12px;color:var(--text-3);margin-top:7px}
+
 /* ── Drawer ──────────────────────────────────────────────────── */
 .scrim{position:fixed;inset:0;background:rgba(15,26,20,.42);z-index:40;display:none}
 .scrim.on{display:block}
@@ -300,7 +349,7 @@ const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
 
 const SESSION = { user: null, role: null, name: null, demo: false };
 let sb = null;
-const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [] };
+const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [], media: [] };
 
 /* ═══════════════════════════════════════════════════════════════
    BOOT
@@ -337,6 +386,9 @@ window.demoAs = async function (role) {
   const res = await Promise.all(files.map(f =>
     fetch('data/' + f + '.json').then(r => r.json()).catch(() => null)));
   files.forEach((f, i) => { if (res[i]) DB[f] = res[i]; });
+  DB.media = [];
+  DB.articles.forEach(a => { if (a.published === undefined) a.published = true;
+    if (!a.body) a.body = (a.excerpt || '') + String.fromCharCode(10,10) + '## What this means' + String.fromCharCode(10,10) + 'Write the rest here.'; });
   DB.staff = [
     { name: 'You', role: role, email: 'demo@buildlist.com' },
     { name: 'Sample content officer', role: 'editor', email: 'editor@example.com' },
@@ -451,6 +503,7 @@ const SECTIONS = [
   { id:'tenders',   label:'Tenders',      group:'Content',   perm:'tenders',  count:()=>DB.tenders.length },
   { id:'jobs',      label:'Jobs',         group:'Content',   perm:'jobs',     count:()=>DB.jobs.length },
   { id:'articles',  label:'Articles',     group:'Content',   perm:'articles', count:()=>DB.articles.length },
+  { id:'media',     label:'Media library',group:'Content',   perm:'articles', count:()=>DB.media.length },
   { id:'prices',    label:'Prices',       group:'Content',   perm:'prices' },
   { id:'spotlight', label:'Monthly slots',group:'Content',   perm:'spotlight' },
   { id:'ads',       label:'Advertising',  group:'Revenue',   perm:'ads' },
@@ -474,7 +527,8 @@ const TITLES = {
   firms:['Firms','Listings, verification and tiers'],
   tenders:['Tenders','Closed notices hide themselves'],
   jobs:['Jobs','Vacancies expire on their closing date'],
-  articles:['Articles','News and guides'],
+  articles:['Articles','Write, illustrate, publish \u2014 or take down'],
+  media:['Media library','Every image, resized on upload and served at the right size'],
   prices:['Material prices','Update weekly from the same suppliers'],
   spotlight:['Monthly slots','One paid, one editorial'],
   ads:['Advertising','Slots, campaigns and rates'],
@@ -685,13 +739,40 @@ window.openDrawer = function (title, html) {
 window.closeDrawer = function () {
   document.getElementById('drawer').classList.remove('on');
   document.getElementById('scrim').classList.remove('on');
-  CURRENT = null;
+  CURRENT = null; EDITING = null;
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
 const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
 
 window.saveDrawer = async function () {
+  if (EDITING) {
+    const a = EDITING.item;
+    a.title = val('e_title'); if (!a.title) return toast('An article needs a headline');
+    a.slug = a.slug || a.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    a.category = val('e_cat'); a.date = val('e_date');
+    a.excerpt = val('e_excerpt');
+    a.body = document.getElementById('edBody').value;
+    a.published = val('e_pub') === 'yes';
+    a.sponsored = val('e_spon') === 'yes';
+    const words = a.body.trim().split(/\s+/).filter(Boolean).length;
+    a.readTime = Math.max(1, Math.round(words / 200)) + ' min read';
+
+    if (!SESSION.demo && sb) {
+      const payload = { slug:a.slug, title:a.title, excerpt:a.excerpt, body:a.body,
+        category:a.category, published:a.published, sponsored:a.sponsored,
+        read_time:a.readTime, published_at:a.date };
+      const q = a.id ? sb.from('articles').update(payload).eq('id', a.id)
+                     : sb.from('articles').insert(payload).select().single();
+      const { data, error } = await q;
+      if (error) return toast('Rejected by the database: ' + error.message);
+      if (!a.id && data) a.id = data.id;
+    }
+    if (EDITING.index === null) DB.articles.unshift(a);
+    EDITING = null;
+    closeDrawer(); go('articles'); buildNav(); toast('Saved');
+    return;
+  }
   if (!CURRENT) return;
   const f = CURRENT.item;
   f.name = val('e_name'); if (!f.name) return toast('A firm needs a name');
@@ -752,8 +833,436 @@ RENDER.staff = el => {
     '<br><br>Roles: <span class="mono">admin</span>, <span class="mono">editor</span>, <span class="mono">agent</span>.</div>';
 };
 
+
+/* ═══════════════════════════════════════════════════════════════
+   IMAGE PIPELINE
+   Every upload is decoded, corrected for orientation, and re-encoded
+   at three widths before it leaves the browser. Three reasons this
+   happens here rather than on a server:
+
+     1. Supabase image transformation is a paid feature. Doing the work
+        client-side gives the same result on the free tier.
+     2. A 6MB phone photo becomes ~250KB before it crosses the network,
+        which matters when the person uploading is on a mobile bundle.
+     3. Serving a 400px-wide file to a phone instead of a 1600px one is
+        the single biggest thing you can do for load time in Uganda.
+
+   Nothing is ever upscaled — a small source stays small and is flagged
+   rather than blown up into something blurry.
+   ═══════════════════════════════════════════════════════════════ */
+const IMG = {
+  widths: [1600, 800, 400],
+  quality: 0.82,
+  maxSourceMB: 25,
+  /* What each slot actually needs, so we can warn before it ships */
+  targets: {
+    'ad-leaderboard':  { w: 970,  h: 90,  label: 'Leaderboard banner' },
+    'ad-billboard':    { w: 970,  h: 250, label: 'Billboard banner' },
+    'ad-rectangle':    { w: 300,  h: 250, label: 'Sidebar rectangle' },
+    'ad-footer':       { w: 728,  h: 90,  label: 'Footer leaderboard' },
+    'flier':           { w: 900,  h: 0,   label: 'Flier (any shape)' },
+    'article':         { w: 1200, h: 675, label: 'Article image' },
+    'logo':            { w: 400,  h: 400, label: 'Firm logo' },
+    'firm-photo':      { w: 1200, h: 900, label: 'Firm photograph' },
+    'spotlight':       { w: 1200, h: 900, label: 'Monthly spotlight' }
+  }
+};
+
+function supportsWebp() {
+  const c = document.createElement('canvas');
+  return c.toDataURL('image/webp').startsWith('data:image/webp');
+}
+const WEBP = supportsWebp();
+
+async function decodeImage(file) {
+  /* createImageBitmap handles EXIF orientation, so a photo taken
+     sideways on a phone does not arrive rotated. */
+  if (window.createImageBitmap) {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch (e) { /* fall through */ }
+  }
+  return await new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function resizeTo(bitmap, targetW) {
+  const scale = Math.min(1, targetW / bitmap.width);   // never upscale
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return { canvas: c, w, h };
+}
+
+const canvasBlob = (c, type, q) => new Promise(res => c.toBlob(res, type, q));
+
+/* Judge the source against the slot it is going into, before upload */
+function assess(bitmap, targetKey) {
+  const t = IMG.targets[targetKey];
+  if (!t) return { level: 'ok', msg: '' };
+  const notes = [];
+  if (bitmap.width < t.w * 0.9)
+    notes.push({ level: 'bad', msg: `Only ${bitmap.width}px wide; this slot wants ${t.w}px. It will look soft. Ask for a larger file.` });
+  if (t.h) {
+    const want = t.w / t.h, got = bitmap.width / bitmap.height;
+    if (Math.abs(got - want) / want > 0.12)
+      notes.push({ level: 'warn', msg: `Shape is ${got.toFixed(2)}:1, the slot is ${want.toFixed(2)}:1. It will letterbox rather than stretch \u2014 correct, but you lose part of the box.` });
+  }
+  if (bitmap.width > t.w * 3)
+    notes.push({ level: 'warn', msg: `Much larger than needed. We will resize it down, so nothing is wasted.` });
+  if (!notes.length) return { level: 'ok', msg: 'Right size and shape for this slot.' };
+  return notes.find(n => n.level === 'bad') || notes[0];
+}
+
+/* Produce every size we will serve, from one source file */
+async function processImage(file, targetKey) {
+  if (!/^image\//.test(file.type)) throw new Error('Not an image file');
+  if (file.size > IMG.maxSourceMB * 1024 * 1024)
+    throw new Error(`Over ${IMG.maxSourceMB}MB. Please export a smaller version.`);
+
+  const bmp = await decodeImage(file);
+  const verdict = assess(bmp, targetKey);
+  const type = WEBP ? 'image/webp' : 'image/jpeg';
+  const ext  = WEBP ? 'webp' : 'jpg';
+  const base = file.name.replace(/\.[^.]+$/, '').toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'image';
+  const stamp = Date.now().toString(36);
+
+  const variants = [];
+  for (const w of IMG.widths) {
+    if (w > bmp.width && variants.length) continue;      // no upscaling, no duplicates
+    const { canvas, w: rw, h: rh } = resizeTo(bmp, w);
+    const blob = await canvasBlob(canvas, type, IMG.quality);
+    variants.push({ width: rw, height: rh, blob, bytes: blob.size,
+                    name: `${base}-${stamp}-${rw}.${ext}` });
+  }
+  return {
+    base, ext, type, verdict,
+    natural: { w: bmp.width, h: bmp.height },
+    originalBytes: file.size,
+    variants
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MEDIA LIBRARY
+   ═══════════════════════════════════════════════════════════════ */
+let MEDIA_TARGET = 'article';
+const UPLOADS = [];
+
+RENDER.media = el => {
+  el.innerHTML = `
+    <div class="note"><b>Images are resized here, in your browser, before they upload.</b>
+    Every file becomes three widths (1600, 800 and 400px) in ${WEBP ? 'WebP' : 'JPEG'}, and the
+    site serves whichever fits the reader's screen. A phone on a mobile bundle in Mbale gets the
+    400px one. Nothing is ever stretched or upscaled \u2014 a small file is flagged rather than
+    blown up.</div>
+
+    <div class="toolbar">
+      <label for="mTarget" style="font-size:13px;color:var(--text-2)">These images are for</label>
+      <select id="mTarget" onchange="MEDIA_TARGET=this.value">
+        ${Object.entries(IMG.targets).map(([k, t]) =>
+          `<option value="${k}"${k === MEDIA_TARGET ? ' selected' : ''}>${t.label}${t.h ? ` \u00b7 ${t.w}\u00d7${t.h}` : ''}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="drop" id="drop">
+      <h3>Drop images here</h3>
+      <p>Or choose files. JPEG, PNG or WebP, up to ${IMG.maxSourceMB}MB each. Photographs
+      straight off a phone are fine \u2014 they get resized on the way in.</p>
+      <button class="btn btn-p" onclick="document.getElementById('mFile').click()">Choose files</button>
+      <input type="file" id="mFile" accept="image/*" multiple onchange="queueFiles(this.files)">
+    </div>
+
+    <div id="upq"></div>
+    <h3 style="font-size:15px;margin:22px 0 12px">Library <span class="rowsub" id="mCount"></span></h3>
+    <div class="mgrid" id="mgrid"></div>`;
+
+  const drop = document.getElementById('drop');
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add('over');
+  }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove('over');
+  }));
+  drop.addEventListener('drop', e => queueFiles(e.dataTransfer.files));
+  paintLibrary();
+};
+
+async function queueFiles(files) {
+  for (const f of Array.from(files)) {
+    const item = { name: f.name, status: 'working', pct: 10, msg: 'Reading\u2026' };
+    UPLOADS.unshift(item); paintQueue();
+    try {
+      const out = await processImage(f, MEDIA_TARGET);
+      item.pct = 60; item.msg = 'Resizing\u2026'; paintQueue();
+      const saved = Math.round((1 - out.variants.reduce((a, v) => a + v.bytes, 0) / out.originalBytes) * 100);
+      await storeVariants(out);
+      item.status = out.verdict.level === 'bad' ? 'warn' : 'done';
+      item.pct = 100;
+      item.msg = out.verdict.level === 'ok'
+        ? `${out.natural.w}\u00d7${out.natural.h} \u00b7 ${out.variants.length} sizes \u00b7 ${saved > 0 ? saved + '% smaller' : 'optimised'}`
+        : out.verdict.msg;
+    } catch (err) {
+      item.status = 'error'; item.pct = 100; item.msg = err.message;
+    }
+    paintQueue(); paintLibrary();
+  }
+}
+
+async function storeVariants(out) {
+  const rec = {
+    id: 'm-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    base: out.base, target: MEDIA_TARGET,
+    naturalW: out.natural.w, naturalH: out.natural.h,
+    uploaded: new Date().toISOString().slice(0, 10),
+    variants: out.variants.map(v => ({ width: v.width, height: v.height, name: v.name, bytes: v.bytes })),
+    usedBy: []
+  };
+  if (SESSION.demo || !sb) {
+    /* Preview mode: keep object URLs so the library is genuinely usable
+       without a database behind it. */
+    rec.urls = {}; out.variants.forEach(v => { rec.urls[v.width] = URL.createObjectURL(v.blob); });
+    rec.demo = true;
+    DB.media.unshift(rec);
+    return;
+  }
+  for (const v of out.variants) {
+    const path = `${MEDIA_TARGET}/${v.name}`;
+    const { error } = await sb.storage.from('media').upload(path, v.blob, {
+      contentType: out.type, cacheControl: '604800', upsert: false
+    });
+    if (error) throw new Error(error.message);
+  }
+  rec.urls = {};
+  out.variants.forEach(v => {
+    rec.urls[v.width] = sb.storage.from('media').getPublicUrl(`${MEDIA_TARGET}/${v.name}`).data.publicUrl;
+  });
+  await sb.from('media').insert({
+    base: rec.base, target: rec.target, natural_w: rec.naturalW, natural_h: rec.naturalH,
+    variants: rec.variants, urls: rec.urls
+  });
+  DB.media.unshift(rec);
+}
+
+function paintQueue() {
+  const el = document.getElementById('upq');
+  if (!el) return;
+  if (!UPLOADS.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="upq">' + UPLOADS.slice(0, 8).map(u => `
+    <div class="row">
+      <span class="nm">${esc(u.name)}</span>
+      <span class="bar"><i style="width:${u.pct}%"></i></span>
+      <span class="st" style="color:${u.status==='error'?'var(--danger)':u.status==='warn'?'var(--pending)':'var(--live)'}">${esc(u.msg)}</span>
+    </div>`).join('') + '</div>';
+}
+
+function paintLibrary() {
+  const el = document.getElementById('mgrid');
+  if (!el) return;
+  document.getElementById('mCount').textContent =
+    DB.media.length + (DB.media.length === 1 ? ' image' : ' images');
+  if (!DB.media.length) {
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>Nothing uploaded yet</b>Drop an image above.</div>';
+    return;
+  }
+  el.innerHTML = DB.media.map(m => {
+    const src = m.urls[Math.min(...Object.keys(m.urls).map(Number))] || Object.values(m.urls)[0];
+    const total = m.variants.reduce((a, v) => a + v.bytes, 0);
+    return `<div class="mcard">
+      <div class="mthumb" onclick="copyImageRef('${m.id}')" title="Click to copy for an article">
+        <img src="${src}" alt="" loading="lazy"></div>
+      <div class="mmeta"><b>${esc(m.base)}</b>
+        <div class="dim">${m.naturalW}\u00d7${m.naturalH} \u00b7 ${m.variants.length} sizes \u00b7 ${Math.round(total/1024)}KB</div></div>
+      <div class="mact">
+        <button class="btn" onclick="copyImageRef('${m.id}')">Copy</button>
+        <button class="btn btn-d" onclick="removeMedia('${m.id}')">Remove</button>
+      </div></div>`;
+  }).join('');
+}
+
+function copyImageRef(id) {
+  const m = DB.media.find(x => x.id === id);
+  if (!m) return;
+  const ref = `![${m.base}](media:${m.id})`;
+  navigator.clipboard?.writeText(ref);
+  toast('Copied. Paste it into an article where the image should sit.');
+}
+
+async function removeMedia(id) {
+  const m = DB.media.find(x => x.id === id);
+  if (!m) return;
+  if (m.usedBy && m.usedBy.length) {
+    return toast('In use by ' + m.usedBy.length + ' item(s). Remove it there first.');
+  }
+  if (!confirm('Remove this image? Anything still pointing at it will show a gap.')) return;
+  if (!SESSION.demo && sb) {
+    await sb.storage.from('media').remove(m.variants.map(v => `${m.target}/${v.name}`));
+    await sb.from('media').delete().eq('base', m.base);
+  }
+  DB.media = DB.media.filter(x => x.id !== id);
+  paintLibrary(); buildNav(); toast('Removed');
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ARTICLE EDITOR
+   Markdown rather than a rich-text box. Contenteditable produces
+   messy, unpredictable HTML that breaks the moment somebody pastes
+   from Word — markdown stays clean, diffs readably, and survives
+   being edited by two different people.
+   The live preview means nobody has to know what markdown is.
+   ═══════════════════════════════════════════════════════════════ */
+let EDITING = null;
+
+RENDER.articles = el => {
+  const list = DB.articles.slice().sort((a, b) =>
+    String(b.date || b.published_at || '').localeCompare(String(a.date || a.published_at || '')));
+  el.innerHTML = `
+    <div class="toolbar">
+      <div class="spacer"></div>
+      <button class="btn btn-p" onclick="editArticle(null)">Write an article</button>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>Headline</th><th>Category</th><th>Date</th><th>State</th><th></th></tr></thead>
+      <tbody>${list.length ? list.map((a, i) => {
+        const live = a.published !== false;
+        return `<tr>
+          <td><span class="nm">${esc(a.title)}</span>
+              <span class="sub">${esc((a.excerpt || '').slice(0, 90))}${(a.excerpt||'').length > 90 ? '\u2026' : ''}</span></td>
+          <td class="sub">${esc(a.category || '')}</td>
+          <td class="mono sub">${esc(a.date || a.published_at || '')}</td>
+          <td><span class="pill ${live ? 'p-live' : 'p-off'}">${live ? 'live' : 'taken down'}</span>
+              ${a.sponsored ? '<span class="pill p-wait">sponsored</span>' : ''}</td>
+          <td class="act">
+            <button class="btn" onclick="togglePublish(${i})">${live ? 'Take down' : 'Publish'}</button>
+            <button class="btn" onclick="editArticle(${i})">Edit</button>
+          </td></tr>`;
+      }).join('') : '<tr><td colspan="5"><div class="empty" style="border:none"><b>Nothing written yet</b>Start with something people search for \u2014 a price guide or a how-to.</div></td></tr>'}
+      </tbody></table></div>`;
+};
+
+async function togglePublish(i) {
+  const a = DB.articles[i];
+  a.published = a.published === false;
+  if (!SESSION.demo && sb && a.id) await sb.from('articles').update({ published: a.published }).eq('id', a.id);
+  const host = document.querySelector('.page[data-page="articles"]');
+  if (host) RENDER.articles(host);
+  toast(a.published ? 'Published' : 'Taken down. Still here, just hidden from the site.');
+}
+
+function editArticle(i) {
+  const isNew = i === null;
+  const a = isNew
+    ? { title:'', slug:'', category:'Industry News', excerpt:'', body:'', icon:'newspaper',
+        date:new Date().toISOString().slice(0,10), readTime:'', sponsored:false, published:true }
+    : Object.assign({}, DB.articles[i]);
+  EDITING = { index: i, item: a };
+
+  openDrawer(isNew ? 'Write an article' : 'Edit article',
+    '<fieldset><legend>The article</legend>' +
+      fld('e_title','Headline', a.title, 'Write the one people would search for, not the clever one.') +
+      '<div class="f2">' + fld('e_cat','Category', a.category) +
+        fld('e_date','Date', a.date) + '</div>' +
+      area_('e_excerpt','Summary', a.excerpt || '') +
+    '</fieldset>' +
+    '<fieldset><legend>Body</legend>' +
+      '<div class="edtools">' +
+        ['## Heading','**bold**','*italic*','- list','> quote','[link](url)'].map(t =>
+          `<button type="button" onclick="ins('${t.replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('') +
+        '<button type="button" onclick="pickImage()">Insert image</button>' +
+      '</div>' +
+      `<textarea id="edBody" oninput="paintPreview()">${esc(a.body || '')}</textarea>` +
+      '<div class="wc" id="wc"></div>' +
+      '<div style="margin-top:14px"><label style="font-size:12.5px;font-weight:500">Preview</label>' +
+      '<div class="preview" id="edPrev"></div></div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Publishing</legend>' +
+      '<div class="f2">' +
+      '<div class="f"><label for="e_pub">State</label><select id="e_pub">' +
+        `<option value="yes"${a.published !== false ? ' selected' : ''}>Live on the site</option>` +
+        `<option value="no"${a.published === false ? ' selected' : ''}>Taken down</option></select></div>` +
+      '<div class="f"><label for="e_spon">Sponsored</label><select id="e_spon">' +
+        `<option value="no"${!a.sponsored ? ' selected' : ''}>No</option>` +
+        `<option value="yes"${a.sponsored ? ' selected' : ''}>Yes \u2014 labelled as paid</option></select>` +
+        '<div class="hint">Paid editorial must be labelled. This is not optional.</div></div>' +
+      '</div>' +
+    '</fieldset>');
+  paintPreview();
+}
+
+function ins(snippet) {
+  const t = document.getElementById('edBody');
+  const [a, b] = [t.selectionStart, t.selectionEnd];
+  const sel = t.value.slice(a, b);
+  let out = snippet;
+  if (sel) {
+    if (snippet.includes('**')) out = '**' + sel + '**';
+    else if (snippet.startsWith('*')) out = '*' + sel + '*';
+    else if (snippet.startsWith('##')) out = '## ' + sel;
+    else if (snippet.startsWith('>')) out = '> ' + sel;
+    else if (snippet.startsWith('-')) out = '- ' + sel;
+    else if (snippet.startsWith('[')) out = '[' + sel + '](https://)';
+  }
+  t.value = t.value.slice(0, a) + out + t.value.slice(b);
+  t.focus(); t.selectionStart = t.selectionEnd = a + out.length;
+  paintPreview();
+}
+
+function pickImage() {
+  if (!DB.media.length) { toast('No images yet \u2014 upload one in the Media library first.'); return; }
+  const m = DB.media[0];
+  ins(`\n![${m.base}](media:${m.id})\n`);
+  toast('Inserted the most recent image. Use Copy in the library to pick another.');
+}
+
+/* Minimal, deliberate markdown. Everything is escaped first, so a
+   pasted angle bracket cannot inject markup into the site. */
+function md(src) {
+  let t = esc(src || '');
+  t = t.replace(/!\[([^\]]*)\]\(media:([^)]+)\)/g, (_, alt, id) => {
+    const m = DB.media.find(x => x.id === id);
+    if (!m) return `<figure><div style="padding:22px;background:#FBEDED;color:#B83232;border-radius:6px;font-size:13px">Image not found: ${esc(id)}</div></figure>`;
+    const ws = Object.keys(m.urls).map(Number).sort((a, b) => a - b);
+    const srcset = ws.map(w => `${m.urls[w]} ${w}w`).join(', ');
+    return `<figure><img src="${m.urls[ws[ws.length-1]]}" srcset="${srcset}"
+      sizes="(max-width: 700px) 100vw, 700px" alt="${esc(alt)}" loading="lazy">
+      ${alt ? `<figcaption>${esc(alt)}</figcaption>` : ''}</figure>`;
+  });
+  t = t.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>')
+       .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>')
+       .replace(/^&gt;\s?(.+)$/gm, '<blockquote>$1</blockquote>')
+       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+       .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+       .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
+  t = t.replace(/(?:^-\s+.+\n?)+/gm, b =>
+    '<ul>' + b.trim().split('\n').map(l => '<li>' + l.replace(/^-\s+/, '') + '</li>').join('') + '</ul>');
+  return t.split(/\n{2,}/).map(p =>
+    /^\s*<(h2|h3|ul|figure|blockquote)/.test(p) ? p : (p.trim() ? '<p>' + p.replace(/\n/g, '<br>') + '</p>' : '')
+  ).join('');
+}
+
+function paintPreview() {
+  const t = document.getElementById('edBody');
+  const p = document.getElementById('edPrev');
+  if (!t || !p) return;
+  const title = (document.getElementById('e_title') || {}).value || '';
+  p.innerHTML = (title ? '<h1>' + esc(title) + '</h1>' : '') + md(t.value);
+  const words = t.value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wc').textContent =
+    words + ' words \u00b7 about ' + Math.max(1, Math.round(words / 200)) + ' min read';
+}
+
 /* ── Placeholder renderers reuse the same table pattern ── */
-['tenders','jobs','articles'].forEach(key => {
+['tenders','jobs'].forEach(key => {
   RENDER[key] = el => {
     const rows = DB[key] || [];
     el.innerHTML = rows.length
@@ -786,6 +1295,18 @@ RENDER.analytics = el => {
     '<div class="note"><b>Site-wide traffic</b> stays in Google Analytics \u2014 open the reports from ' +
     '<span class="mono">admin.html</span>, which has direct links.</div>';
 };
+
+/* This script is a module, so declarations are not global. Anything an
+   inline onclick reaches has to be attached to window explicitly. */
+Object.assign(window, {
+  IMG, WEBP, MEDIA_TARGET, UPLOADS, DB,
+  queueFiles, paintLibrary, paintQueue, copyImageRef, removeMedia,
+  processImage, assess, editArticle, togglePublish, ins, pickImage,
+  paintPreview, md
+});
+Object.defineProperty(window, 'MEDIA_TARGET', {
+  get: () => MEDIA_TARGET, set: v => { MEDIA_TARGET = v; }, configurable: true
+});
 
 boot();
 </script>

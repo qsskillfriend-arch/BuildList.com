@@ -290,6 +290,49 @@ with sync_playwright() as p:
     check('No "mobile optimised" wording anywhere',
           'mobile optimi' not in body_all.lower() and 'mobile-optimi' not in body_all.lower())
 
+    # ═══ ARTICLES OPEN AND READ ═══
+    pg.goto(U + 'index.html#/news'); pg.wait_for_timeout(2000)
+    links = pg.evaluate('''[...document.querySelectorAll('#newsArticles a')]
+        .map(a=>a.getAttribute('href')).filter(h=>h && h.indexOf('#/news/')===0)''')
+    check('Article cards link to a reading view', len(links) >= 3, str(len(links)))
+    pg.goto(U + 'index.html' + links[0]); pg.wait_for_timeout(1300)
+    check('Article page opens',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-article'])
+    body = pg.inner_text('.art-body')
+    check('Article body is substantial', len(body) > 800, str(len(body)))
+    check('Markdown renders headings, lists and quotes',
+          pg.evaluate('!!document.querySelector(".art-body h2")') and
+          pg.evaluate('!!document.querySelector(".art-body ul")') and
+          pg.evaluate('!!document.querySelector(".art-body blockquote")'))
+    check('Article sets its own page title', 'BuildList.com' in pg.title() and len(pg.title()) > 30)
+    check('Related articles offered',
+          pg.evaluate('document.querySelectorAll(".art-more a").length') >= 2)
+    pg.goto(U + 'index.html#/news/does-not-exist'); pg.wait_for_timeout(1000)
+    check('Unknown article falls back to the news page',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-news'])
+
+    # ═══ AD DESTINATIONS ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2200)
+    check('Ad destination helper exists', pg.evaluate('typeof adDestination === "function"'))
+    check('External ad links are nofollow sponsored',
+          pg.evaluate('''[...document.querySelectorAll('a.ad-creative[target=_blank], a.ad-flier[target=_blank]')]
+            .every(a => a.rel.includes('sponsored') && a.rel.includes('nofollow'))'''))
+    check('Profile-linked ads stay on the site',
+          pg.evaluate('''adDestination({linkType:'profile', firmSlug:DATA.firms[0].slug}).external === false'''))
+    check('Ads can have no link at all',
+          pg.evaluate("adDestination({linkType:'none', link:'https://x.com'}) === null"))
+
+    # ═══ TENDER TAB DESIGN ═══
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(1600)
+    check('Tabs sit in a contained track',
+          pg.evaluate('''(()=>{const t=document.querySelector('.tab-bar');
+            const c=getComputedStyle(t);
+            return c.display.includes('flex') && parseFloat(c.borderRadius)>=8;})()'''))
+    check('Active tab is raised, not a grey box',
+          pg.evaluate('''(()=>{const b=document.querySelector('.tab-btn.active');
+            const c=getComputedStyle(b);
+            return c.boxShadow !== 'none' && c.backgroundColor !== 'rgba(0, 0, 0, 0)';})()'''))
+
     # ═══ PAGE ISOLATION ═══
     # A stray </div> once let the homepage sections escape #page-home and
     # render on every page. This catches that class of bug structurally.
@@ -463,8 +506,8 @@ with sync_playwright() as p:
     check('Portal offers a demo without a database',
           pt.evaluate('document.querySelectorAll("#authMsg button").length') == 3)
     EXPECT = {
-        'admin':  ['board','firms','tenders','jobs','articles','prices','spotlight','ads','analytics','staff'],
-        'editor': ['board','firms','tenders','jobs','articles','prices','spotlight','analytics'],
+        'admin':  ['board','firms','tenders','jobs','articles','media','prices','spotlight','ads','analytics','staff'],
+        'editor': ['board','firms','tenders','jobs','articles','media','prices','spotlight','analytics'],
         'agent':  ['board','firms'],
     }
     for role, nav in EXPECT.items():
@@ -482,6 +525,48 @@ with sync_playwright() as p:
         reached = pt.evaluate('document.getElementById("pageTitle").textContent')
         check('Direct nav to Staff %s for %s' % ('allowed' if role == 'admin' else 'blocked', role),
               (reached == 'Staff') == (role == 'admin'), reached)
+    # ═══ CONTENT STUDIO ═══
+    pt.goto(U + 'portal.html'); pt.wait_for_timeout(1400)
+    pt.evaluate('demoAs("editor")'); pt.wait_for_timeout(1900)
+    pt.evaluate("go('media')"); pt.wait_for_timeout(800)
+    check('Image pipeline exposes slot targets',
+          pt.evaluate('Object.keys(IMG.targets).length') >= 8)
+    pt.evaluate('''async () => {
+      const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;
+        const x=c.getContext('2d');x.fillStyle='#1A3C2A';x.fillRect(0,0,w,h);return c;};
+      const big=await new Promise(r=>mk(2400,1350).toBlob(r,'image/jpeg',0.95));
+      window.MEDIA_TARGET='article';
+      await queueFiles([new File([big],'test-large.jpg',{type:'image/jpeg'})]);
+      const small=await new Promise(r=>mk(300,169).toBlob(r,'image/jpeg',0.9));
+      await queueFiles([new File([small],'test-small.jpg',{type:'image/jpeg'})]);
+    }''')
+    pt.wait_for_timeout(3000)
+    check('Upload produces three widths',
+          pt.evaluate('DB.media.find(m=>m.base.includes("large")).variants.length') == 3)
+    check('Small source is never upscaled',
+          pt.evaluate('DB.media.find(m=>m.base.includes("small")).variants.length') == 1)
+    check('Undersized image is flagged',
+          'soft' in str(pt.evaluate('UPLOADS.map(u=>u.msg).join(" ")')))
+    check('Large upload is compressed',
+          pt.evaluate('DB.media.find(m=>m.base.includes("large")).variants[0].bytes') < 400000)
+    mid = pt.evaluate('DB.media[DB.media.length-1].id')
+    html = pt.evaluate('id => md("![alt](media:" + id + ")")', mid)
+    check('Article images render with srcset', 'srcset' in html and 'figcaption' in html)
+    check('Markdown escapes injected markup',
+          '<script' not in pt.evaluate('md("<script>alert(1)</script>")'))
+    pt.evaluate("go('articles')"); pt.wait_for_timeout(800)
+    n_before = pt.evaluate('DB.articles.length')
+    pt.evaluate('editArticle(null)'); pt.wait_for_timeout(600)
+    pt.fill('#e_title', 'Test article')
+    pt.fill('#edBody', 'Body paragraph.\n\n## A heading\n\n- one\n- two')
+    pt.click('.drawer-foot .btn-p'); pt.wait_for_timeout(800)
+    check('Article saves', pt.evaluate('DB.articles.length') == n_before + 1)
+    check('Read time calculated', bool(pt.evaluate('DB.articles[0].readTime')))
+    pt.evaluate('togglePublish(0)'); pt.wait_for_timeout(700)
+    check('Takedown hides but keeps the article',
+          pt.evaluate('DB.articles[0].published') is False and
+          pt.evaluate('DB.articles.length') == n_before + 1)
+
     check('Portal has no JS errors', not perr, str(perr[:2]))
     pt.close()
 

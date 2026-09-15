@@ -744,6 +744,10 @@ RENDER.board = el => {
   const unverif  = DB.firms.filter(f=>!f.verified);
   const stale    = DB.firms.filter(f=>f.verifiedDate && daysSince(f.verifiedDate)>365);
   const closing  = openT().filter(t=>daysTo(t.deadline)<=ADMIN.tenderWarnDays);
+  const jobsClosing = openJ().filter(j=>j.closesAt && daysTo(j.closesAt)<=7);
+  const jobsNoDate  = DB.jobs.filter(j=>!j.closesAt);
+  const adsNoEnd    = (DB.ads.ads||[]).filter(a=>a.active!==false && !a.end);
+  const adsExpiring = liveAds().filter(a=>a.end && daysTo(a.end)<=7);
   const expired  = DB.tenders.filter(t=>daysTo(t.deadline)<0);
   const jobsGone = DB.jobs.filter(j=>j.closesAt && daysTo(j.closesAt)<0);
   const priceAge = daysSince(DB.prices.updated);
@@ -763,6 +767,10 @@ RENDER.board = el => {
   if(closing.length) jobs.push(task('due',closing.length,'Tenders closing within '+ADMIN.tenderWarnDays+' days','Still open, flagged "Closing Soon" on the site','tenders'));
   if(priceAge>ADMIN.stalePriceDays) jobs.push(task('urgent',priceAge,'Days since prices were updated','People quote from this. Stale is worse than absent','prices'));
   else jobs.push(task('ok',priceAge,'Days since prices were updated','Within the weekly rhythm','prices'));
+  if(jobsClosing.length) jobs.push(task('due',jobsClosing.length,'Vacancies closing within 7 days','They disappear from the site on their closing date','jobs'));
+  if(jobsNoDate.length) jobs.push(task('',jobsNoDate.length,'Vacancies with no closing date','These never expire and will sit there looking stale','jobs'));
+  if(adsNoEnd.length) jobs.push(task('urgent',adsNoEnd.length,'Campaigns with no end date','Running free until somebody notices. Set an end date','ads'));
+  if(adsExpiring.length) jobs.push(task('due',adsExpiring.length,'Campaigns ending within 7 days','Ask about renewal before the slot goes dark','ads'));
   if(stale.length) jobs.push(task('due',stale.length,'Listings needing re-verification','Verified more than 12 months ago','firms'));
   if(unverif.length) jobs.push(task('',unverif.length,'Listings never verified','Showing "not yet verified" to visitors','firms'));
   if(emptySlots.length) jobs.push(task('',emptySlots.length,'Unsold advertising slots','Each shows "slot available" with your sales email','ads'));
@@ -988,7 +996,7 @@ function runChecks(){
       add('warn','Unknown accreditation','"'+a+'" is not in taxonomy.json.',f.name); });
     if(!f.slug) add('error','Missing slug','Without a slug this firm has no page.',f.name);
     if(!f.phone && !f.whatsapp)
-      add('error','No contact number','A listing nobody can call is worse than no listing.',f.name);
+      add('warn','No contact number','A listing nobody can call is worse than no listing. Get it on the verification call.',f.name);
     if(f.verified && !f.verifiedDate)
       add('warn','Verified with no date','The site shows a verification date. Set one or clear the badge.',f.name);
     if(f.verifiedDate && daysSince(f.verifiedDate)>365)
@@ -1005,6 +1013,8 @@ function runChecks(){
     add('error','Tender with no closing date','It will never expire and will sit there looking stale.',t.ref||t.title); });
 
   DB.jobs.forEach(j=>{
+    if(!j.closesAt) add('warn','Vacancy with no closing date','It will never expire. A jobs board full of filled positions stops being used.',j.title);
+    if(j.closesAt && daysTo(j.closesAt)<0) add('warn','Vacancy already closed','Hidden from the site since '+j.closesAt+'. Delete it when you like.',j.title);
     if(j.companySlug && !DB.firms.some(f=>f.slug===j.companySlug))
       add('warn','Vacancy links to a missing firm','"'+j.companySlug+'" is not in firms.json, so the link goes nowhere.',j.title);
   });
@@ -1014,13 +1024,17 @@ function runChecks(){
     add('error','Prices are '+age+' days old','People quote from this table.','prices.json');
 
   (DB.ads.ads||[]).forEach(a=>{
-    if(!a.link) add('warn','Advertisement with no link','The advertiser is paying for clicks they cannot receive.',a.id);
+    if((a.linkType||'website')!=='none' && !a.link && !a.firmSlug)
+      add('warn','Advertisement with no destination','The advertiser is paying for clicks they cannot receive.',a.id);
     if(a.image && !/^images\//.test(a.image))
       add('warn','Unusual image path','Ad creatives normally live in images/ads/.',a.id);
     if(a.end && a.end<today() && a.active!==false)
       add('warn','Campaign past its end date','It has stopped showing. Archive or renew it.',a.id);
     if(/^sample-/.test(a.id))
       add('warn','Sample advertisement','Delete before publishing.',a.id);
+    if(a.active!==false && !a.end)
+      add('error','Campaign with no end date',
+        'It will run until somebody notices. The advertiser bought a period, not a permanent slot.',a.id);
   });
 
   const slotKeys=new Set(Object.keys(DB.ads.slots||{}));
@@ -1030,16 +1044,37 @@ function runChecks(){
   return out;
 }
 
+/* 209 separate "no contact number" rows is not a list, it is a wall.
+   Identical issues collapse into one row with a count and the first
+   few names, so the page stays readable and the rare problems stay
+   visible instead of being buried. */
+function groupIssues(list) {
+  const map = new Map();
+  list.forEach(i => {
+    const k = i.level + '|' + i.title;
+    if (!map.has(k)) map.set(k, { level: i.level, title: i.title, detail: i.detail, where: [] });
+    map.get(k).where.push(i.where);
+  });
+  return [...map.values()].map(g => ({
+    level: g.level, title: g.title, detail: g.detail, count: g.where.length,
+    where: g.where.length > 4
+      ? g.where.slice(0, 4).join(', ') + ' and ' + (g.where.length - 4) + ' more'
+      : g.where.join(', ')
+  })).sort((a, b) => (a.level === b.level ? b.count - a.count : a.level === 'error' ? -1 : 1));
+}
+
 RENDER.checks = el => {
   const issues = runChecks();
-  const errs = issues.filter(i=>i.level==='error');
-  const warns = issues.filter(i=>i.level==='warn');
+  const grouped = groupIssues(issues);
+  const errs = grouped.filter(i=>i.level==='error');
+  const warns = grouped.filter(i=>i.level==='warn');
   if(!issues.length){
     el.innerHTML='<div class="empty"><b>No problems found</b>Every reference resolves and nothing is stale.</div>';
     return;
   }
-  const card = i => '<div class="issue '+i.level+'"><b>'+esc(i.title)+'</b><p>'+esc(i.detail)+'</p>'+
-    '<div class="where">'+esc(i.where)+'</div></div>';
+  const card = i => '<div class="issue '+i.level+'">'+
+    '<b>'+esc(i.title)+(i.count>1?' <span class="pill '+(i.level==='error'?'pill-danger':'pill-pending')+'">'+i.count+'</span>':'')+'</b>'+
+    '<p>'+esc(i.detail)+'</p><div class="where">'+esc(i.where)+'</div></div>';
   el.innerHTML =
     (errs.length?'<div class="note red"><b>'+errs.length+' problem'+(errs.length>1?'s':'')+' to fix.</b>'+
       'These break something visible or mislead a visitor.</div>'+errs.map(card).join(''):'')+
@@ -1611,7 +1646,7 @@ function editJob(i){
     '</fieldset>'+
     '<fieldset><legend>Listing</legend>'+
       '<div class="f2">'+field('e_postedAt','Date posted',j.postedAt,'','date')+
-      field('e_closesAt','Closing date',j.closesAt,'Hides itself after this date.','date')+'</div>'+
+      field('e_closesAt','Closing date',j.closesAt,'Required. The vacancy hides itself after this date.','date')+'</div>'+
       field('e_applyEmail','Applications to',j.applyEmail,'','email')+
       pick('e_featured','Featured',j.featured?'yes':'no',[{v:'no',l:'No'},{v:'yes',l:'Yes — paid placement'}])+
     '</fieldset>', !isNew);
@@ -1652,11 +1687,19 @@ function editAd(i,presetSlot){
       field('e_advertiser','Advertiser',a.advertiser)+'</div>'+
       pick('e_slot','Slot',a.slot,slotOpts)+
       '<div class="f2">'+field('e_start','Starts',a.start,'','date')+
-      field('e_end','Ends',a.end,'Stops showing on its own.','date')+'</div>'+
+      field('e_end','Ends',a.end,'Required. The campaign stops showing on its own \u2014 this is what stops a sold month running for a year.','date')+'</div>'+
       pick('e_active','Running',a.active===false?'no':'yes',[{v:'yes',l:'Yes'},{v:'no',l:'Paused'}])+
     '</fieldset>'+
     '<fieldset><legend>Where the click goes</legend>'+
-      field('e_link','Destination link',a.link,'Every creative type is clickable. Opens in a new tab with rel="nofollow sponsored", which is what Google requires for paid links.','url')+
+      pick('e_linkType','Destination', a.linkType || (a.link?'website':'none'), [
+        {v:'website',l:'The advertiser\u2019s own website'},
+        {v:'profile',l:'Their listing on this site'},
+        {v:'none',   l:'Nowhere \u2014 brand awareness only'}
+      ],'A click can leave the site, stay on it, or do nothing. All three are legitimate.')+
+      field('e_link','Website address',a.link,'Opens in a new tab with rel="nofollow sponsored", which Google requires for paid links.','url')+
+      pick('e_firmSlug','Their listing here', a.firmSlug || '',
+        [{v:'',l:'Not listed'}].concat(DB.firms.slice(0,400).map(f=>({v:f.slug,l:f.name}))),
+        'Used when the destination is their listing on this site.')+
     '</fieldset>'+
     '<fieldset><legend>Creative</legend>'+
       '<div class="hint" style="margin-bottom:12px">Fill in ONE of the four blocks below. '+
@@ -1735,7 +1778,11 @@ function saveDrawer(){
     it.district=val('e_district'); it.location=val('e_location');
     it.type=val('e_type'); it.discipline=slugify(val('e_discipline'));
     it.salary=val('e_salary'); it.experience=val('e_experience'); it.level=val('e_level');
-    it.postedAt=val('e_postedAt')||today(); it.closesAt=val('e_closesAt');
+    it.postedAt=val('e_postedAt')||today();
+    it.closesAt=val('e_closesAt');
+    if(!it.closesAt) return fail('e_closesAt',
+      'Give it a closing date, or the vacancy sits there after the job is filled');
+    if(it.closesAt < it.postedAt) return fail('e_closesAt','Closing date is before the posting date');
     it.applyEmail=val('e_applyEmail'); it.featured=val('e_featured')==='yes';
     if(CURRENT.index<0) DB.jobs.push(it); else DB.jobs[CURRENT.index]=it;
   }
@@ -1786,8 +1833,16 @@ function saveDrawer(){
     it.id=slugify(val('e_id')||it.advertiser+'-'+today());
     if(!it.advertiser) return fail('e_advertiser','Who is paying for this?');
     it.slot=val('e_slot'); it.start=val('e_start'); it.end=val('e_end');
+    /* An advertiser bought a month, not a permanent placement. Without an
+       end date the campaign runs until somebody notices, and the month you
+       sold becomes a month you can never sell again. */
+    if(it.active && !it.end) return fail('e_end',
+      'Every running campaign needs an end date \u2014 otherwise it runs free until someone notices');
+    if(it.end && it.start && it.end < it.start) return fail('e_end','The end date is before the start date');
     it.active=val('e_active')==='yes';
-    it.link=val('e_link'); if(!it.link) return fail('e_link','An advertisement with no link cannot deliver clicks');
+    it.linkType=val('e_linkType'); it.firmSlug=val('e_firmSlug'); it.link=val('e_link');
+    if(it.linkType==='website' && !it.link) return fail('e_link','Give the website address, or change the destination');
+    if(it.linkType==='profile' && !it.firmSlug) return fail('e_firmSlug','Choose which listing the click should open');
     it.image=val('e_image'); it.flier=val('e_flier');
     it.video=val('e_video'); it.poster=val('e_poster'); it.alt=val('e_alt');
     it.title=val('e_title'); it.body=val('e_body'); it.cta=val('e_cta');
