@@ -253,6 +253,43 @@ with sync_playwright() as p:
     check('Privacy page lets you change the choice',
           pg.evaluate('!!document.getElementById("consentState")'))
 
+    # ═══ THIS BATCH ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2400)
+    check('Sector grid is data-driven',
+          pg.evaluate('document.querySelectorAll("#sectorGrid .cat-card").length') == 12)
+    hrefs = pg.evaluate('[...document.querySelectorAll("#sectorGrid .cat-card")].map(a=>a.getAttribute("href"))')
+    check('Every sector card carries a category filter',
+          all(h and 'cat=' in h for h in hrefs), str(hrefs[:2]))
+    counts = pg.evaluate('''[...document.querySelectorAll("#sectorGrid .cat-count")].map(e=>e.textContent)''')
+    real = pg.evaluate('''(()=>{const c=facetCounts(DATA.firms,'categories');
+      return Object.values(c).some(n=>n>0)})()''')
+    check('Sector counts come from the data', real, str(counts[:2]))
+    pg.click('#sectorGrid .cat-card'); pg.wait_for_timeout(1600)
+    check('Sector click filters the directory', 'cat=' in pg.evaluate('location.hash'))
+    check('Sector click ticks the sidebar box',
+          pg.evaluate('document.querySelectorAll(".filter-group input[type=checkbox]:checked").length') == 1)
+    check('Tradesmen is the last category',
+          pg.evaluate('DATA.taxonomy.categories[DATA.taxonomy.categories.length-1].slug') == 'tradesmen')
+    check('Tradesmen checkbox present',
+          pg.evaluate('!!document.getElementById("f-categories-tradesmen")'))
+    check('Category filter list scrolls',
+          pg.evaluate('''(()=>{const g=document.querySelector('.filter-group.scrolls .filter-body');
+            return !!g && g.scrollHeight > g.clientHeight;})()'''))
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(1600)
+    check('Tender tabs are segmented buttons',
+          pg.evaluate('''(()=>{const b=document.querySelector('.tab-btn.active');
+            const c=getComputedStyle(b); return parseFloat(c.borderRadius)>0;})()'''))
+    pg.goto(U + 'index.html#/about'); pg.wait_for_timeout(1000)
+    about = pg.inner_text('#page-about')
+    check('Team member cards removed',
+          'Our Team' not in about and pg.evaluate('!document.querySelector(".team-grid")'))
+    pg.goto(U + 'index.html#/advertise'); pg.wait_for_timeout(1200)
+    check('Media kit download offered',
+          pg.evaluate('!!document.querySelector("a[href*=\'Media-Kit\'][download]")'))
+    body_all = pg.evaluate('document.body.innerText')
+    check('No "mobile optimised" wording anywhere',
+          'mobile optimi' not in body_all.lower() and 'mobile-optimi' not in body_all.lower())
+
     # ═══ PAGE ISOLATION ═══
     # A stray </div> once let the homepage sections escape #page-home and
     # render on every page. This catches that class of bug structurally.

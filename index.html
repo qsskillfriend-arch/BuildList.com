@@ -265,8 +265,12 @@ a { text-decoration: none; color: inherit; }
 /* ════════════════════════════════════════════
    CATEGORY GRID
 ════════════════════════════════════════════ */
-.categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
-.cat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 22px 16px; text-align: center; cursor: pointer; transition: all .2s; }
+.categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; align-items: stretch; }
+.cat-card { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:8px;
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 20px 14px; text-align: center; cursor: pointer; transition: all .2s;
+  text-decoration:none; color:inherit; height:100%; min-height:150px; }
+.cat-card .cat-name { flex:1; display:flex; align-items:center; }
 .cat-card:hover { border-color: var(--forest); transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .cat-card:hover .cat-icon { background: var(--forest); color: #fff; }
 .cat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin: 0 auto 12px; transition: all .2s; }
@@ -543,6 +547,16 @@ a { text-decoration: none; color: inherit; }
   line-height: 1.65; color: #6B5308; }
 .legal-draft strong { display: block; margin-bottom: 4px; color: #4A3A05; }
 
+/* Segmented row of tender client-type filters. Scrolls sideways on a
+   phone rather than wrapping into three ragged lines. */
+.seg-tabs { display:flex; gap:8px; flex-wrap:wrap; border-bottom:none; margin-bottom:18px;
+  padding-bottom:2px; }
+@media (max-width:640px){
+  .seg-tabs { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; margin:0 -16px 16px; padding:2px 16px 8px; }
+  .seg-tabs::-webkit-scrollbar { display:none; }
+}
+
 /* ════════════════════════════════════════════
    PAGINATION
 ════════════════════════════════════════════ */
@@ -556,11 +570,12 @@ a { text-decoration: none; color: inherit; }
 .pager button:disabled { opacity:.4; cursor:not-allowed; }
 .pager .gap { color:var(--muted); padding:0 2px; user-select:none; }
 .badge-client { background:var(--forest); color:#fff; }
-.tab-n { display:inline-block; margin-left:7px; font-size:.68rem; font-weight:700;
-  background:rgba(0,0,0,.09); color:inherit; padding:1px 6px; border-radius:10px; }
-.tab-btn.active .tab-n { background:rgba(255,255,255,.25); }
-.tab-btn.is-empty { opacity:.55; }
-.tab-btn { cursor:pointer; font-family:var(--font-body); }
+.tab-n { display:inline-block; font-size:.68rem; font-weight:700; line-height:1.5;
+  background:var(--parchment-d); color:var(--muted); padding:1px 7px; border-radius:10px;
+  min-width:20px; text-align:center; }
+.tab-btn.active .tab-n { background:rgba(255,255,255,.22); color:#fff; }
+.tab-btn.is-empty { opacity:.6; }
+.tab-btn.is-empty .tab-n { background:transparent; border:1px solid var(--border); }
 .pager-info { text-align:center; font-size:.82rem; color:var(--muted); margin-bottom:4px; }
 .pager-size { display:flex; align-items:center; gap:7px; font-size:.82rem; color:var(--muted);
   justify-content:center; margin-top:10px; }
@@ -680,6 +695,16 @@ a { text-decoration: none; color: inherit; }
 /* ════════════════════════════════════════════
    STAGE 1 — WORKING DIRECTORY UI
 ════════════════════════════════════════════ */
+/* The category list is long enough to bury every filter below it, so it
+   scrolls within its own box and the rest stays reachable. */
+.filter-group.scrolls .filter-body { max-height:268px; overflow-y:auto; padding-right:6px;
+  margin-right:-6px; scrollbar-width:thin; scrollbar-color:var(--border-dark) transparent; }
+.filter-group.scrolls .filter-body::-webkit-scrollbar { width:7px; }
+.filter-group.scrolls .filter-body::-webkit-scrollbar-track { background:var(--parchment-d); border-radius:4px; }
+.filter-group.scrolls .filter-body::-webkit-scrollbar-thumb { background:var(--border-dark); border-radius:4px; }
+.filter-group.scrolls .filter-body::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+.filter-scroll-hint { font-size:.7rem; color:var(--muted); margin-top:6px; }
+
 .dir-active-filters { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .chip { display:inline-flex; align-items:center; gap:6px; background:var(--green-soft); color:var(--forest);
         border:1px solid rgba(26,60,42,.18); border-radius:20px; padding:3px 10px; font-size:.74rem; font-weight:600; }
@@ -1011,11 +1036,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 .mission-value-icon { font-size: 1.5rem; line-height: 1; color: var(--gold-muted); margin-bottom: 10px; }
 .mission-value-title { font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
 .mission-value-text { font-size: .8rem; color: var(--muted); }
-.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-.team-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; text-align: center; }
-.team-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--forest); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; color: var(--gold); margin: 0 auto 14px; }
-.team-name { font-weight: 700; margin-bottom: 3px; }
-.team-role { font-size: .78rem; color: var(--muted); }
 .partner-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; align-items: center; padding: 40px 0; }
 .partner-logo { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px 28px; font-weight: 700; color: var(--slate); font-size: .9rem; display: flex; align-items: center; gap: 8px; }
 
@@ -1047,9 +1067,21 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 .map-placeholder { background: var(--parchment-d); border: 1px solid var(--border); border-radius: var(--r-md); height: 200px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; color: var(--muted); font-size: .85rem; }
 
 /* Tabs */
-.tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
-.tab-btn { padding: 12px 20px; font-size: .88rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .15s; }
-.tab-btn.active { color: var(--forest); border-bottom-color: var(--forest); }
+/* Segmented filter row. Scrolls sideways on a phone rather than
+   wrapping into ragged lines. */
+.tab-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+@media (max-width:640px){
+  .tab-bar { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; margin:0 -16px 16px; padding:2px 16px 8px; }
+  .tab-bar::-webkit-scrollbar { display:none; }
+}
+.tab-btn { display:inline-flex; align-items:center; gap:8px; padding:9px 16px; font-size:.86rem;
+  font-weight:600; color:var(--slate); cursor:pointer; background:var(--white);
+  border:1px solid var(--border); border-radius:var(--r-sm); transition:all .15s;
+  font-family:var(--font-body); white-space:nowrap; }
+.tab-btn:hover { border-color:var(--forest); color:var(--forest); }
+.tab-btn.active { background:var(--forest); border-color:var(--forest); color:#fff; }
+.tab-btn.active:hover { background:var(--forest-deep); }
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -1091,8 +1123,44 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 }
 
 /* ── Phones: the header was overflowing horizontally. Trim it hard. ── */
+/* ── Phones ────────────────────────────────────────────────────
+   Targets: nothing wider than the viewport, tap targets at least
+   44px, no two-column grids below 560px, and horizontal rows that
+   scroll rather than wrap. */
+@media (max-width: 768px) {
+  .btn, .tab-btn, .nav-link, .chip, .pager button { min-height: 44px; }
+  .btn-sm { min-height: 38px; }
+  .filter-option label { padding: 4px 0; display: inline-block; }
+  .filter-option input { width: 18px; height: 18px; }
+  .dir-tabs { width: 100%; }
+  .dir-tab { flex: 1; text-align: center; min-height: 40px; }
+  .facts, .util, .kpis { grid-template-columns: 1fr 1fr; }
+  .prop-grid, .owner-split, .two { grid-template-columns: 1fr; }
+  .section { padding: 44px 0; }
+  .hero { padding: 40px 0 28px; }
+  table { font-size: .84rem; }
+  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
 @media (max-width: 560px) {
   html, body { overflow-x: hidden; }
+  .categories-grid { grid-template-columns: 1fr 1fr; }
+  .cat-card { min-height: 128px; padding: 16px 10px; }
+  .cat-card .cat-name { font-size: .82rem; }
+  .dir-main-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .dir-sort { width: 100%; }
+  .dir-sort select { width: 100%; }
+  .spotlights { gap: 16px; }
+  .fcard-actions { flex-direction: column; }
+  .fcard-actions .btn { width: 100%; }
+  .filter-group.scrolls .filter-body { max-height: 210px; }
+  .hero-search { flex-direction: column; align-items: stretch; padding: 10px; gap: 8px; }
+  .hero-search .search-divider { display: none; }
+  .hero-search select, .hero-search input { width: 100%; padding: 10px 4px; }
+  .hero-search .btn { width: 100%; justify-content: center; }
+  .price-ticker-label { font-size: .6rem; padding: 3px 8px; }
+  .legal h2 { font-size: 1.05rem; }
+  .booking { position: static; }
   .owner-badge { display: none; }   /* claim first; ownership is in the footer and About */
   .container { padding: 0 16px; }
   .header-actions .btn { display: none; }
@@ -1102,7 +1170,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   .partner-logos { gap: 12px; }
   .partner-logo { padding: 12px 16px; font-size: .8rem; }
   .price-ticker-label { margin-right: 14px; }
-  .team-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
   .footer-grid { grid-template-columns: 1fr; }
   .stats-grid-adv, .key-stat-grid { grid-template-columns: 1fr; }
   .footer-bottom .container { flex-direction: column; align-items: flex-start; }
@@ -1277,58 +1344,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
         <span class="view-all" onclick="showPage('directory')">View All Categories →</span>
       </div>
-      <div class="categories-grid">
-        <div class="cat-card cat-qs" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-ruler"></use></svg></div>
-          <div class="cat-name">Quantity Surveyors</div>
-          <div class="cat-count">84 firms</div>
-        </div>
-        <div class="cat-card cat-arch" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-institution"></use></svg></div>
-          <div class="cat-name">Architects</div>
-          <div class="cat-count">127 firms</div>
-        </div>
-        <div class="cat-card cat-civil" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-tool"></use></svg></div>
-          <div class="cat-name">Civil Engineers</div>
-          <div class="cat-count">96 firms</div>
-        </div>
-        <div class="cat-card cat-mech" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-settings"></use></svg></div>
-          <div class="cat-name">M&E Engineers</div>
-          <div class="cat-count">52 firms</div>
-        </div>
-        <div class="cat-card cat-cont" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-crane"></use></svg></div>
-          <div class="cat-name">Contractors</div>
-          <div class="cat-count">238 firms</div>
-        </div>
-        <div class="cat-card cat-supp" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bricks"></use></svg></div>
-          <div class="cat-name">Suppliers</div>
-          <div class="cat-count">312 firms</div>
-        </div>
-        <div class="cat-card cat-equip" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-alert"></use></svg></div>
-          <div class="cat-name">Plant & Equipment</div>
-          <div class="cat-count">67 firms</div>
-        </div>
-        <div class="cat-card cat-land" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-map"></use></svg></div>
-          <div class="cat-name">Land Surveyors</div>
-          <div class="cat-count">43 firms</div>
-        </div>
-        <div class="cat-card cat-plan" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-clipboard"></use></svg></div>
-          <div class="cat-name">Urban Planners</div>
-          <div class="cat-count">29 firms</div>
-        </div>
-        <div class="cat-card cat-train" onclick="showPage('directory')">
-          <div class="cat-icon"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-graduation"></use></svg></div>
-          <div class="cat-name">Training Institutions</div>
-          <div class="cat-count">18 bodies</div>
-        </div>
-      </div>
+      <div class="categories-grid" id="sectorGrid"></div>
     </div>
   </section>
 
@@ -1859,6 +1875,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         as everything paid on this site is. It does not affect any firm's ranking, and it is separate
         from the Benchmark Project slot, which is editorial and not for sale.</p>
       </div>
+      <p style="text-align:center;margin:0 0 20px"><a class="btn btn-primary" href="downloads/BuildList-Media-Kit.pdf" download onclick="track('media_kit_download',{})"><svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg> Download the media kit (PDF, 128KB)</a></p>
       <p class="disclosure" id="mediaKitNote" style="text-align:center;max-width:720px;margin:0 auto 24px"></p>
       <div class="stats-grid-adv">
         <div class="stat-card-adv">
@@ -2281,43 +2298,13 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
     </div>
 
     <!-- Team -->
-    <div style="text-align:center;margin-bottom:32px">
-      <div class="eyebrow">The People Behind It</div>
-      <h2 style="margin-top:8px">Our Team</h2>
-    </div>
-    <div class="team-grid" style="margin-bottom:72px">
-      <div class="team-card">
-        <div class="team-avatar">DM</div>
-        <div class="team-name">David Mubiru</div>
-        <div class="team-role">Co-founder & CEO · Former QS, Makerere</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar">SN</div>
-        <div class="team-name">Susan Nakabuye</div>
-        <div class="team-role">Co-founder & COO</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar">RO</div>
-        <div class="team-name">Ronald Okello</div>
-        <div class="team-role">Head of Data & Verification</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar">AK</div>
-        <div class="team-name">Amina Kabejja</div>
-        <div class="team-role">Editor, Industry Intelligence</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar">PM</div>
-        <div class="team-name">Patrick Mugabi</div>
-        <div class="team-role">Head of Partnerships</div>
-      </div>
-    </div>
+
 
     <!-- Contact -->
     <div style="background:var(--forest);border-radius:var(--r-lg);padding:48px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:72px">
       <div>
         <div class="eyebrow" style="margin-bottom:10px">Get in Touch</div>
-        <h2 style="color:#fff;margin-bottom:12px">Talk to Our Team</h2>
+        <h2 style="color:#fff;margin-bottom:12px">Talk to us</h2>
         <p style="color:rgba(255,255,255,.65)">For listing enquiries, advertising packages, partnership proposals, or media requests — we respond within one business day.</p>
         <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mail"></use></svg> <span data-site="email">hello@buildlist.com</span></div>
@@ -2666,7 +2653,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <a href="#/about">Sharplink Ventures (U) Ltd</a>
           <a href="#/about">Our team</a>
           <a href="#/about">Contact us</a>
-          <a href="#/advertise">Media kit</a>
+          <a href="downloads/BuildList-Media-Kit.pdf" download>Media kit (PDF)</a>
           <a href="#/about">How we verify listings</a>
           <a href="#/privacy">Privacy policy</a>
           <a href="#/terms">Terms of service</a>
@@ -3265,6 +3252,37 @@ function fillAllSelects() {
 /* ═══════════════════════════════════════════════════════════════
    RENDER: HOME
    ═══════════════════════════════════════════════════════════════ */
+/* Homepage sector grid. Built from the taxonomy with live counts, and
+   every card links to the directory already filtered to that category —
+   so the sidebar checkbox is ticked when you land. Previously these were
+   hardcoded cards with invented counts that opened an unfiltered list. */
+const SECTOR_ICONS = {
+  'architecture-design':'institution', 'quantity-surveying':'ruler',
+  'civil-structural':'tool', 'land-surveying':'map', 'property-valuers':'scale',
+  'urban-planning':'map', 'general-contracting':'crane', 'electrical-contracting':'activity',
+  'plumbing-fire':'tool', 'hvac':'settings', 'structural-steel':'bricks',
+  'landscaping':'bulb', 'building-management':'settings', 'ict-network':'globe',
+  'facility-management':'building', 'health-safety':'shield-check',
+  'environmental':'globe', 'real-estate-development':'building', 'tradesmen':'tool'
+};
+
+function renderSectorGrid() {
+  const el = document.getElementById('sectorGrid');
+  if (!el) return;
+  const counts = facetCounts(DATA.firms, 'categories');
+  const cats = DATA.taxonomy.categories
+    .map(c => ({ c, n: counts[c.slug] || 0 }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 12);
+  el.innerHTML = cats.map(({ c, n }) => `
+    <a class="cat-card" href="#/directory?cat=${esc(c.slug)}"
+       onclick="track('sector_click',{category:'${esc(c.slug)}'})">
+      <div class="cat-icon">${ico(SECTOR_ICONS[c.slug] || 'building')}</div>
+      <div class="cat-name">${esc(c.name)}</div>
+      <div class="cat-count">${n === 0 ? 'be the first' : n + (n === 1 ? ' firm' : ' firms')}</div>
+    </a>`).join('');
+}
+
 function renderFeatured() {
   const el = document.getElementById('featuredListings');
   if (!el) return;
@@ -3515,8 +3533,12 @@ function renderDirFilters() {
   // can always see what a different choice would give them.
   const base = f => filterFirms(DATA.firms, Object.assign({}, FILTERS, f));
 
-  const group = (title, key, options, counts, selected) =>
-    '<div class="filter-group"><div class="filter-title">' + title + '</div>' +
+  /* Categories get their own scroll box: with 19 of them the district and
+     tier filters would otherwise sit far below the fold. */
+  const group = (title, key, options, counts, selected, scrolls) =>
+    '<div class="filter-group' + (scrolls ? ' scrolls' : '') + '">' +
+    '<div class="filter-title">' + title + '</div>' +
+    '<div class="filter-body">' +
     options.map(o => {
       const n = counts[o.slug] || 0;
       const on = selected.includes(o.slug);
@@ -3525,7 +3547,9 @@ function renderDirFilters() {
         ' onchange="toggleFilter(\'' + key + '\',\'' + o.slug + '\')">' +
         '<label for="f-' + key + '-' + o.slug + '">' + esc(o.name) +
         ' <span class="filter-count">' + n + '</span></label></div>';
-    }).join('') + '</div>';
+    }).join('') + '</div>' +
+    (scrolls ? '<div class="filter-scroll-hint">Scroll for more \u00b7 ' +
+       options.length + ' categories</div>' : '') + '</div>';
 
   const catCounts  = facetCounts(base({ categories: [] }), 'categories');
   const distCounts = facetCounts(base({ districts: [] }), 'district');
@@ -3533,7 +3557,7 @@ function renderDirFilters() {
   const accCounts  = facetCounts(base({ accreditations: [] }), 'accreditations');
 
   el.innerHTML =
-    group('Category', 'categories', DATA.taxonomy.categories, catCounts, FILTERS.categories) +
+    group('Category', 'categories', DATA.taxonomy.categories, catCounts, FILTERS.categories, true) +
     group('District', 'districts', DATA.taxonomy.districts, distCounts, FILTERS.districts) +
     group('Membership tier', 'tiers', DATA.taxonomy.tiers, tierCounts, FILTERS.tiers) +
     group('Accreditation', 'accreditations', DATA.taxonomy.accreditations, accCounts, FILTERS.accreditations) +
@@ -4509,6 +4533,7 @@ function renderAll() {
   renderHomeJobs();
   renderHomeNews();
   renderNewsArticles();
+  renderSectorGrid();
   renderProductOfMonth();
   renderProjectOfMonth();
   renderDirectory();

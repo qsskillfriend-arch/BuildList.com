@@ -146,6 +146,13 @@
   to = "/portal.html"
   status = 301
 
+# The media kit is a sales document that changes when rates change,
+# so it revalidates rather than sitting in a CDN for a week.
+[[headers]]
+  for = "/downloads/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 # ── Images ───────────────────────────────────────────
 # Logos, photographs and ad creatives change only when you replace the
 # file, so cache them hard. If you swap an image and want it live
