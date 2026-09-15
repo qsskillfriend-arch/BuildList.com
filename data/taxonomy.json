@@ -89,6 +89,12 @@
       "slug": "real-estate-development",
       "name": "Real Estate Development",
       "cluster": "Development"
+    },
+    {
+      "slug": "tradesmen",
+      "name": "Tradesmen",
+      "cluster": "Trades",
+      "note": "Individual artisans and small crews — masons, welders, carpenters, tilers, painters, plumbers, electricians. Listed by person or crew rather than by firm."
     }
   ],
   "districts": [
