@@ -93,6 +93,54 @@ avoid, which is why this config talks to GitHub directly.
 Staff sign in at `buildlist.com/portal` with an email and password. What they see
 and what they may change depends on their role.
 
+## Content studio: images and articles
+
+Two sections in the portal, for the person who writes and illustrates.
+
+### Media library
+
+Drag images in. **Everything happens in the browser before upload:**
+
+| Step | What happens |
+|---|---|
+| Decode | EXIF orientation applied, so a phone photo taken sideways is not stored sideways |
+| Assess | Measured against the slot it is for. Too small, wrong shape or wastefully large is said plainly |
+| Resize | Three widths — 1600, 800 and 400px — never upscaled |
+| Encode | WebP where the browser supports it, JPEG otherwise, quality 0.82 |
+
+A 2400×1350 photograph typically arrives **about 80% smaller** as three files.
+The site then serves whichever width suits the reader through `srcset`, so a
+phone on a mobile bundle in Mbale downloads the 400px one rather than the 1600px.
+
+This is deliberately not Supabase's image transformation service, which is a paid
+feature. Doing the work client-side gives the same result on the free tier, and
+shrinks the file before it crosses the network rather than after.
+
+A source smaller than the slot needs is **flagged, not stretched.** "Only 300px
+wide; this slot wants 1200px. It will look soft. Ask for a larger file."
+
+### Article editor
+
+Markdown with a live preview, not a rich-text box. Contenteditable produces
+unpredictable HTML that breaks the first time somebody pastes from Word;
+markdown stays clean and survives two people editing the same piece.
+
+Nobody needs to know what markdown is — there are buttons for headings, bold,
+italic, lists, quotes and links, and the preview updates as you type. Word count
+and read time are calculated automatically.
+
+To place an image: **Copy** on any library image, then paste into the article.
+It renders with the full `srcset` and a caption from the alt text.
+
+### Publishing and takedown
+
+Every article has a **Take down** button. It disappears from the site
+immediately and stays in the database — one click restores it. Nothing is ever
+really deleted, so a mistaken takedown costs seconds rather than a rewrite.
+
+Sponsored articles must be marked as such. The editor makes it a required
+choice rather than an optional tick.
+
 ## The three roles
 
 | | Administrator | Content officer | Field agent |
@@ -103,6 +151,8 @@ and what they may change depends on their role.
 | **Set a tier** | ✓ | — | — |
 | **Issue a verified badge** | ✓ | ✓ | — |
 | Tenders, jobs, articles, prices | ✓ | ✓ | — |
+| Media library — upload and remove | ✓ | ✓ | — |
+| Write, publish and take down articles | ✓ | ✓ | — |
 | Monthly slots | ✓ | ✓ | — |
 | Advertising | ✓ | — | — |
 | Analytics | ✓ | ✓ | — |

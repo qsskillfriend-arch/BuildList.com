@@ -1,5 +1,5 @@
 {
-  "_readme": "Every ad slot is driven from this file. Slot keys name the page they sit on, so impression and click reports match where the advertiser actually appeared. A slot with no active ad shows an 'available' placeholder with your sales email. Four creative types: image, video, flier and text. The Add-your-firm, Privacy and Terms pages deliberately carry no advertising.",
+  "_readme": "Every ad slot is driven from this file. Slot keys name the page they sit on. Four creative types: image, video, flier and text. linkType controls where a click goes: 'website' (external, nofollow sponsored), 'profile' (their listing on this site — set firmSlug), or 'none' (no link at all, for brand awareness). Every running campaign needs an 'end' date: the advertiser bought a period, not a permanent slot, and the admin blocks a save without one. The Add-your-firm, Privacy and Terms pages carry no advertising.",
   "slots": {
     "home-leaderboard": {
       "label": "Homepage leaderboard",
@@ -73,7 +73,8 @@
       "image": "images/ads/sample-leaderboard.png",
       "alt": "Sample advertiser banner — replace with a real creative",
       "link": "https://example.com",
-      "note": "SAMPLE. Delete this entry and drop in a paying advertiser's artwork."
+      "note": "SAMPLE. Delete this entry and drop in a paying advertiser's artwork.",
+      "linkType": "website"
     },
     {
       "id": "sample-002",
@@ -86,7 +87,8 @@
       "body": "This is a text in-feed advertisement. It needs no artwork, which makes it the easiest slot to sell first.",
       "cta": "Learn more",
       "link": "https://example.com",
-      "note": "SAMPLE. Text in-feed ads need no image — good for your first advertisers."
+      "note": "SAMPLE. Text in-feed ads need no image — good for your first advertisers.",
+      "linkType": "website"
     },
     {
       "id": "sample-003",
@@ -98,7 +100,8 @@
       "flier": "images/ads/sample-flier.png",
       "alt": "Sample promotional flier — replace with a real creative",
       "link": "https://example.com",
-      "note": "SAMPLE flier. Fliers keep their natural shape (portrait, square, anything) and open enlarged on click."
+      "note": "SAMPLE flier. Fliers keep their natural shape (portrait, square, anything) and open enlarged on click.",
+      "linkType": "website"
     }
   ]
 }

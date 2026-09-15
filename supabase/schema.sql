@@ -437,21 +437,53 @@ begin
   end loop;
 end $$;
 
+-- ── Media library ─────────────────────────────────────────────
+-- Images are resized in the browser before upload, so each record
+-- points at several widths of the same picture and the site serves
+-- whichever fits the reader's screen.
+create table if not exists media (
+  id         uuid primary key default gen_random_uuid(),
+  base       text not null,
+  target     text,                -- which slot it was uploaded for
+  natural_w  int,
+  natural_h  int,
+  variants   jsonb not null,      -- [{width,height,name,bytes}]
+  urls       jsonb not null,      -- {"400": "...", "800": "...", "1600": "..."}
+  alt        text,
+  uploaded_by uuid references auth.users,
+  created_at timestamptz not null default now()
+);
+create index if not exists media_target_idx on media(target, created_at desc);
+
+alter table media enable row level security;
+drop policy if exists "public reads media" on media;
+create policy "public reads media" on media for select using (true);
+drop policy if exists "staff writes media" on media;
+create policy "staff writes media" on media
+  for all using (is_staff()) with check (is_staff());
+
+-- Articles gain a body and a publish switch. Taking something down
+-- hides it; it is never deleted, so it can always be restored.
+alter table articles add column if not exists body text;
+alter table articles add column if not exists published boolean not null default true;
+create index if not exists articles_published_idx on articles(published, published_at desc);
+
 -- ── Storage buckets ───────────────────────────────────────────
 -- Run these in the Storage section, or via SQL:
 insert into storage.buckets (id, name, public)
-  values ('logos','logos',true), ('firm-photos','firm-photos',true), ('ad-creatives','ad-creatives',true)
+  values ('logos','logos',true), ('firm-photos','firm-photos',true),
+         ('ad-creatives','ad-creatives',true), ('media','media',true)
   on conflict (id) do nothing;
 
 -- Anyone may read; only staff and the firm's owner may write
 drop policy if exists "public reads images" on storage.objects;
 create policy "public reads images" on storage.objects
-  for select using (bucket_id in ('logos','firm-photos','ad-creatives'));
+  for select using (bucket_id in ('logos','firm-photos','ad-creatives','media'));
 
 drop policy if exists "staff writes images" on storage.objects;
 create policy "staff writes images" on storage.objects
-  for all using (bucket_id in ('logos','firm-photos','ad-creatives') and is_staff())
-  with check (bucket_id in ('logos','firm-photos','ad-creatives') and is_staff());
+  for all using (bucket_id in ('logos','firm-photos','ad-creatives','media') and is_staff())
+  with check (bucket_id in ('logos','firm-photos','ad-creatives','media') and is_staff());
 
 -- ── Make yourself an admin ────────────────────────────────────
 -- 1. Create your account: Authentication → Users → Add user
