@@ -384,7 +384,7 @@ const ADMIN = {
   tenderWarnDays: 3
 };
 
-const FILES = ['taxonomy','firms','tenders','jobs','articles','prices','ads','spotlight'];
+const FILES = ['taxonomy','firms','tenders','jobs','articles','prices','ads','spotlight','events'];
 const DB = {};
 let DIRTY = new Set();
 let CURRENT = null;   // {file, index, item}
@@ -669,6 +669,8 @@ const SECTIONS = [
      flag:()=>DB.tenders.filter(t=>daysTo(t.deadline)<0).length},
   {id:'jobs',     label:'Jobs',      group:'Content', count:()=>openJ().length},
   {id:'articles', label:'Articles',  group:'Content', count:()=>DB.articles.length},
+  {id:'events',   label:'Events',    group:'Content', count:()=>openEv().length,
+     flag:()=>((DB.events&&DB.events.events)||[]).filter(e=>daysTo(e.end||e.start)<0).length},
   {id:'prices',   label:'Prices',    group:'Content',
      flag:()=>daysSince(DB.prices.updated)>ADMIN.stalePriceDays?1:0},
   {id:'ads',      label:'Advertising',group:'Revenue', count:()=>liveAds().length},
@@ -705,6 +707,7 @@ const TITLES = {
   tenders:['Tenders','Closed notices hide themselves on the site'],
   jobs:['Jobs','Vacancies expire on their closing date'],
   articles:['Articles','News and guides'],
+  events:['Industry events','Expos, CPD sessions and association meetings'],
   prices:['Material prices','Update weekly from the same three suppliers'],
   ads:['Advertising','Thirteen slots, scheduled by date'],
   checks:['Checks','Problems to fix before publishing'],
@@ -729,6 +732,7 @@ function go(id){
    ═══════════════════════════════════════════════════════════════ */
 const openT = () => DB.tenders.filter(t=>daysTo(t.deadline)>=0);
 const openJ = () => DB.jobs.filter(j=>!j.closesAt||daysTo(j.closesAt)>=0);
+const openEv = () => ((DB.events&&DB.events.events)||[]).filter(e=>daysTo(e.end||e.start)>=0);
 const liveAds = () => (DB.ads.ads||[]).filter(a=>a.active!==false &&
   (!a.start||a.start<=today()) && (!a.end||a.end>=today()));
 
@@ -936,6 +940,63 @@ function setPrice(i,k,v){ DB.prices.items[i][k]=v; mark('prices'); }
 function setPriceDir(i,v){ DB.prices.items[i].up = v==='up'?true:v==='down'?false:null; mark('prices'); }
 function delPrice(i){ DB.prices.items.splice(i,1); mark('prices'); go('prices'); }
 function addPrice(){ DB.prices.items.push({name:'New material',val:'UGX 0',change:'0%',up:null}); mark('prices'); go('prices'); }
+
+/* ── Events ── */
+RENDER.events = el => {
+  const list = ((DB.events&&DB.events.events)||[]).slice()
+    .sort((a,b)=>String(a.start).localeCompare(String(b.start)));
+  el.innerHTML='<div class="note"><b>Past events disappear on their own.</b>'+
+    'An event drops off the site the day after it ends, so you only need to add new ones. '+
+    'A calendar showing last month\u2019s expo tells a reader nobody is maintaining the site.</div>'+
+    '<div class="toolbar"><div class="spacer"></div>'+
+    '<button class="btn btn-p" onclick="editEvent(-1)">Add event</button></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>Event</th><th>Organiser</th><th>Type</th>'+
+    '<th>Venue</th><th>When</th><th></th></tr></thead><tbody>'+
+    (list.length ? list.map((e,i)=>{
+      const d=daysTo(e.end||e.start);
+      const pill = d<0 ? '<span class="pill pill-off">past</span>'
+        : d<=7 ? '<span class="pill pill-danger">in '+d+'d</span>'
+        : d<=30 ? '<span class="pill pill-pending">in '+d+'d</span>'
+        : '<span class="pill pill-live">in '+d+'d</span>';
+      return '<tr><td><span class="rowname">'+esc(e.title)+'</span>'+
+        (e.cpd?'<span class="pill pill-gold">'+e.cpd+' CPD</span>':'')+'</td>'+
+        '<td class="rowsub">'+esc(e.organiser)+'</td><td>'+esc(e.type)+'</td>'+
+        '<td>'+esc(e.venue)+'</td>'+
+        '<td>'+pill+'<br><span class="rowsub mono">'+esc(e.start)+'</span></td>'+
+        '<td><div class="actions"><button class="btn btn-sm" onclick="editEvent('+
+        ((DB.events.events||[]).indexOf(e))+')">Edit</button></div></td></tr>';
+    }).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>Nothing in the calendar</b>Add the next expo or CPD session.</div></td></tr>')+
+    '</tbody></table></div>';
+};
+
+function editEvent(i){
+  const isNew=i<0;
+  const e=isNew?{slug:'',title:'',organiser:'',type:'CPD',start:today(),end:today(),time:'',
+    venue:'',district:'kampala',cost:'',cpd:0,blurb:'',link:'',source:'',featured:false}
+    :JSON.parse(JSON.stringify(DB.events.events[i]));
+  CURRENT={file:'events',index:i,item:e,kind:'event'};
+  openDrawer(isNew?'Add event':'Edit event',
+    '<fieldset><legend>The event</legend>'+
+      field('e_title','Title',e.title)+
+      field('e_organiser','Organiser',e.organiser,'Who is running it \u2014 the board, the association, the exhibition company.')+
+      pick('e_type','Type',e.type,['Expo','Conference','CPD','Training','Association','Trade fair','Site visit'].map(x=>({v:x,l:x})))+
+      area('e_blurb','Why it is worth going',e.blurb,'One or two plain sentences. What would a quantity surveyor get out of a morning there?')+
+    '</fieldset>'+
+    '<fieldset><legend>When and where</legend>'+
+      '<div class="f2">'+field('e_start','Starts',e.start,'','date')+
+      field('e_end','Ends',e.end,'Same as the start for a one-day event. It disappears the day after this.','date')+'</div>'+
+      '<div class="f2">'+field('e_time','Time',e.time,'e.g. 09:00 \u2013 17:00')+
+      field('e_venue','Venue or town',e.venue)+'</div>'+
+      pick('e_district','District',e.district,taxOpts('districts'))+
+    '</fieldset>'+
+    '<fieldset><legend>Detail</legend>'+
+      '<div class="f2">'+field('e_cost','Cost',e.cost,'e.g. Free to attend, or Fee applies')+
+      field('e_cpd','CPD hours',e.cpd,'0 if none. This is the reason most professionals click.','number')+'</div>'+
+      field('e_link','Organiser link',e.link,'Link to their page rather than restating their terms here.','url')+
+      field('e_source','Where you found it',e.source)+
+      pick('e_featured','Featured',e.featured?'yes':'no',[{v:'no',l:'No'},{v:'yes',l:'Yes'}])+
+    '</fieldset>', !isNew);
+}
 
 /* ── Ads ── */
 RENDER.ads = el => {
@@ -1825,6 +1886,23 @@ function saveDrawer(){
     }
     DB.spotlight[CURRENT.index] = it;
     mark('spotlight'); closeDrawer(); go('spotlight'); toast('Saved. Publish when ready.');
+    return;
+  }
+
+  if(k==='event'){
+    it.title=val('e_title'); if(!it.title) return fail('e_title','An event needs a title');
+    it.slug=it.slug||slugify(it.title);
+    it.organiser=val('e_organiser'); it.type=val('e_type'); it.blurb=val('e_blurb');
+    it.start=val('e_start'); it.end=val('e_end')||it.start;
+    if(!it.start) return fail('e_start','Without a date it will never expire');
+    if(it.end<it.start) return fail('e_end','The end date is before the start date');
+    it.time=val('e_time'); it.venue=val('e_venue'); it.district=val('e_district');
+    it.cost=val('e_cost'); it.cpd=parseInt(val('e_cpd'),10)||0;
+    it.link=val('e_link'); it.source=val('e_source');
+    it.featured=val('e_featured')==='yes';
+    DB.events.events=DB.events.events||[];
+    if(CURRENT.index<0) DB.events.events.push(it); else DB.events.events[CURRENT.index]=it;
+    mark('events'); closeDrawer(); go('events'); toast('Saved. Publish when ready.');
     return;
   }
 

@@ -529,6 +529,41 @@ a { text-decoration: none; color: inherit; }
 .listings-grid { align-items:stretch; }
 
 /* ════════════════════════════════════════════
+   INDUSTRY EVENTS
+   A dated list, not cards. Somebody scanning a calendar wants to read
+   down a column of dates, not across a grid of boxes.
+════════════════════════════════════════════ */
+.ev-list { border-top: 2px solid var(--forest); }
+.ev { display: grid; grid-template-columns: 76px 1fr auto; gap: 18px; align-items: start;
+  padding: 18px 0; border-bottom: 1px solid var(--border); }
+.ev-date { text-align: center; background: var(--parchment-d); border-radius: var(--r-md);
+  padding: 8px 4px; }
+.ev-date .d { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700;
+  line-height: 1; color: var(--forest); }
+.ev-date .m { font-size: .66rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.ev-date .yr { font-size: .62rem; color: var(--muted); }
+.ev.soon .ev-date { background: var(--gold-pale); }
+.ev.soon .ev-date .d { color: #8A6B10; }
+.ev-main { min-width: 0; }
+.ev-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;
+  line-height: 1.3; margin-bottom: 3px; }
+.ev-org { font-size: .78rem; color: var(--muted); margin-bottom: 7px; }
+.ev-blurb { font-size: .85rem; color: var(--slate); line-height: 1.55; max-width: 62ch; }
+.ev-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 9px; }
+.ev-tag { font-size: .7rem; background: var(--green-soft); color: var(--forest);
+  padding: 2px 9px; border-radius: 12px; }
+.ev-tag.cpd { background: var(--gold-pale); color: #8A6B10; font-weight: 700; }
+.ev-when { text-align: right; font-size: .78rem; color: var(--muted); white-space: nowrap; }
+.ev-when b { display: block; color: var(--charcoal); font-size: .84rem; }
+.ev-countdown { font-size: .72rem; font-weight: 700; margin-top: 4px; }
+.ev-countdown.near { color: var(--red); }
+@media (max-width: 640px) {
+  .ev { grid-template-columns: 60px 1fr; gap: 12px; }
+  .ev-when { grid-column: 2; text-align: left; margin-top: 6px; }
+}
+
+/* ════════════════════════════════════════════
    ARTICLE READING VIEW
    A measured column, generous line height, and images that run wider
    than the text. Someone pricing a roof at 10pm should be able to read
@@ -1421,6 +1456,20 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
     </div>
   </section>
+    <!-- Industry events -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Coming up</div>
+            <h2>Industry events</h2>
+          </div>
+          <a class="view-all" href="#/news">See the calendar →</a>
+        </div>
+        <div id="eventStrip"></div>
+      </div>
+    </section>
+
 
   <!-- Tenders Preview -->
   <section class="section">
@@ -1826,6 +1875,22 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
         <div id="newsArticles"></div>
 
+        <!-- Industry events -->
+        <div id="eventsSection" style="margin-bottom:38px">
+          <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px">
+            <div>
+              <h2 style="margin-bottom:4px">Industry events</h2>
+              <p style="color:var(--muted);font-size:.88rem;max-width:62ch">Expos, CPD sessions,
+              association meetings and bidder clinics. Past events disappear on their own, so what
+              you see below has not happened yet.</p>
+            </div>
+            <a class="btn btn-outline btn-sm" style="margin-left:auto" href="#/submit">Tell us about an event</a>
+          </div>
+          <p class="disclosure" style="margin-bottom:16px">Listed for information. Confirm dates,
+          venue and fees with the organiser before travelling.</p>
+          <div class="ev-list" id="eventsList"></div>
+        </div>
+
         <!-- Stage 6: the price index as a time series -->
         <div id="priceIndexSection" style="margin-top:34px">
           <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px">
@@ -1920,11 +1985,20 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <p>One manufacturer or distributor per calendar month, on the homepage and in the weekly digest.
         We write it up as a short article rather than running it as a banner, because a write-up gets read
         and a banner gets ignored. You supply the facts and approve the copy.</p>
-        <p style="margin-bottom:0"><strong>From UGX 800,000 per month.</strong> Labelled as advertising,
+        <p style="margin-bottom:0"><strong>Rates on request.</strong> Labelled as advertising,
         as everything paid on this site is. It does not affect any firm's ranking, and it is separate
         from the Benchmark Project slot, which is editorial and not for sale.</p>
       </div>
       <p style="text-align:center;margin:0 0 20px"><a class="btn btn-primary" href="downloads/BuildList-Media-Kit.pdf" download onclick="track('media_kit_download',{})"><svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg> Download the media kit (PDF, 128KB)</a></p>
+      <div class="note-box" style="max-width:720px;margin:0 auto 22px;text-align:center;
+        background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px">
+        <strong style="display:block;margin-bottom:6px">Rates are quoted, not posted</strong>
+        <p style="font-size:.88rem;color:var(--slate);margin-bottom:14px;max-width:56ch;margin-inline:auto">
+        Tell us what you sell and who you want to reach and we will send a rate card the same day,
+        with the positions that actually fit rather than the most expensive ones.</p>
+        <a class="btn btn-primary btn-sm" href="mailto:advertising@buildlist.com?subject=Rate%20card%20request">Request the rate card</a>
+        <a class="btn btn-outline btn-sm" href="#/about">Talk to us first</a>
+      </div>
       <p class="disclosure" id="mediaKitNote" style="text-align:center;max-width:720px;margin:0 auto 24px"></p>
       <div class="stats-grid-adv">
         <div class="stat-card-adv">
@@ -1982,7 +2056,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Leaderboard Banner</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">728×90px — Homepage & key pages</div>
-            <div class="ad-package-price">UGX 2.0M<span>/month</span></div>
+            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Homepage top placement</li>
               <li>Category page rotation</li>
@@ -1995,7 +2069,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
             <div style="font-size:.65rem;font-weight:800;color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">★ Most Popular</div>
             <div class="ad-package-name">Sponsored Listing</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Featured in search results</div>
-            <div class="ad-package-price">UGX 800K<span>/month</span></div>
+            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Top of relevant searches</li>
               <li>Gold border highlight</li>
@@ -2007,7 +2081,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Newsletter Sponsor</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Dedicated slot in weekly email</div>
-            <div class="ad-package-price">UGX 500K<span>/send</span></div>
+            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Full-width slot in the weekly digest</li>
               <li>Logo + 3-line message</li>
@@ -2019,7 +2093,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Sponsored Article</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Long-form branded content</div>
-            <div class="ad-package-price">UGX 2.0M<span>once</span></div>
+            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Written by our editors</li>
               <li>Permanent on-site placement</li>
@@ -2031,7 +2105,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Tender Sponsorship</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Featured on Tenders Board</div>
-            <div class="ad-package-price">UGX 600K<span>/month</span></div>
+            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Brand beside all tender notices</li>
               <li>Sidebar rectangle ad</li>
@@ -2043,7 +2117,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Platinum Bundle</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Maximum visibility across all channels</div>
-            <div class="ad-package-price">UGX 5.5M<span>/month</span></div>
+            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Homepage leaderboard</li>
               <li>Category sponsor badge</li>
@@ -2780,11 +2854,11 @@ const SITE = {
    All content lives in /data/*.json so a non-developer can edit it
    without touching this file. Adding fifty firms is a JSON edit.
    ═══════════════════════════════════════════════════════════════ */
-const DATA = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, ads: null, 'price-history': null, spotlight: null };
+const DATA = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, ads: null, 'price-history': null, spotlight: null, events: null };
 let DATA_READY = false;
 
 async function loadData() {
-  const files = ['taxonomy', 'firms', 'tenders', 'jobs', 'articles', 'prices', 'ads', 'price-history', 'spotlight'];
+  const files = ['taxonomy', 'firms', 'tenders', 'jobs', 'articles', 'prices', 'ads', 'price-history', 'spotlight', 'events'];
   const results = await Promise.all(files.map(f =>
     fetch('data/' + f + '.json', { cache: 'no-cache' })
       .then(r => { if (!r.ok) throw new Error(f + ': HTTP ' + r.status); return r.json(); })
@@ -3604,6 +3678,84 @@ function renderProjectOfMonth() {
   track('spotlight_impression', { kind: 'project', project: p.name });
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════
+   INDUSTRY EVENTS
+   Same self-expiring rule as tenders and jobs: an event drops off the
+   day after it ends. A calendar showing last month's expo is worse
+   than no calendar, because it tells a reader nobody is maintaining it.
+   ═══════════════════════════════════════════════════════════════ */
+const openEvents = () => ((DATA.events && DATA.events.events) || [])
+  .filter(e => daysLeft(e.end || e.start) >= 0)
+  .sort((a, b) => String(a.start).localeCompare(String(b.start)));
+
+function renderEvents() {
+  const el = document.getElementById('eventsList');
+  if (!el) return;
+  const list = openEvents();
+  if (!list.length) {
+    el.innerHTML = emptyState('Nothing in the calendar yet',
+      'We publish expos, CPD sessions and association meetings as they are announced. If you are running one, tell us and it goes up free.',
+      '<a class="btn btn-primary" href="#/submit">Submit an event</a>');
+    return;
+  }
+  el.innerHTML = list.map(e => {
+    const d = new Date(e.start);
+    const days = daysLeft(e.start);
+    const soon = days >= 0 && days <= 14;
+    const multi = e.end && e.end !== e.start;
+    return `<div class="ev ${soon ? 'soon' : ''}">
+      <div class="ev-date">
+        <div class="d">${d.getDate()}</div>
+        <div class="m">${d.toLocaleDateString('en-GB', { month: 'short' })}</div>
+        <div class="yr">${d.getFullYear()}</div>
+      </div>
+      <div class="ev-main">
+        <div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-org">${esc(e.organiser)}</div>
+        <p class="ev-blurb">${esc(e.blurb)}</p>
+        <div class="ev-tags">
+          <span class="ev-tag">${esc(e.type)}</span>
+          ${e.cpd ? `<span class="ev-tag cpd">${e.cpd} CPD hours</span>` : ''}
+          <span class="ev-tag">${esc(e.cost)}</span>
+          ${e.link ? `<a class="ev-tag" href="${esc(e.link)}" target="_blank" rel="noopener"
+            onclick="track('event_click',{slug:'${esc(e.slug)}'})">Organiser \u2192</a>` : ''}
+        </div>
+      </div>
+      <div class="ev-when">
+        <b>${esc(e.venue)}</b>
+        ${multi ? `${dateLabel(e.start)} \u2013 ${dateLabel(e.end)}` : esc(e.time || '')}
+        <div class="ev-countdown ${days <= 7 ? 'near' : ''}">${
+          days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* The two nearest events, for the homepage */
+function renderEventStrip() {
+  const el = document.getElementById('eventStrip');
+  if (!el) return;
+  const list = openEvents().slice(0, 3);
+  if (!list.length) { el.closest('.section') && (el.closest('.section').style.display = 'none'); return; }
+  el.innerHTML = '<div class="ev-list">' + list.map(e => {
+    const d = new Date(e.start);
+    const days = daysLeft(e.start);
+    return `<div class="ev ${days <= 14 ? 'soon' : ''}">
+      <div class="ev-date"><div class="d">${d.getDate()}</div>
+        <div class="m">${d.toLocaleDateString('en-GB', { month: 'short' })}</div></div>
+      <div class="ev-main">
+        <div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-org">${esc(e.organiser)} \u00b7 ${esc(e.venue)}</div>
+        <div class="ev-tags"><span class="ev-tag">${esc(e.type)}</span>
+          ${e.cpd ? `<span class="ev-tag cpd">${e.cpd} CPD hours</span>` : ''}</div>
+      </div>
+      <div class="ev-when"><div class="ev-countdown ${days <= 7 ? 'near' : ''}">${
+        days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days'}</div></div>
+    </div>`;
+  }).join('') + '</div>';
+}
 
 /* ═══════════════════════════════════════════════════════════════
    ARTICLES
@@ -4682,6 +4834,8 @@ function renderAll() {
   renderHomeNews();
   renderNewsArticles();
   renderSectorGrid();
+  renderEvents();
+  renderEventStrip();
   renderProductOfMonth();
   renderProjectOfMonth();
   renderDirectory();

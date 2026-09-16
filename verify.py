@@ -333,6 +333,31 @@ with sync_playwright() as p:
             const c=getComputedStyle(b);
             return c.boxShadow !== 'none' && c.backgroundColor !== 'rgba(0, 0, 0, 0)';})()'''))
 
+    # ═══ EVENTS ═══
+    pg.goto(U + 'index.html#/news'); pg.wait_for_timeout(2000)
+    check('Events calendar renders',
+          pg.evaluate('document.querySelectorAll("#eventsList .ev").length') >= 3)
+    check('Only future events are shown',
+          pg.evaluate('''openEvents().every(e => daysLeft(e.end || e.start) >= 0)'''))
+    check('Events are in date order',
+          pg.evaluate('''(()=>{const l=openEvents().map(e=>e.start);
+            return l.join()===l.slice().sort().join();})()'''))
+    check('CPD hours surfaced where they exist',
+          pg.evaluate('document.querySelectorAll("#eventsList .ev-tag.cpd").length') >= 2)
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2400)
+    check('Homepage shows the next events',
+          pg.evaluate('document.querySelectorAll("#eventStrip .ev").length') == 3)
+
+    # ═══ NO PUBLIC RATE CARD ═══
+    pg.goto(U + 'index.html#/advertise'); pg.wait_for_timeout(1400)
+    adv = pg.inner_text('#page-advertise')
+    check('No advertising rates on the public page',
+          'UGX' not in adv, adv[adv.find('UGX')-40:adv.find('UGX')+20] if 'UGX' in adv else '')
+    check('Rates offered on request',
+          'on request' in adv.lower() or 'Request the rate card' in adv)
+    check('Ad packages still describe what you get',
+          pg.evaluate('document.querySelectorAll(".ad-package-name").length') >= 5)
+
     # ═══ PAGE ISOLATION ═══
     # A stray </div> once let the homepage sections escape #page-home and
     # render on every page. This catches that class of bug structurally.
