@@ -75,6 +75,7 @@ removed, and your own About page promises it.
 | `jobs.json` | Vacancies. Also expire automatically. |
 | `articles.json` | News and guide articles. |
 | `prices.json` | Material price index plus the date it was collected. |
+| `events.json` | Industry events — expos, CPD, association meetings. Self-expiring like tenders. |
 | `spotlight.json` | Product of the Month (paid) and Benchmark Project (editorial), plus their archives. |
 
 ---
