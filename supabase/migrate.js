@@ -106,6 +106,8 @@ async function main() {
   const articles = read('articles');
   const prices = read('prices');
   const ads = read('ads');
+  let spotlight = [];
+  try { spotlight = read('spotlight'); } catch (e) {}
   let history = null;
   try { history = read('price-history'); } catch (e) {}
 
@@ -204,6 +206,12 @@ async function main() {
     starts_on: a.start || null, ends_on: a.end || null
   })));
 
+  if (spotlight.length) await upsertAll('spotlight', spotlight.map(x => ({
+    month_key: x.month || x.month_key, kind: x.kind || 'editorial',
+    firm_id: firmId[x.firmSlug] || null, title: x.title || null, body: x.body || null,
+    image_url: x.image || null, active: x.active !== false
+  })));
+
   /* ── 4. Prices, as dated snapshots ───────────────────────── */
   console.log('\nPrices');
   const snaps = history ? history.snapshots : [{ date: prices.updated, values: null }];
@@ -238,6 +246,7 @@ async function main() {
   console.log('  Jobs           ' + jobs.length);
   console.log('  Articles       ' + articles.length);
   console.log('  Ads            ' + (ads.ads || []).length);
+  console.log('  Spotlight      ' + spotlight.length);
   console.log('  Price history  ' + snaps.length + ' weeks');
   console.log('');
   console.log(' NEXT: node supabase/pull.js   (writes Supabase back to data/*.json)');
