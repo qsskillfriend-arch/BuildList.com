@@ -101,7 +101,7 @@ async function main() {
   /* ── Firms, with their joined rows ───────────────────────── */
   const firms = await getAll('firms',
     'select=*,firm_categories(categories(slug)),firm_accreditations(accreditations(slug)),' +
-    'firm_services(label,sort),firm_photos(url,alt,caption,sort),firm_videos(url,poster_url,caption,sort),firm_projects(name,value,year)' +
+    'firm_services(label,sort),firm_photos(url,alt,caption,sort),firm_projects(name,value,year)' +
     '&status=eq.live&order=name');
 
   const firmJson = firms.map((f, i) => ({
@@ -128,10 +128,6 @@ async function main() {
     logo: f.logo_url || '',
     photos: (f.firm_photos || []).sort((a, b) => a.sort - b.sort)
       .map(p => ({ src: p.url, alt: p.alt || '', caption: p.caption || '' })),
-    videos: (f.firm_videos || []).sort((a, b) => a.sort - b.sort)
-      .map(v => ({ src: v.url, poster: v.poster_url || '', caption: v.caption || '' })),
-    video: ((f.firm_videos || []).sort((a, b) => a.sort - b.sort)[0] || {}).url || '',
-    videoPoster: ((f.firm_videos || []).sort((a, b) => a.sort - b.sort)[0] || {}).poster_url || '',
     projects: (f.firm_projects || []).map(p => ({ name: p.name, value: p.value, year: p.year })),
     established: f.established || '',
     employees: f.employees || '',
@@ -207,13 +203,6 @@ async function main() {
       }))
     });
   }
-
-  /* ── Monthly spotlight ───────────────────────────────────── */
-  const spotlight = await getAll('spotlight', 'select=*,firms(slug,name)&active=is.true&order=month_key.desc');
-  write('spotlight.json', spotlight.map(x => ({
-    month:x.month_key, kind:x.kind, firmSlug:x.firms ? x.firms.slug : '', firmName:x.firms ? x.firms.name : '',
-    title:x.title || '', body:x.body || '', image:x.image_url || '', active:x.active
-  })));
 
   /* ── Ads ─────────────────────────────────────────────────── */
   const ads = await getAll('ads', 'select=*');

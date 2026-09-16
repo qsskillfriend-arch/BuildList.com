@@ -120,17 +120,6 @@ create table if not exists firm_photos (
   sort     int default 0
 );
 
-create table if not exists firm_videos (
-  id         bigserial primary key,
-  firm_id    uuid references firms on delete cascade,
-  url        text not null,
-  poster_url text,
-  caption    text,
-  sort       int default 0,
-  created_at timestamptz not null default now()
-);
-create index if not exists firm_videos_idx on firm_videos(firm_id, sort);
-
 create table if not exists firm_projects (
   id       bigserial primary key,
   firm_id  uuid references firms on delete cascade,
@@ -230,24 +219,6 @@ create table if not exists price_items (
 );
 -- Keeping snapshots rather than overwriting is what turns a price
 -- table into a time series — and the time series is a sellable product.
-
--- ── Monthly spotlight ───────────────────────────────────────
-create table if not exists spotlight (
-  id          uuid primary key default gen_random_uuid(),
-  month_key   text unique not null,
-  kind        text not null default 'editorial' check (kind in ('paid','editorial')),
-  firm_id     uuid references firms on delete set null,
-  title       text,
-  body        text,
-  image_url   text,
-  active      boolean not null default true,
-  created_at  timestamptz not null default now()
-);
-alter table spotlight enable row level security;
-drop policy if exists "public reads spotlight" on spotlight;
-create policy "public reads spotlight" on spotlight for select using (active);
-drop policy if exists "staff manage spotlight" on spotlight;
-create policy "staff manage spotlight" on spotlight for all using (is_staff()) with check (is_staff());
 
 -- ── Advertising ───────────────────────────────────────────────
 create table if not exists ad_slots (
@@ -466,57 +437,23 @@ begin
   end loop;
 end $$;
 
--- Firm child records are staff-managed. Public data is exposed through pull.js.
-alter table firm_categories enable row level security;
-alter table firm_accreditations enable row level security;
-alter table firm_services enable row level security;
-alter table firm_photos enable row level security;
-alter table firm_projects enable row level security;
-alter table firm_videos enable row level security;
-do $$
-declare t text;
-begin
-  foreach t in array array['firm_categories','firm_accreditations','firm_services','firm_photos','firm_projects','firm_videos'] loop
-    execute format('drop policy if exists "public reads %1$s" on %1$s', t);
-    execute format('create policy "public reads %1$s" on %1$s for select using (exists (select 1 from firms f where f.id = firm_id and f.status = ''live''))', t);
-    execute format('drop policy if exists "staff manage %1$s" on %1$s', t);
-    execute format('create policy "staff manage %1$s" on %1$s for all using (is_staff()) with check (is_staff())', t);
-  end loop;
-end $$;
-
 -- ── Media library ─────────────────────────────────────────────
 -- Images are resized in the browser before upload, so each record
 -- points at several widths of the same picture and the site serves
 -- whichever fits the reader's screen.
 create table if not exists media (
-  id            uuid primary key default gen_random_uuid(),
-  base          text not null,
-  target        text,                -- which slot it was uploaded for
-  kind          text not null default 'image' check (kind in ('image','video')),
-  mime_type     text,
-  size_bytes    bigint,
-  path          text,
-  natural_w     int,
-  natural_h     int,
-  duration_sec  numeric,
-  variants      jsonb not null default '[]'::jsonb,
-  urls          jsonb not null default '{}'::jsonb,
-  poster_url    text,
-  alt           text,
-  firm_id       uuid references firms on delete set null,
-  uploaded_by   uuid references auth.users,
-  created_at    timestamptz not null default now()
+  id         uuid primary key default gen_random_uuid(),
+  base       text not null,
+  target     text,                -- which slot it was uploaded for
+  natural_w  int,
+  natural_h  int,
+  variants   jsonb not null,      -- [{width,height,name,bytes}]
+  urls       jsonb not null,      -- {"400": "...", "800": "...", "1600": "..."}
+  alt        text,
+  uploaded_by uuid references auth.users,
+  created_at timestamptz not null default now()
 );
-alter table media add column if not exists kind text;
-alter table media add column if not exists mime_type text;
-alter table media add column if not exists size_bytes bigint;
-alter table media add column if not exists path text;
-alter table media add column if not exists duration_sec numeric;
-alter table media add column if not exists poster_url text;
-alter table media add column if not exists firm_id uuid references firms on delete set null;
-update media set kind='image' where kind is null;
 create index if not exists media_target_idx on media(target, created_at desc);
-create index if not exists media_firm_idx on media(firm_id, created_at desc);
 
 alter table media enable row level security;
 drop policy if exists "public reads media" on media;
@@ -532,26 +469,21 @@ alter table articles add column if not exists published boolean not null default
 create index if not exists articles_published_idx on articles(published, published_at desc);
 
 -- ── Storage buckets ───────────────────────────────────────────
--- Images are optimized in the browser. Videos use resumable TUS uploads in the portal.
--- Supabase Free currently caps the global file size at 50 MB.
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values
-  ('logos','logos',true,26214400,array['image/jpeg','image/png','image/webp','image/gif']),
-  ('firm-photos','firm-photos',true,26214400,array['image/jpeg','image/png','image/webp','image/gif']),
-  ('ad-creatives','ad-creatives',true,26214400,array['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm']),
-  ('media','media',true,26214400,array['image/jpeg','image/png','image/webp','image/gif']),
-  ('videos','videos',true,52428800,array['video/mp4','video/webm','video/quicktime'])
-on conflict (id) do update set
-  public=excluded.public, file_size_limit=excluded.file_size_limit, allowed_mime_types=excluded.allowed_mime_types;
+-- Run these in the Storage section, or via SQL:
+insert into storage.buckets (id, name, public)
+  values ('logos','logos',true), ('firm-photos','firm-photos',true),
+         ('ad-creatives','ad-creatives',true), ('media','media',true)
+  on conflict (id) do nothing;
 
+-- Anyone may read; only staff and the firm's owner may write
 drop policy if exists "public reads images" on storage.objects;
 create policy "public reads images" on storage.objects
-  for select using (bucket_id in ('logos','firm-photos','ad-creatives','media','videos'));
+  for select using (bucket_id in ('logos','firm-photos','ad-creatives','media'));
 
 drop policy if exists "staff writes images" on storage.objects;
 create policy "staff writes images" on storage.objects
-  for all using (bucket_id in ('logos','firm-photos','ad-creatives','media','videos') and is_staff())
-  with check (bucket_id in ('logos','firm-photos','ad-creatives','media','videos') and is_staff());
+  for all using (bucket_id in ('logos','firm-photos','ad-creatives','media') and is_staff())
+  with check (bucket_id in ('logos','firm-photos','ad-creatives','media') and is_staff());
 
 -- ── Make yourself an admin ────────────────────────────────────
 -- 1. Create your account: Authentication → Users → Add user
