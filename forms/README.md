@@ -4,16 +4,32 @@ Two files here, and a five-minute setup.
 
 | File | What it does |
 |---|---|
+| `create-short-listing-form.gs` | **Short form** — eight questions. Use this one. |
 | `create-listing-form.gs` | Builds the entire Google Form for you. You type nothing. |
 | `import-responses.js` | Turns the responses spreadsheet into listings for the site. |
 
 ---
 
+## Two versions, and which to use
+
+| | Questions | For |
+|---|---|---|
+| **Short** — `create-short-listing-form.gs` | 8 required, 3 optional | Everyday collection. Every extra question costs completions. |
+| Full — `create-listing-form.gs` | ~25 | A firm that wants a rich profile from the start, or a paid tier |
+
+There is also a **printed one-pager** in `downloads/`, as PDF and Word, with the
+same eight questions. Field agents use it where there is no signal, then a photo
+of the sheet goes on WhatsApp. It has a consent signature line and a block for
+the agent to tick what they collected — shopfront photo, logo, number verified
+by ringing it.
+
+Start with the short form. You can always telephone for more.
+
 ## 1. Create the form (5 minutes)
 
 1. Go to **script.google.com** → **New project**
 2. Delete whatever is in the editor
-3. Paste the whole of `create-listing-form.gs`
+3. Paste the whole of `create-short-listing-form.gs`
 4. Rename the project "BuildList.com form" (top left)
 5. Press **Run** (▶)
 6. Google will warn *"Google hasn't verified this app"* → **Advanced** → **Go to BuildList.com form (unsafe)** → **Allow**.
