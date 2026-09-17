@@ -241,7 +241,7 @@ async function main() {
   console.log('  Price history  ' + snaps.length + ' weeks');
   console.log('');
   console.log(' NEXT: node supabase/pull.js   (writes Supabase back to data/*.json)');
-  console.log(' Then set BUILD_FROM_SUPABASE=true in Netlify and redeploy.');
+  console.log(' Then set BUILD_FROM_SUPABASE=true in Vercel and redeploy.');
   console.log('');
   console.log(' Keep data/*.json committed. It is your backup and it is what');
   console.log(' the site falls back to if Supabase is ever unreachable.\n');

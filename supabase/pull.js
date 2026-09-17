@@ -19,7 +19,7 @@
    giving up the thing that makes the site work.
 
    Run locally:   node supabase/pull.js
-   On Netlify:    handled automatically — see netlify.toml
+   On Vercel:    handled automatically — see vercel.json
 
    Uses the ANON key only. It reads what the public can read.
    ═══════════════════════════════════════════════════════════════ */
@@ -101,7 +101,8 @@ async function main() {
   /* ── Firms, with their joined rows ───────────────────────── */
   const firms = await getAll('firms',
     'select=*,firm_categories(categories(slug)),firm_accreditations(accreditations(slug)),' +
-    'firm_services(label,sort),firm_photos(url,alt,caption,sort),firm_projects(name,value,year)' +
+    'firm_services(label,sort),firm_photos(url,alt,caption,sort),firm_projects(name,value,year),' +
+    'firm_videos(url,poster_url,title,caption,mime,duration,sort)' +
     '&status=eq.live&order=name');
 
   const firmJson = firms.map((f, i) => ({
@@ -126,6 +127,14 @@ async function main() {
     email: f.email || '',
     website: f.website || '',
     logo: f.logo_url || '',
+    /* Videos attached in the portal become part of the generated
+       profile, so a firm's walkthrough appears on its public page
+       without anyone editing JSON. */
+    videos: (f.firm_videos || [])
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+      .map(v => ({ src: v.url, poster: v.poster_url || '', title: v.title || '',
+                   caption: v.caption || '', mime: v.mime || 'video/mp4',
+                   duration: v.duration || 0 })),
     photos: (f.firm_photos || []).sort((a, b) => a.sort - b.sort)
       .map(p => ({ src: p.url, alt: p.alt || '', caption: p.caption || '' })),
     projects: (f.firm_projects || []).map(p => ({ name: p.name, value: p.value, year: p.year })),

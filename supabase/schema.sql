@@ -437,6 +437,34 @@ begin
   end loop;
 end $$;
 
+-- ── Form submissions ──────────────────────────────────────────
+-- Where /api/form files everything the public sends: listing
+-- applications, contact messages, quote requests, alert signups.
+-- Only staff can read them; nobody can read them from the browser.
+create table if not exists submissions (
+  id         uuid primary key default gen_random_uuid(),
+  form       text not null,
+  fields     jsonb not null,
+  meta       jsonb,
+  handled    boolean not null default false,
+  handled_by uuid references auth.users,
+  note       text,
+  created_at timestamptz not null default now()
+);
+create index if not exists submissions_form_idx on submissions(form, created_at desc);
+create index if not exists submissions_open_idx on submissions(handled, created_at desc);
+
+alter table submissions enable row level security;
+-- The API writes with the service_role key, which bypasses RLS, so no
+-- insert policy is granted here. That is deliberate: the browser must
+-- never be able to write to this table directly.
+drop policy if exists "staff read submissions" on submissions;
+create policy "staff read submissions" on submissions
+  for select using (is_staff());
+drop policy if exists "staff update submissions" on submissions;
+create policy "staff update submissions" on submissions
+  for update using (is_staff()) with check (is_staff());
+
 -- ── Media library ─────────────────────────────────────────────
 -- Images are resized in the browser before upload, so each record
 -- points at several widths of the same picture and the site serves
@@ -484,6 +512,164 @@ drop policy if exists "staff writes images" on storage.objects;
 create policy "staff writes images" on storage.objects
   for all using (bucket_id in ('logos','firm-photos','ad-creatives','media') and is_staff())
   with check (bucket_id in ('logos','firm-photos','ad-creatives','media') and is_staff());
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- MEDIA, VIDEO AND SPOTLIGHT
+-- ═══════════════════════════════════════════════════════════════
+
+-- Expanded media record. One row per uploaded asset, image or video.
+-- 'variants' holds every width we generated; 'urls' maps width -> public
+-- URL so the site can build a srcset without a second query.
+alter table media add column if not exists kind text not null default 'image'
+  check (kind in ('image','video'));
+alter table media add column if not exists mime text;
+alter table media add column if not exists bytes bigint;
+alter table media add column if not exists duration numeric;
+alter table media add column if not exists poster_url text;
+alter table media add column if not exists storage_path text;
+alter table media add column if not exists firm_id uuid references firms on delete set null;
+create index if not exists media_kind_idx on media(kind, created_at desc);
+create index if not exists media_firm_idx on media(firm_id);
+
+-- Videos attached to a firm's public profile. Kept separate from media
+-- so a firm can have several, ordered, each with its own caption — and
+-- so deleting a library asset cannot silently empty a profile.
+create table if not exists firm_videos (
+  id          uuid primary key default gen_random_uuid(),
+  firm_id     uuid not null references firms on delete cascade,
+  media_id    uuid references media on delete set null,
+  url         text not null,
+  poster_url  text,
+  title       text,
+  caption     text,
+  mime        text,
+  bytes       bigint,
+  duration    numeric,
+  sort        int not null default 0,
+  created_at  timestamptz not null default now()
+);
+create index if not exists firm_videos_firm_idx on firm_videos(firm_id, sort);
+
+-- Monthly slots, so the portal reads them from the database rather than
+-- the committed JSON once you migrate.
+create table if not exists spotlight (
+  id          uuid primary key default gen_random_uuid(),
+  slot        text not null check (slot in ('product','project')),
+  month       text not null,                    -- YYYY-MM
+  month_label text,
+  active      boolean not null default true,
+  sponsored   boolean not null default false,   -- always false for 'project'
+  advertiser  text,
+  name        text not null,
+  tagline     text,
+  body        text,
+  image_url   text,
+  alt         text,
+  link        text,
+  cta         text,
+  supplier_id uuid references firms on delete set null,
+  rate_ugx    bigint,
+  location    text,
+  sector      text,
+  completed   text,
+  credit      text,
+  specs       jsonb default '[]'::jsonb,
+  facts       jsonb default '[]'::jsonb,
+  lessons     jsonb default '[]'::jsonb,
+  created_at  timestamptz not null default now(),
+  unique (slot, month)
+);
+create index if not exists spotlight_active_idx on spotlight(slot, active, month desc);
+
+-- The editorial slot is never for sale. Enforced here as well as in the
+-- portal, because a UI rule is a courtesy and a constraint is a control.
+create or replace function guard_spotlight_editorial()
+returns trigger as $$
+begin
+  if new.slot = 'project' then
+    new.sponsored := false;
+    new.advertiser := null;
+    new.rate_ugx := null;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists spotlight_editorial on spotlight;
+create trigger spotlight_editorial before insert or update on spotlight
+  for each row execute function guard_spotlight_editorial();
+
+-- ── Row level security on the firm child tables ───────────────
+-- These were created without RLS, which meant anyone with the anon key
+-- could write to them even though the parent firms table was protected.
+-- Public reads only rows belonging to a live firm; writes are staff or
+-- the firm's own owner.
+do $$
+declare t text;
+begin
+  foreach t in array array['firm_categories','firm_accreditations','firm_services',
+                           'firm_photos','firm_projects','firm_videos'] loop
+    execute format('alter table %I enable row level security', t);
+
+    execute format('drop policy if exists "public reads %1$s of live firms" on %1$I', t);
+    execute format($f$
+      create policy "public reads %1$s of live firms" on %1$I
+        for select using (exists (
+          select 1 from firms f where f.id = %1$I.firm_id and f.status = 'live'))
+    $f$, t);
+
+    execute format('drop policy if exists "owner writes own %1$s" on %1$I', t);
+    execute format($f$
+      create policy "owner writes own %1$s" on %1$I
+        for all using (exists (
+          select 1 from firms f where f.id = %1$I.firm_id and f.owner_id = auth.uid()))
+        with check (exists (
+          select 1 from firms f where f.id = %1$I.firm_id and f.owner_id = auth.uid()))
+    $f$, t);
+
+    execute format('drop policy if exists "staff manage %1$s" on %1$I', t);
+    execute format($f$
+      create policy "staff manage %1$s" on %1$I
+        for all using (is_staff()) with check (is_staff())
+    $f$, t);
+  end loop;
+end $$;
+
+alter table spotlight enable row level security;
+drop policy if exists "public reads active spotlight" on spotlight;
+create policy "public reads active spotlight" on spotlight
+  for select using (active);
+drop policy if exists "staff manage spotlight" on spotlight;
+create policy "staff manage spotlight" on spotlight
+  for all using (is_staff()) with check (is_staff());
+
+-- ── Video storage ─────────────────────────────────────────────
+-- A dedicated bucket with its own limits. 45MB rather than 50 because
+-- Supabase Free applies a 50MB global file size limit and a request that
+-- lands exactly on the ceiling fails in a confusing way.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values ('videos','videos', true, 47185920,
+          array['video/mp4','video/webm','video/quicktime'])
+  on conflict (id) do update
+    set public = true,
+        file_size_limit = 47185920,
+        allowed_mime_types = array['video/mp4','video/webm','video/quicktime'];
+
+-- Images are resized in the browser before upload, so 8MB is generous.
+update storage.buckets
+  set file_size_limit = 8388608,
+      allowed_mime_types = array['image/webp','image/jpeg','image/png','image/svg+xml']
+  where id in ('media','logos','firm-photos','ad-creatives');
+
+drop policy if exists "public reads videos" on storage.objects;
+create policy "public reads videos" on storage.objects
+  for select using (bucket_id = 'videos');
+
+drop policy if exists "staff writes videos" on storage.objects;
+create policy "staff writes videos" on storage.objects
+  for all using (bucket_id = 'videos' and is_staff())
+  with check (bucket_id = 'videos' and is_staff());
 
 -- ── Make yourself an admin ────────────────────────────────────
 -- 1. Create your account: Authentication → Users → Add user

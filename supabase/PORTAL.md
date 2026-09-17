@@ -32,7 +32,7 @@ then go straight to Option B.
 
 # Option A — Sveltia CMS (free, git-based)
 
-Your team edits at `buildlist.com/cms`. The CMS commits to GitHub and Netlify
+Your team edits at `buildlist.com/cms`. The CMS commits to GitHub and Vercel
 rebuilds. No database, no monthly bill.
 
 ### 1. Point the config at your repository
@@ -77,12 +77,12 @@ permission, not per-collection roles.
 
 ### Why the GitHub backend and not Git Gateway
 
-The classic Netlify CMS setup used Netlify Identity plus Git Gateway. Netlify's
+The classic Vercel CMS setup used Vercel Identity plus Git Gateway. Vercel's
 own documentation now states that Git Gateway is deprecated, that new
 configurations are not recommended, and that they will no longer fix
 functionality bugs in it.
 
-Netlify Identity itself is fine — it was scheduled for deprecation but Netlify
+Vercel Identity itself is fine — it was scheduled for deprecation but Vercel
 reversed that in February 2026. It is Git Gateway specifically that you should
 avoid, which is why this config talks to GitHub directly.
 
@@ -119,6 +119,26 @@ shrinks the file before it crosses the network rather than after.
 A source smaller than the slot needs is **flagged, not stretched.** "Only 300px
 wide; this slot wants 1200px. It will look soft. Ask for a larger file."
 
+### Video
+
+MP4, WebM and MOV, up to **45MB**. Browsers cannot re-encode video, so unlike
+images the file goes up as it arrived — but three things still happen:
+
+| | What and why |
+|---|---|
+| **Size cap** | Supabase Free applies a 50MB global file limit. We stop at 45MB so a file never fails at the ceiling with an opaque error. |
+| **Poster frame** | We seek to one second, draw to canvas and upload the frame alongside. A video with no poster is a black rectangle until it plays, which on a slow connection is most of the time. |
+| **Resumable upload** | Supabase recommends its TUS endpoint above about 6MB. A 40MB file over Ugandan mobile data will drop at least once, and a plain upload starts again from zero. Ours resumes from the last completed chunk and retries three times per chunk. |
+
+MOV sometimes will not decode in the browser even though Supabase stores it
+happily. When that happens the upload still succeeds and the portal says
+"no poster (add one by hand)" rather than failing the whole thing.
+
+**Attaching a video to a firm** writes a `firm_videos` row. `pull.js` brings it
+into the generated profile, so the video appears on that firm's public page
+without anyone editing JSON. Videos are muted until played — a page that starts
+talking is how people close a tab.
+
 ### Article editor
 
 Markdown with a live preview, not a rich-text box. Contenteditable produces
@@ -151,7 +171,8 @@ choice rather than an optional tick.
 | **Set a tier** | ✓ | — | — |
 | **Issue a verified badge** | ✓ | ✓ | — |
 | Tenders, jobs, articles, prices | ✓ | ✓ | — |
-| Media library — upload and remove | ✓ | ✓ | — |
+| Media library — upload, attach, delete | ✓ | ✓ | — |
+| Upload video and attach it to a firm | ✓ | ✓ | — |
 | Write, publish and take down articles | ✓ | ✓ | — |
 | Monthly slots | ✓ | ✓ | — |
 | Advertising | ✓ | — | — |
@@ -233,9 +254,9 @@ Once the database is the source of truth, the build pulls from it:
 node supabase/pull.js && node build.js
 ```
 
-That is already the build command in `netlify.toml`. `pull.js` writes the
+That is already the build command in `vercel.json`. `pull.js` writes the
 database back into `data/*.json`, then `build.js` generates the 703 pages. Set
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` in Netlify's environment variables and it
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` in Vercel's environment variables and it
 happens on every deploy.
 
 If Supabase is unreachable, `pull.js` exits quietly and the committed JSON is

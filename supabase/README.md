@@ -70,7 +70,7 @@ There is no server, so nothing saves itself. The flow is:
 1. Edit in the dashboard. Changes are held in your browser and survive a refresh.
 2. Go to **Publish**. It lists which files changed.
 3. **Download** them, or **Copy** and paste over the file on GitHub.
-4. Commit. Netlify redeploys in about 30 seconds.
+4. Commit. Vercel redeploys in about 30 seconds.
 5. Press **Mark as published** to clear the changed list.
 
 The browser will warn you if you try to close the tab with unpublished changes.
@@ -175,7 +175,7 @@ Supabase  →  supabase/pull.js  →  data/*.json  →  build.js  →  703 stati
  (edit)        (on deploy)         (committed)      (on deploy)      (served)
 ```
 
-Your team edits in the database; Netlify turns it into a fast static site on every
+Your team edits in the database; Vercel turns it into a fast static site on every
 deploy. This keeps four things you would otherwise lose:
 
 - Pages load instantly on a 3G phone in Mukono — no database round-trip
@@ -232,7 +232,7 @@ node supabase/pull.js && node build.js
 
 You should see the firm count come back from the database and 703 pages rebuild.
 
-**7. Point Netlify at the database.** Site configuration → Environment variables:
+**7. Point Vercel at the database.** Site configuration → Environment variables:
 
 | Key | Value |
 |---|---|
@@ -240,11 +240,11 @@ You should see the firm count come back from the database and 703 pages rebuild.
 | `SUPABASE_ANON_KEY` | the anon key |
 | `SITE_URL` | `https://buildlist.com` |
 
-**Never add `SUPABASE_SERVICE_ROLE_KEY` to Netlify.** It bypasses every policy in
-the schema and Netlify's build logs are not the place for it. `migrate.js` runs on
+**Never add `SUPABASE_SERVICE_ROLE_KEY` to Vercel.** It bypasses every policy in
+the schema and Vercel's build logs are not the place for it. `migrate.js` runs on
 your machine only.
 
-The build command in `netlify.toml` already reads:
+The build command in `vercel.json` already reads:
 
 ```
 node supabase/pull.js && node build.js
@@ -260,7 +260,7 @@ supabase: { url: 'https://xxxx.supabase.co', anonKey: 'eyJ...' },
 Reload it. You now get an email and password login instead of a passphrase, and
 the Publish tab saves straight to the database.
 
-**9. Optional: one-click rebuild.** Netlify → Site configuration → Build hooks →
+**9. Optional: one-click rebuild.** Vercel → Site configuration → Build hooks →
 Add build hook. Paste the URL into `ADMIN.rebuildHook` in `admin.html` and a
 "Rebuild the public site" button appears on the Publish tab.
 

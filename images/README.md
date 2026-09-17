@@ -48,7 +48,7 @@ Free tools: [squoosh.app](https://squoosh.app) to compress,
 "logo": "images/logos/palm-associates-uganda.png"
 ```
 
-Commit. Netlify redeploys in about 30 seconds.
+Commit. Vercel redeploys in about 30 seconds.
 
 **If the file is missing or the path is wrong, the listing falls back to the
 firm's coloured initials.** It never shows a broken-image icon. That is
