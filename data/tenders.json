@@ -11,7 +11,9 @@
     "urgent": false,
     "source": "PPDA portal",
     "postedAt": "2026-09-01",
-    "clientType": "parastatal"
+    "clientType": "parastatal",
+    "orgWebsite": "https://www.ppda.go.ug",
+    "orgSlug": ""
   },
   {
     "ref": "MoWT/2025/ROADS/112",
@@ -25,7 +27,9 @@
     "urgent": true,
     "source": "PPDA portal",
     "postedAt": "2026-08-20",
-    "clientType": "government"
+    "clientType": "government",
+    "orgWebsite": "",
+    "orgSlug": ""
   },
   {
     "ref": "UNRA/2025/CONSULT/088",
@@ -39,7 +43,9 @@
     "urgent": false,
     "source": "Agency website",
     "postedAt": "2026-09-02",
-    "clientType": "parastatal"
+    "clientType": "parastatal",
+    "orgWebsite": "https://www.ppda.go.ug",
+    "orgSlug": ""
   },
   {
     "ref": "MoH/2025/WORKS/067",
@@ -53,7 +59,9 @@
     "urgent": false,
     "source": "PPDA portal",
     "postedAt": "2026-09-04",
-    "clientType": "government"
+    "clientType": "government",
+    "orgWebsite": "",
+    "orgSlug": ""
   },
   {
     "ref": "NWSC/2025/CIVIL/034",
@@ -67,7 +75,9 @@
     "urgent": true,
     "source": "Agency website",
     "postedAt": "2026-08-15",
-    "clientType": "parastatal"
+    "clientType": "parastatal",
+    "orgWebsite": "",
+    "orgSlug": ""
   },
   {
     "ref": "URA/2025/WORKS/019",
@@ -81,7 +91,9 @@
     "urgent": false,
     "source": "PPDA portal",
     "postedAt": "2026-09-03",
-    "clientType": "government"
+    "clientType": "government",
+    "orgWebsite": "",
+    "orgSlug": ""
   },
   {
     "ref": "PPDA/2025/CONSULT/201",
@@ -95,6 +107,8 @@
     "urgent": true,
     "source": "PPDA portal",
     "postedAt": "2026-08-18",
-    "clientType": "government"
+    "clientType": "government",
+    "orgWebsite": "https://www.ppda.go.ug",
+    "orgSlug": ""
   }
 ]
