@@ -334,6 +334,11 @@ a { text-decoration: none; color: inherit; }
 .tender-card.urgent { border-left: 3px solid var(--red); }
 .tender-num { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); flex-shrink: 0; width: 100px; }
 .tender-info { flex: 1; min-width: 0; }
+.card-link { cursor: pointer; }
+.card-link a.tender-title, .card-link a.job-title { text-decoration: none; color: inherit; display: block; }
+.tender-full-org a { color: var(--forest); font-weight: 600; }
+.card-link:hover a.tender-title, .card-link:hover a.job-title { color: var(--forest); text-decoration: underline; }
+.tender-org a { color: var(--forest); font-weight: 600; }
 .tender-title { font-weight: 600; font-size: .9rem; color: var(--charcoal); margin-bottom: 4px; }
 .tender-org { font-size: .78rem; color: var(--muted); }
 .tender-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
@@ -431,6 +436,19 @@ a { text-decoration: none; color: inherit; }
   .cookie { flex-direction:column; align-items:stretch; padding:16px 18px; }
   .cookie-actions .btn { flex:1; justify-content:center; }
 }
+
+/* One clear route to a price, instead of a quote panel repeated on
+   every package. Repeating "on request" six times says nothing six
+   times over. */
+.rates-note { display:flex; gap:26px; align-items:center; flex-wrap:wrap;
+  max-width:820px; margin:0 auto 26px; background:var(--white);
+  border:1px solid var(--border); border-left:3px solid var(--gold);
+  border-radius:var(--r-lg); padding:20px 24px; }
+.rates-note > div:first-child { flex:1; min-width:260px; }
+.rates-note strong { display:block; font-size:1rem; margin-bottom:5px; }
+.rates-note p { font-size:.86rem; color:var(--slate); line-height:1.6; margin:0; max-width:58ch; }
+.rates-note-act { display:flex; flex-direction:column; gap:8px; }
+.rates-note-act .btn { justify-content:center; }
 
 /* ════════════════════════════════════════════
    MONTHLY SPOTLIGHTS
@@ -562,6 +580,46 @@ a { text-decoration: none; color: inherit; }
   .ev { grid-template-columns: 60px 1fr; gap: 12px; }
   .ev-when { grid-column: 2; text-align: left; margin-top: 6px; }
 }
+
+/* ════════════════════════════════════════════
+   DETAIL PAGES — tender, job, event
+   A read-one-thing layout: the facts in a panel you can scan in five
+   seconds, then the detail, then the single action worth taking.
+════════════════════════════════════════════ */
+.detail { max-width: 860px; margin: 0 auto; padding: 8px 0 70px; }
+/* The header is sticky, so a page opened at an anchor must not start
+   underneath it. */
+#page-tender .breadcrumb, #page-job .breadcrumb, #page-event .breadcrumb,
+#page-article .breadcrumb { padding-top: 26px !important; }
+.detail-head { padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.detail-eyebrow { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 11px; }
+.detail h1 { font-size: clamp(1.5rem, 3.6vw, 2.2rem); line-height: 1.2; margin-bottom: 8px; }
+.detail-org { color: var(--slate); font-size: 1rem; }
+.detail-org a { color: var(--forest); font-weight: 600; }
+.detail-grid { display: grid; grid-template-columns: 1fr 296px; gap: 34px; align-items: start; }
+@media (max-width: 880px) { .detail-grid { grid-template-columns: 1fr; } }
+.detail-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 26px; }
+.detail-facts > div { padding: 14px 16px; border-right: 1px solid var(--border); background: var(--white); }
+.detail-facts > div:last-child { border-right: none; }
+.detail-facts dt { font-size: .72rem; color: var(--muted); margin-bottom: 3px; }
+.detail-facts dd { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.detail-body { font-size: .96rem; line-height: 1.72; color: var(--charcoal); }
+.detail-body h3 { font-size: 1.1rem; margin: 26px 0 9px; }
+.detail-body p { margin-bottom: 15px; }
+.detail-body ul { margin: 0 0 16px 22px; }
+.detail-body li { margin-bottom: 7px; }
+.detail-side { position: sticky; top: 92px; border: 1.5px solid var(--forest);
+  border-radius: var(--r-lg); padding: 20px; background: var(--white); }
+.detail-side h3 { font-size: 1rem; margin-bottom: 6px; }
+.detail-side p { font-size: .84rem; color: var(--slate); margin-bottom: 14px; line-height: 1.55; }
+.detail-side .btn { width: 100%; justify-content: center; margin-bottom: 8px; }
+.detail-warn { background: var(--gold-pale); border: 1px solid rgba(196,154,22,.4);
+  border-radius: var(--r-md); padding: 13px 16px; font-size: .84rem; line-height: 1.6;
+  color: #6B5308; margin-top: 22px; }
+.countdown-big { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums;
+  line-height: 1; margin-bottom: 3px; }
+.countdown-big.near { color: var(--red); }
 
 /* ════════════════════════════════════════════
    ARTICLE READING VIEW
@@ -713,6 +771,10 @@ a { text-decoration: none; color: inherit; }
 .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .photo-thumb { position: relative; display: block; border-radius: var(--r-md); overflow: hidden;
   border: 1px solid var(--border); aspect-ratio: 4/3; background: var(--parchment-d); }
+.firm-video { margin: 0 0 16px; }
+.firm-video video { width: 100%; height: auto; display: block; border-radius: var(--r-md);
+  border: 1px solid var(--border); background: #000; }
+.firm-video figcaption { font-size: .8rem; color: var(--muted); margin-top: 7px; }
 .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block;
   transition: transform .25s ease; }
 /* The thumbnail crops to keep the grid even; clicking shows the full
@@ -832,6 +894,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 /* ── Form feedback ── */
 .linkish { background:none; border:none; padding:0; font:inherit; color:inherit;
   text-decoration:underline; cursor:pointer; }
+.form-note-error { color: var(--red); }
 .form-note { margin-top:12px; padding:12px 16px; border-radius:var(--r-sm); font-size:.85rem;
              background:var(--green-soft); color:var(--forest); border:1px solid rgba(26,60,42,.15); }
 
@@ -841,6 +904,23 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 .topbar-claim { display:inline-flex; align-items:center; gap:7px; font-size:.74rem; font-weight:700;
                letter-spacing:.01em; color:var(--gold); }
 .topbar-sep { width:1px; height:11px; background:rgba(255,255,255,.2); display:inline-block; }
+/* The ribbon used to repeat the ownership line, which already appears in
+   the footer and on About. A live date does more work: it tells a visitor
+   the tender board and price index are current, which is the single thing
+   a directory has to prove. */
+.live-now { display:inline-flex; align-items:center; gap:7px; font-size:.72rem;
+  color:rgba(255,255,255,.72); letter-spacing:.01em; }
+.live-now strong { color:var(--gold); font-weight:700; letter-spacing:.08em; font-size:.68rem; }
+.live-dot { width:7px; height:7px; border-radius:50%; background:#4ADE80; flex-shrink:0;
+  box-shadow:0 0 0 0 rgba(74,222,128,.7); animation:livePulse 2.4s ease-out infinite; }
+@keyframes livePulse {
+  0%   { box-shadow:0 0 0 0 rgba(74,222,128,.55); }
+  70%  { box-shadow:0 0 0 7px rgba(74,222,128,0); }
+  100% { box-shadow:0 0 0 0 rgba(74,222,128,0); }
+}
+@media (prefers-reduced-motion: reduce) { .live-dot { animation:none; } }
+@media (max-width:560px){ .live-now #liveDate { display:none; } }
+
 .owner-badge { display:inline-flex; align-items:center; gap:7px; font-size:.72rem; font-weight:600;
                letter-spacing:.02em; color:rgba(255,255,255,.55); }
 .owner-badge strong { color:var(--gold); font-weight:700; }
@@ -1273,7 +1353,11 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
     <div class="container">
       <span class="topbar-claim"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-pin"></use></svg> Uganda's No.1 Construction Industry Platform</span>
       <span class="topbar-sep" aria-hidden="true"></span>
-      <span class="owner-badge">A product of <strong>Sharplink Ventures (U) Limited</strong></span>
+      <span class="live-now" aria-live="polite">
+        <span class="live-dot" aria-hidden="true"></span>
+        <strong>LIVE</strong>
+        <span id="liveDate">&nbsp;</span>
+      </span>
       <div>
         <a href="#/advertise">Advertise</a>
         <a href="#/submit">Add Your Firm</a>
@@ -1289,7 +1373,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
         <div>
           <div class="logo-text">BuildList<span class="logo-tld">.com</span></div>
-          <span class="logo-sub">Uganda Construction Directory</span>
+          <span class="logo-sub">Uganda's Construction Directory</span>
         </div>
       </a>
       <nav class="nav-main" aria-label="Primary">
@@ -1537,7 +1621,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <p class="newsletter-sponsor" style="margin-top:10px"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-megaphone"></use></svg> This week's newsletter is sponsored by <strong style="color:rgba(255,255,255,.6)">Victoria Steel Ltd</strong></p>
       </div>
       <div>
-        <form class="newsletter-form" name="newsletter" method="POST" data-netlify="true" netlify-honeypot="company-website" onsubmit="return handleForm(event,'You are subscribed. Look out for the first digest.')">
+        <form class="newsletter-form" name="newsletter" onsubmit="return handleForm(event,'You are subscribed. Look out for the first digest.')">
           <input type="hidden" name="form-name" value="newsletter">
           <p hidden><label>Leave blank: <input name="company-website"></label></p>
           <label class="sr-only" for="nlEmail">Email address</label>
@@ -1603,7 +1687,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <span class="breadcrumb-sep">/</span>
         <span>Directory</span>
       </div>
-      <h1>Uganda Construction Directory</h1>
+      <h1>Uganda's Construction Directory</h1>
       <p class="page-header-sub"><span data-stat="firms">—</span> firms, consultants and suppliers across <span data-stat="districts">—</span> districts</p>
     </div>
   </div>
@@ -1733,17 +1817,22 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <label class="sr-only" for="tenderStatus">Closing</label><select class="form-input" id="tenderStatus" style="width:auto;min-width:140px" onchange="setTenderFilter()"><option value="">Any closing date</option><option value="urgent">Closing within 14 days</option><option value="open">Open</option></select>
           <label class="sr-only" for="tenderSort">Sort tenders</label><select class="form-input" id="tenderSort" style="width:auto;min-width:140px" onchange="setTenderFilter()"><option value="deadline">Closing soonest</option><option value="value">Highest value</option><option value="newest">Most recent</option></select>
           <button class="btn btn-forest btn-sm">Apply Filters</button>
-          <button class="btn btn-outline btn-sm"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg> Set Alert</button>
+          <a class="btn btn-outline btn-sm" href="#/tenders#alerts" onclick="focusAlerts('alertForm')"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg> Set Alert</a>
         </div>
 
-        <div class="panel" style="margin-bottom:20px">
-          <h3>Never miss a tender again</h3>
-          <p>Pick your categories and we send matching notices as they appear, by email or WhatsApp.
-          Most contractors miss tenders simply because they did not check the portal that week.</p>
-          <div id="alertForm"></div>
-        </div>
         <div class="dir-count" id="tenderCount" role="status" style="margin-bottom:12px">&mdash;</div>
         <div id="tendersFull"></div>
+        <div class="panel" id="alerts" style="margin-top:34px;scroll-margin-top:90px">
+          <div id="alertPanelBody"></div>
+        </div>
+
+        <div class="panel" id="post" style="margin-top:20px;scroll-margin-top:90px">
+          <h3>Post a tender notice</h3>
+          <p>Reach registered contractors and consultants across Uganda. Notices are
+          published within two hours during working days.</p>
+          <div id="postTenderForm"></div>
+        </div>
+
 
         <!-- In-content ad -->
         <div class="infeed-ad" style="margin:16px 0" data-ad="tenders-infeed"></div>
@@ -1754,15 +1843,15 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div class="tender-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-megaphone"></use></svg> Post a Tender Notice</h4>
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Reach registered contractors and consultants across Uganda. Posted within 2 hours.</p>
-          <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="showPage('submit')">Submit Tender Notice</button>
-          <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px">From UGX 200,000 per notice</div>
+          <a class="btn btn-primary btn-sm" style="width:100%;justify-content:center" href="#/tenders#post">Submit Tender Notice</a>
+          <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5">Contact the team at <a href="mailto:advertising@buildlist.com" style="color:var(--forest)">advertising@buildlist.com</a> for rates</div>
         </div>
         <div class="tender-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg> Tender Alert Service</h4>
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Get new tenders in your sector sent directly to your email every morning.</p>
           <input class="form-input" type="email" placeholder="your@email.com" style="margin-bottom:8px">
           <select class="form-input" style="margin-bottom:10px"><option>All Categories</option><option>Building Works</option><option>Roads</option><option>Consultancy</option></select>
-          <button class="btn btn-forest btn-sm" style="width:100%;justify-content:center">Activate Free Alert</button>
+          <a class="btn btn-forest btn-sm" style="width:100%;justify-content:center" href="#/tenders#alerts" onclick="focusAlerts('alertForm')">Activate Free Alert</a>
         </div>
         <div class="ad-unit ad-rectangle-sm ad-sponsored" style="height:200px;margin-bottom:16px" data-ad="tenders-sidebar"></div>
         <div class="tender-sidebar-card">
@@ -1807,13 +1896,16 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         </div>
         <div class="dir-count" id="jobCount" role="status" style="margin-bottom:12px">&mdash;</div>
         <div id="jobsFull"></div>
+        <div class="panel" id="alerts" style="margin-top:34px;scroll-margin-top:90px">
+          <div id="jobAlertBody"></div>
+        </div>
       </div>
       <div>
         <div class="submit-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"></use></svg> Post a Job Vacancy</h4>
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Reach 8,000+ construction professionals actively looking for work in Uganda.</p>
           <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="showPage('submit')">Post a Job</button>
-          <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px">From UGX 100,000 per posting</div>
+          <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5">Contact the team at <a href="mailto:advertising@buildlist.com" style="color:var(--forest)">advertising@buildlist.com</a> for rates</div>
         </div>
         <div class="submit-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bar-chart"></use></svg> Market Salary Guide</h4>
@@ -1852,21 +1944,14 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   <div class="container">
     <div class="news-page-layout">
       <div>
-        <div class="tab-bar">
-          <div class="tab-btn active">All</div>
-          <div class="tab-btn">Regulation & Policy</div>
-          <div class="tab-btn">Market Prices</div>
-          <div class="tab-btn">Project News</div>
-          <div class="tab-btn">Professional Guides</div>
-          <div class="tab-btn">Technology</div>
-        </div>
+        <div class="tab-bar" id="newsTabs"></div>
         <!-- Sponsored article clearly labelled -->
         <div class="news-article-card" style="background:var(--gold-pale);border-color:rgba(196,154,22,.3)">
           <div style="background:rgba(196,154,22,.15);padding:4px 14px;font-size:.65rem;font-weight:700;color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em">★ Sponsored Article</div>
           <div class="news-article-card-inner">
             <div class="news-article-img" style="background:linear-gradient(135deg,var(--forest-deep),var(--forest))"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-crane"></use></svg></span></div>
             <div class="news-article-body">
-              <div class="news-category">Sponsored · Crown Cement Uganda</div>
+              <div class="news-category">Sponsored</div>
               <div class="news-title" style="font-size:1.1rem">Why Grade 42.5 Cement Delivers Better Long-Term Value for Commercial Builds</div>
               <p class="news-excerpt">A deep dive into the structural and economic case for premium-grade cement in Uganda's commercial construction sector — with data from five major Kampala projects completed 2022–2024.</p>
               <div class="news-meta"><span class="news-date">15 June 2025</span><span class="news-read-time">6 min read</span></div>
@@ -1884,11 +1969,16 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
               association meetings and bidder clinics. Past events disappear on their own, so what
               you see below has not happened yet.</p>
             </div>
-            <a class="btn btn-outline btn-sm" style="margin-left:auto" href="#/submit">Tell us about an event</a>
+            <a class="btn btn-outline btn-sm" style="margin-left:auto" href="#/news#event-submit" onclick="focusAlerts('eventForm')">Tell us about an event</a>
           </div>
           <p class="disclosure" style="margin-bottom:16px">Listed for information. Confirm dates,
           venue and fees with the organiser before travelling.</p>
           <div class="ev-list" id="eventsList"></div>
+          <div class="panel" id="event-submit" style="margin-top:26px;scroll-margin-top:90px">
+            <h3>Running an event?</h3>
+            <p>Expos, CPD sessions, association meetings and bidder clinics. Listing is free.</p>
+            <div id="eventForm"></div>
+          </div>
         </div>
 
         <!-- Stage 6: the price index as a time series -->
@@ -1925,7 +2015,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
             <tr><td>Bricks (fired)</td><td>1,000</td><td style="color:var(--forest);font-weight:700">380,000</td></tr>
             <tr><td>Tiles (600×600)</td><td>m²</td><td style="color:var(--forest);font-weight:700">65,000</td></tr>
           </table>
-          <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:12px">Full Price Report →</button>
+          <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:12px" onclick="downloadPriceCsv()">Download the full price report</button>
         </div>
 
         <!-- Recent articles -->
@@ -1989,15 +2079,28 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         as everything paid on this site is. It does not affect any firm's ranking, and it is separate
         from the Benchmark Project slot, which is editorial and not for sale.</p>
       </div>
-      <p style="text-align:center;margin:0 0 20px"><a class="btn btn-primary" href="downloads/BuildList-Media-Kit.pdf" download onclick="track('media_kit_download',{})"><svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg> Download the media kit (PDF, 128KB)</a></p>
-      <div class="note-box" style="max-width:720px;margin:0 auto 22px;text-align:center;
-        background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px">
-        <strong style="display:block;margin-bottom:6px">Rates are quoted, not posted</strong>
-        <p style="font-size:.88rem;color:var(--slate);margin-bottom:14px;max-width:56ch;margin-inline:auto">
-        Tell us what you sell and who you want to reach and we will send a rate card the same day,
-        with the positions that actually fit rather than the most expensive ones.</p>
-        <a class="btn btn-primary btn-sm" href="mailto:advertising@buildlist.com?subject=Rate%20card%20request">Request the rate card</a>
-        <a class="btn btn-outline btn-sm" href="#/about">Talk to us first</a>
+      <div style="max-width:660px;margin:0 auto 26px;text-align:center">
+        <p style="margin:0 0 14px"><a class="btn btn-primary" href="downloads/BuildList-Media-Kit.pdf" download
+          onclick="track('media_kit_download',{})"><svg class="ic" aria-hidden="true"><use href="#i-download"></use></svg>
+          Download the media kit</a></p>
+        <p style="font-size:.86rem;color:var(--slate);line-height:1.6;margin:0">
+          The media kit sets out every position, who reads the site and the creative
+          specifications. <strong>For rates, email
+          <a href="mailto:advertising@buildlist.com" style="color:var(--forest)">advertising@buildlist.com</a></strong>
+          or WhatsApp us — tell us what you sell and who you want to reach, and we will
+          come back the same day with the positions that fit rather than the ones that cost most.</p>
+      </div>
+      <div class="rates-note">
+        <div>
+          <strong>How to get rates</strong>
+          <p>Tell us what you sell and who you want to reach. We reply the same working day
+          with the positions that actually fit, priced for the campaign rather than off a list.
+          The media kit below covers audience, positions and specifications.</p>
+        </div>
+        <div class="rates-note-act">
+          <a class="btn btn-primary btn-sm" href="mailto:advertising@buildlist.com?subject=BuildList%20rates">advertising@buildlist.com</a>
+          <a class="btn btn-outline btn-sm" href="#/about">Or send us a message</a>
+        </div>
       </div>
       <p class="disclosure" id="mediaKitNote" style="text-align:center;max-width:720px;margin:0 auto 24px"></p>
       <div class="stats-grid-adv">
@@ -2056,7 +2159,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Leaderboard Banner</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">728×90px — Homepage & key pages</div>
-            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Homepage top placement</li>
               <li>Category page rotation</li>
@@ -2069,7 +2171,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
             <div style="font-size:.65rem;font-weight:800;color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">★ Most Popular</div>
             <div class="ad-package-name">Sponsored Listing</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Featured in search results</div>
-            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Top of relevant searches</li>
               <li>Gold border highlight</li>
@@ -2081,7 +2182,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Newsletter Sponsor</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Dedicated slot in weekly email</div>
-            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Full-width slot in the weekly digest</li>
               <li>Logo + 3-line message</li>
@@ -2093,7 +2193,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Sponsored Article</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Long-form branded content</div>
-            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Written by our editors</li>
               <li>Permanent on-site placement</li>
@@ -2105,7 +2204,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Tender Sponsorship</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Featured on Tenders Board</div>
-            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Brand beside all tender notices</li>
               <li>Sidebar rectangle ad</li>
@@ -2117,7 +2215,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="ad-package-card">
             <div class="ad-package-name">Platinum Bundle</div>
             <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Maximum visibility across all channels</div>
-            <div class="ad-package-price ad-package-quote">On request<span>rates by email</span></div>
             <ul class="ad-package-features">
               <li>Homepage leaderboard</li>
               <li>Category sponsor badge</li>
@@ -2132,7 +2229,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 
       <div style="background:var(--forest);border-radius:var(--r-lg);padding:40px;text-align:center">
         <h2 style="color:#fff;margin-bottom:12px">Download Our Media Kit</h2>
-        <p style="color:rgba(255,255,255,.7);max-width:500px;margin:0 auto 24px">Full audience data, rate card, ad specifications and booking terms in one professional PDF document.</p>
+        <p style="color:rgba(255,255,255,.7);max-width:500px;margin:0 auto 24px">Every advertising position, who reads the site, creative specifications and booking terms in one PDF. Rates are quoted to suit the campaign — email advertising@buildlist.com and we reply the same working day.</p>
         <button class="btn btn-primary btn-lg"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"></use></svg> Download Media Kit (PDF)</button>
         <p style="color:rgba(255,255,255,.5);font-size:.78rem;margin-top:14px">Or email us: <strong style="color:rgba(255,255,255,.8)">advertising@buildlist.com</strong></p>
       </div>
@@ -2160,7 +2257,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div class="listing-tier-cards">
           <div class="tier-card" onclick="selectTier(this,'Free')">
             <div class="tier-name">Free</div>
-            <div class="tier-price">UGX 0<span>/year</span></div>
+            <div class="tier-price tier-free">Free<span>always</span></div>
             <ul class="tier-features">
               <li>Basic firm profile</li>
               <li>Name, phone, location</li>
@@ -2170,7 +2267,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           </div>
           <div class="tier-card" onclick="selectTier(this,'Verified')">
             <div class="tier-name">Verified</div>
-            <div class="tier-price">UGX 150K<span>/year</span></div>
+            <div class="tier-price tier-quote">On request<span>ask us for rates</span></div>
             <ul class="tier-features">
               <li>All Free features</li>
               <li>Website & email link</li>
@@ -2181,7 +2278,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="tier-card popular" onclick="selectTier(this,'Premium')">
             <div style="font-size:.65rem;color:var(--gold-muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">★ Popular</div>
             <div class="tier-name">Premium</div>
-            <div class="tier-price">UGX 400K<span>/year</span></div>
+            <div class="tier-price tier-quote">On request<span>ask us for rates</span></div>
             <ul class="tier-features">
               <li>All Verified features</li>
               <li>Photo portfolio gallery</li>
@@ -2193,7 +2290,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="tier-card" onclick="selectTier(this,'Platinum')">
             <div style="font-size:.65rem;color:var(--gold-muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">★ Elite</div>
             <div class="tier-name">Platinum</div>
-            <div class="tier-price">UGX 1.5M<span>/year</span></div>
+            <div class="tier-price tier-quote">On request<span>ask us for rates</span></div>
             <ul class="tier-features">
               <li>All Premium features</li>
               <li>Homepage featured spot</li>
@@ -2208,7 +2305,19 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 
       <div class="submit-layout">
         <!-- Form -->
-        <form name="listing-submission" method="POST" data-netlify="true" netlify-honeypot="company-website" onsubmit="return handleForm(event,'Application received. We review and come back within 24-48 hours.')">
+        <div style="background:var(--parchment-d);border:1px solid var(--border);border-radius:var(--r-md);
+          padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <strong style="display:block;font-size:.9rem">Collecting listings in the field?</strong>
+            <span style="font-size:.82rem;color:var(--slate)">A one-page paper version, for
+            where there is no signal.</span>
+          </div>
+          <a class="btn btn-outline btn-sm" href="downloads/BuildList-Listing-Form.pdf" download
+             onclick="track('listing_form_download',{format:'pdf'})">PDF (59KB)</a>
+          <a class="btn btn-outline btn-sm" href="downloads/BuildList-Listing-Form.docx" download
+             onclick="track('listing_form_download',{format:'docx'})">Word</a>
+        </div>
+        <form name="listing-submission" onsubmit="return handleForm(event,'Application received. We review and come back within 24-48 hours.')">
           <input type="hidden" name="form-name" value="listing-submission">
           <input type="hidden" name="membership-tier" id="tierField" value="Free">
           <p hidden><label>Leave blank: <input name="company-website"></label></p>
@@ -2273,7 +2382,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="submit-sidebar-card">
             <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-clipboard"></use></svg> Your Selection</h4>
             <div class="tier-summary-item"><span>Membership tier</span><span id="selectedTierName" style="font-weight:700;color:var(--forest)">Free</span></div>
-            <div class="tier-summary-item"><span>Annual fee</span><span id="selectedTierPrice" style="font-family:var(--font-mono);font-weight:700">UGX 0</span></div>
+            <div class="tier-summary-item"><span>Annual fee</span><span id="selectedTierPrice" style="font-weight:700">Free</span></div>
             <div class="tier-summary-item"><span>ARB verification</span><span>Included</span></div>
             <div class="tier-summary-item" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><span>Total due</span><span id="selectedTierTotal" style="font-family:var(--font-mono);font-size:1.05rem;color:var(--forest)">UGX 0</span></div>
             <p style="font-size:.75rem;color:var(--muted);margin-top:10px">Payment accepted via MTN MoMo, Airtel Money, bank transfer, or card. Free listings are published immediately.</p>
@@ -2435,7 +2544,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-pin"></use></svg> <span data-site="address">Plot 18, Kampala Road, Kampala</span></div>
         </div>
       </div>
-      <form name="contact" method="POST" data-netlify="true" netlify-honeypot="company-website" onsubmit="return handleForm(event,'Message received. We reply within one business day.')" style="background:rgba(255,255,255,.08);border-radius:var(--r-md);padding:28px">
+      <form name="contact" onsubmit="return handleForm(event,'Message received. We reply within one business day.')" style="background:rgba(255,255,255,.08);border-radius:var(--r-md);padding:28px">
         <input type="hidden" name="form-name" value="contact">
         <p hidden><label>Leave blank: <input name="company-website"></label></p>
         <label class="sr-only" for="ctName">Your name</label>
@@ -2457,6 +2566,9 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
      PAGE: ARTICLE
 ═══════════════════════════════════════ -->
 <div id="page-article" class="hidden"><div id="articleBody"></div></div>
+<div id="page-tender" class="hidden"><div id="tenderBody"></div></div>
+<div id="page-job" class="hidden"><div id="jobBody"></div></div>
+<div id="page-event" class="hidden"><div id="eventBody"></div></div>
 
 <div id="page-privacy" class="hidden">
   <div class="page-header">
@@ -2540,7 +2652,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       <ul>
         <li><strong>Suppliers you choose</strong> — when you submit a quotation request, it goes to the suppliers
         shown to you before you sent it, so they can contact you directly.</li>
-        <li><strong>Service providers</strong> — our website host (Netlify), form processor, analytics provider
+        <li><strong>Service providers</strong> — our website host (Vercel), form processor, analytics provider
         (Google) and email platform. Each processes data on our instructions.</li>
         <li><strong>Nobody else.</strong> We do not sell, rent or trade personal data. We do not supply our listing
         database or subscriber list to third parties.</li>
@@ -2742,7 +2854,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
             <div class="logo-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="#1A3C2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 12 2 21 9 21 20 3 20 3 9"/><rect x="9" y="14" width="6" height="6"/></svg>
             </div>
-            <div><div class="logo-text">BuildList<span class="logo-tld">.com</span></div><span class="logo-sub">Uganda Construction Directory</span></div>
+            <div><div class="logo-text">BuildList<span class="logo-tld">.com</span></div><span class="logo-sub">Uganda's Construction Directory</span></div>
           </div>
           <p>Uganda's construction industry directory — listed firms, live tenders, professional jobs and material price tracking.</p>
           <p style="margin-top:12px;font-size:.82rem;color:rgba(255,255,255,.45)">A product of <strong style="color:var(--gold);font-weight:700">Sharplink Ventures (U) Limited</strong>, registered in Uganda.</p>
@@ -3054,6 +3166,20 @@ function renderCookieNotice() {
   el.classList.add('on');
 }
 
+/* The ribbon shows today's date, refreshed on the minute. It is a small
+   thing that does real work: a visitor landing on a directory wants to
+   know somebody is still tending it, and a live date says so before
+   they have read a word. */
+function paintLiveDate() {
+  const el = document.getElementById('liveDate');
+  if (!el) return;
+  const now = new Date();
+  el.textContent = now.toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+  });
+  el.setAttribute('datetime', now.toISOString().slice(0, 10));
+}
+
 function initAnalytics() {
   const id = (SITE.analytics && SITE.analytics.measurementId || '').trim();
   window.dataLayer = window.dataLayer || [];
@@ -3182,6 +3308,17 @@ function provenanceOf(firm) {
   return firm.descSource === 'submitted' ? 'submitted' : 'compiled';
 }
 
+
+/* Show the firm's actual domain rather than the word "Website". A
+   builder recognises awe.co.ug; "Website" tells them nothing and is
+   the same on every row. Editable in the portal like any other field. */
+function domainOf(url) {
+  try {
+    const h = new URL(/^https?:/.test(url) ? url : 'https://' + url).hostname;
+    return h.replace(/^www\./, '');
+  } catch (e) { return String(url).replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]; }
+}
+
 function verifiedLine(firm) {
   const kind = provenanceOf(firm);
   const p = PROVENANCE[kind];
@@ -3217,6 +3354,27 @@ function logoMarkup(firm, cls, extraStyle) {
            '</div>';
   }
   return '<div class="' + cls + '" style="' + style + '">' + esc(firm.initials) + '</div>';
+}
+
+
+/* Firm videos. Uploaded through the portal, attached to a firm, and
+   pulled into the generated profile at build time. Muted-by-default is
+   deliberate: a video that starts talking is how people close a tab. */
+function firmVideos(firm) {
+  const list = firm.videos && firm.videos.length ? firm.videos
+             : (firm.video ? [{ src: firm.video, poster: firm.videoPoster || '' }] : []);
+  if (!list.length) return '';
+  return `<div class="profile-section"><h3>${list.length > 1 ? 'Videos' : 'Video'}</h3>
+    ${list.map((v, i) => `
+      <figure class="firm-video">
+        <video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ''}
+          controls playsinline preload="metadata"
+          onplay="track('listing_video',{firm_slug:'${esc(firm.slug)}',index:${i}})"></video>
+        ${v.title || v.caption
+          ? `<figcaption>${v.title ? `<strong>${esc(v.title)}</strong> ` : ''}${esc(v.caption || '')}</figcaption>`
+          : ''}
+      </figure>`).join('')}
+  </div>`;
 }
 
 function photoGallery(firm) {
@@ -3493,8 +3651,8 @@ function renderHomeTenders() {
     <div class="tender-card ${t.urgent ? 'urgent' : ''}">
       <div class="tender-num">${esc(t.ref)}</div>
       <div class="tender-body">
-        <div class="tender-title">${esc(t.title)}</div>
-        <div class="tender-org">${esc(t.org)}</div>
+        <a class="tender-title" href="#/tenders/${esc(tenderSlug(t))}">${esc(t.title)}</a>
+        <div class="tender-org">${t.featured ? sponsorLink(t.org, t.orgWebsite, t.orgSlug) : esc(t.org)}</div>
       </div>
       <div class="tender-meta">
         <div class="tender-value">${esc(t.value)}</div>
@@ -3512,7 +3670,7 @@ function renderHomeJobs() {
     <div class="job-card ${j.featured ? 'featured' : ''}">
       <div class="job-card-header">
         <div>
-          <div class="job-title">${esc(j.title)}</div>
+          <a class="job-title" href="#/jobs/${esc(j.slug)}">${esc(j.title)}</a>
           <div class="job-company">${esc(j.company)}</div>
         </div>
         ${j.featured ? '<span class="badge badge-platinum">\u2605 Featured</span>' : ''}
@@ -3544,7 +3702,7 @@ function renderHomeNews() {
           <span class="news-read-time">\u2022 ${esc(n.readTime)}</span>
         </div>
       </div>
-    </a>`).join('');
+    </div>`).join('');
 }
 
 function renderNewsArticles() {
@@ -3552,7 +3710,9 @@ function renderNewsArticles() {
   if (!el) return;
   /* published === false means taken down in the portal. Hidden here,
      still in the database, restorable with one click. */
-  el.innerHTML = DATA.articles.filter(a => a.published !== false).map(n => `
+  el.innerHTML = livePosts()
+    .filter(a => !NEWS_CAT || a.category === NEWS_CAT)
+    .map(n => `
     <a class="news-article" href="#/news/${esc(n.slug)}" style="text-decoration:none;color:inherit;display:flex">
       <div class="news-article-img">${ico(n.icon, 'ic-lg')}</div>
       <div class="news-article-body">
@@ -3562,10 +3722,10 @@ function renderNewsArticles() {
         <div class="news-meta">
           <span class="news-date">${dateLabel(n.date)}</span>
           <span class="news-read-time">\u2022 ${esc(n.readTime)}</span>
-          ${n.sponsored ? '<span class="news-read-time" style="color:var(--gold-muted);font-weight:700">\u2022 Sponsored</span>' : ''}
+          ${n.sponsored ? `<span class="news-read-time" style="color:var(--gold-muted);font-weight:700">\u2022 Sponsored by ${articleSponsor(n)}</span>` : ''}
         </div>
       </div>
-    </a>`).join('');
+    </div>`).join('');
 }
 
 
@@ -3705,14 +3865,14 @@ function renderEvents() {
     const days = daysLeft(e.start);
     const soon = days >= 0 && days <= 14;
     const multi = e.end && e.end !== e.start;
-    return `<div class="ev ${soon ? 'soon' : ''}">
+    return `<div class="ev card-link ${soon ? 'soon' : ''}" onclick="openCard(event,'#/events/${esc(e.slug)}')">
       <div class="ev-date">
         <div class="d">${d.getDate()}</div>
         <div class="m">${d.toLocaleDateString('en-GB', { month: 'short' })}</div>
         <div class="yr">${d.getFullYear()}</div>
       </div>
       <div class="ev-main">
-        <div class="ev-title">${esc(e.title)}</div>
+        <a class="ev-title" href="#/events/${esc(e.slug)}" style="text-decoration:none;color:inherit;display:block">${esc(e.title)}</a>
         <div class="ev-org">${esc(e.organiser)}</div>
         <p class="ev-blurb">${esc(e.blurb)}</p>
         <div class="ev-tags">
@@ -3742,11 +3902,11 @@ function renderEventStrip() {
   el.innerHTML = '<div class="ev-list">' + list.map(e => {
     const d = new Date(e.start);
     const days = daysLeft(e.start);
-    return `<div class="ev ${days <= 14 ? 'soon' : ''}">
+    return `<div class="ev card-link ${days <= 14 ? 'soon' : ''}" onclick="openCard(event,'#/events/${esc(e.slug)}')">
       <div class="ev-date"><div class="d">${d.getDate()}</div>
         <div class="m">${d.toLocaleDateString('en-GB', { month: 'short' })}</div></div>
       <div class="ev-main">
-        <div class="ev-title">${esc(e.title)}</div>
+        <a class="ev-title" href="#/events/${esc(e.slug)}" style="text-decoration:none;color:inherit;display:block">${esc(e.title)}</a>
         <div class="ev-org">${esc(e.organiser)} \u00b7 ${esc(e.venue)}</div>
         <div class="ev-tags"><span class="ev-tag">${esc(e.type)}</span>
           ${e.cpd ? `<span class="ev-tag cpd">${e.cpd} CPD hours</span>` : ''}</div>
@@ -3755,6 +3915,471 @@ function renderEventStrip() {
         days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days'}</div></div>
     </div>`;
   }).join('') + '</div>';
+}
+
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NEWS CATEGORIES
+   Built from the articles themselves, with counts, so a tab can never
+   name a category with nothing behind it.
+   ═══════════════════════════════════════════════════════════════ */
+let NEWS_CAT = '';
+
+function livePosts() { return DATA.articles.filter(a => a.published !== false); }
+
+function renderNewsTabs() {
+  const el = document.getElementById('newsTabs');
+  if (!el) return;
+  const counts = {};
+  livePosts().forEach(a => { counts[a.category] = (counts[a.category] || 0) + 1; });
+  const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  el.innerHTML =
+    `<button type="button" class="tab-btn ${!NEWS_CAT ? 'active' : ''}" onclick="setNewsCat('')">
+       All <span class="tab-n">${livePosts().length}</span></button>` +
+    cats.map(c => `<button type="button" class="tab-btn ${NEWS_CAT === c ? 'active' : ''}"
+       onclick="setNewsCat('${esc(c)}')">${esc(c)} <span class="tab-n">${counts[c]}</span></button>`).join('');
+}
+
+function setNewsCat(c) {
+  NEWS_CAT = c;
+  renderNewsTabs();
+  renderNewsArticles();
+  track('news_category', { category: c || 'all' });
+}
+
+/* A sponsor's name is a link. If we have their site it goes there; if
+   they are listed here it goes to their profile; otherwise plain text. */
+function articleSponsor(a) {
+  if (!a.sponsored) return '';
+  const name = a.sponsor || 'an advertiser';
+  return sponsorLink(name, a.sponsorUrl, a.sponsorSlug);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALERTS AND SUBMISSION FORMS
+   Once somebody has given you their details, showing them the same
+   signup every visit reads as though you lost them. We remember the
+   choice locally and show a short "you are subscribed" state with a
+   way to change it — which is also what the Data Protection and
+   Privacy Act expects: withdrawal has to be as easy as signing up.
+   ═══════════════════════════════════════════════════════════════ */
+const SUBS_KEY = 'buildlist-subscriptions';
+
+function getSubs() {
+  try { return JSON.parse(localStorage.getItem(SUBS_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+function setSub(kind, record) {
+  const all = getSubs();
+  if (record) all[kind] = Object.assign({ at: Date.now() }, record);
+  else delete all[kind];
+  try { localStorage.setItem(SUBS_KEY, JSON.stringify(all)); } catch (e) {}
+}
+
+function focusAlerts(id) {
+  setTimeout(() => {
+    const el = document.getElementById(id) || document.getElementById('alerts');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = el.querySelector('input, select');
+      if (input) setTimeout(() => input.focus({ preventScroll: true }), 420);
+    }
+  }, 240);
+}
+
+/* ── Tender alerts ── */
+function renderAlertPanel() {
+  const el = document.getElementById('alertPanelBody');
+  if (!el) return;
+  const sub = getSubs().tenders;
+
+  if (sub) {
+    el.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <h3 style="margin-bottom:4px">${ico('bell')} Your tender alerts are on</h3>
+          <p style="margin-bottom:8px">We message you when a matching notice appears.</p>
+          <p style="font-size:.84rem;color:var(--slate)">
+            <strong>${esc(sub.email || sub.whatsapp || '')}</strong>
+            ${sub.categories ? ' \u00b7 ' + esc(sub.categories) : ' \u00b7 all categories'}
+            ${sub.minValue && sub.minValue !== '0' ? ' \u00b7 over UGX ' + Number(sub.minValue).toLocaleString() : ''}
+          </p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="editSub('tenders')">Review and edit</button>
+          <button class="btn btn-outline btn-sm" onclick="cancelSub('tenders')">Stop alerts</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <h3>Never miss a tender again</h3>
+    <p>Pick your categories and we send matching notices as they appear, by email or WhatsApp.
+    Most contractors miss tenders simply because they did not check the portal that week.</p>
+    <div id="alertForm"></div>`;
+  renderAlertForm();
+}
+
+function editSub(kind) { setSub(kind, null); renderAlertPanel(); renderJobAlertPanel(); focusAlerts(kind === 'tenders' ? 'alertForm' : 'jobAlertForm'); }
+function cancelSub(kind) {
+  setSub(kind, null);
+  renderNewsTabs();
+  renderAlertPanel(); renderJobAlertPanel();
+  track('alert_cancelled', { kind });
+}
+
+/* ── Job alerts ── */
+function renderJobAlertPanel() {
+  const el = document.getElementById('jobAlertBody');
+  if (!el) return;
+  const sub = getSubs().jobs;
+
+  if (sub) {
+    el.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <h3 style="margin-bottom:4px">${ico('bell')} Your job alerts are on</h3>
+          <p style="font-size:.84rem;color:var(--slate)">
+            <strong>${esc(sub.email || '')}</strong>
+            ${sub.discipline ? ' \u00b7 ' + esc(sub.discipline) : ' \u00b7 all disciplines'}
+            ${sub.level ? ' \u00b7 ' + esc(sub.level) : ''}</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="editSub('jobs')">Review and edit</button>
+          <button class="btn btn-outline btn-sm" onclick="cancelSub('jobs')">Stop alerts</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const disciplines = [...new Set(DATA.jobs.map(j => j.discipline).filter(Boolean))];
+  el.innerHTML = `
+    <h3>Job alerts</h3>
+    <p>New vacancies in your discipline, sent as they are posted. Free, and we never
+    pass your details to an employer without you applying.</p>
+    <form name="job-alerts" id="jobAlertForm"
+      onsubmit="return saveAlert(event,'jobs','Job alerts are on. We will message you when something matching appears.')">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="jaEmail">Email</label>
+          <input class="form-input" id="jaEmail" name="email" type="email" required placeholder="you@example.com"></div>
+        <div class="form-group"><label class="form-label" for="jaPhone">WhatsApp (optional)</label>
+          <input class="form-input" id="jaPhone" name="whatsapp" type="text" placeholder="+256\u2026"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="jaDisc">Discipline</label>
+          <select class="form-input" id="jaDisc" name="discipline">
+            <option value="">All disciplines</option>
+            ${disciplines.map(d => `<option value="${esc(d)}">${esc(String(d).replace(/-/g,' '))}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label class="form-label" for="jaLevel">Level</label>
+          <select class="form-input" id="jaLevel" name="level">
+            <option value="">Any level</option>
+            <option>entry</option><option>mid</option><option>senior</option><option>principal</option>
+          </select></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Set up job alerts</button>
+      <p class="disclosure" style="margin-top:12px">Free. Unsubscribe any time \u2014 the button
+      to stop them appears here once you are subscribed.</p>
+    </form>`;
+}
+
+/* One handler for both. Posts through the same API as every other form,
+   then remembers the choice so the signup is replaced by a status. */
+async function saveAlert(e, kind, message) {
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const ok = await handleForm(e, message);
+  setSub(kind, {
+    email: data.email, whatsapp: data.whatsapp,
+    categories: data.categories, minValue: data.min_value,
+    discipline: data.discipline, level: data.level
+  });
+  setTimeout(() => { renderAlertPanel(); renderJobAlertPanel(); }, 1800);
+  return ok;
+}
+
+/* ── Post a tender notice ── */
+function renderPostTenderForm() {
+  const el = document.getElementById('postTenderForm');
+  if (!el) return;
+  el.innerHTML = `
+    <form name="tender-submission"
+      onsubmit="return handleForm(event,'Received. We check the notice against the source and publish within two working hours.')">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="ptOrg">Procuring entity</label>
+          <input class="form-input" id="ptOrg" name="org" required></div>
+        <div class="form-group"><label class="form-label" for="ptRef">Reference number</label>
+          <input class="form-input" id="ptRef" name="ref" required></div>
+      </div>
+      <div class="form-group"><label class="form-label" for="ptTitle">Title of the notice</label>
+        <input class="form-input" id="ptTitle" name="title" required></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="ptClose">Closing date</label>
+          <input class="form-input" id="ptClose" name="deadline" type="date" required></div>
+        <div class="form-group"><label class="form-label" for="ptValue">Estimated value</label>
+          <input class="form-input" id="ptValue" name="value" placeholder="e.g. UGX 400M"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="ptName">Your name</label>
+          <input class="form-input" id="ptName" name="name" required></div>
+        <div class="form-group"><label class="form-label" for="ptPhone">Phone or email</label>
+          <input class="form-input" id="ptPhone" name="contact" required></div>
+      </div>
+      <button class="btn btn-primary" type="submit">Submit the notice</button>
+      <p class="disclosure" style="margin-top:12px">We verify every notice against the
+      procuring entity before publishing. Contact the team at
+      <a href="mailto:advertising@buildlist.com">advertising@buildlist.com</a> for rates on
+      featured placement.</p>
+    </form>`;
+}
+
+/* ── Submit an event ── */
+function renderEventForm() {
+  const el = document.getElementById('eventForm');
+  if (!el) return;
+  el.innerHTML = `
+    <form name="event-submission"
+      onsubmit="return handleForm(event,'Thank you. We check it with the organiser and add it to the calendar.')">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="evTitle">Event</label>
+          <input class="form-input" id="evTitle" name="title" required></div>
+        <div class="form-group"><label class="form-label" for="evOrg">Organiser</label>
+          <input class="form-input" id="evOrg" name="organiser" required></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="evStart">Date</label>
+          <input class="form-input" id="evStart" name="start" type="date" required></div>
+        <div class="form-group"><label class="form-label" for="evVenue">Venue or town</label>
+          <input class="form-input" id="evVenue" name="venue" required></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label" for="evCpd">CPD hours</label>
+          <input class="form-input" id="evCpd" name="cpd" type="number" min="0" placeholder="0 if none"></div>
+        <div class="form-group"><label class="form-label" for="evLink">Link for details</label>
+          <input class="form-input" id="evLink" name="link" type="url" placeholder="https://"></div>
+      </div>
+      <div class="form-group"><label class="form-label" for="evWhy">Why is it worth going?</label>
+        <textarea class="form-input" id="evWhy" name="blurb" style="min-height:80px"
+          placeholder="One or two sentences. What would a quantity surveyor get out of a morning there?"></textarea></div>
+      <div class="form-group"><label class="form-label" for="evContact">Your name and contact</label>
+        <input class="form-input" id="evContact" name="contact" required></div>
+      <button class="btn btn-primary" type="submit">Submit the event</button>
+      <p class="disclosure" style="margin-top:12px">Listing an event is free. We confirm
+      details with the organiser before publishing.</p>
+    </form>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DETAIL PAGES
+   Tenders, jobs and events each get their own URL so they can be
+   shared, bookmarked and sent on WhatsApp — which is how most of
+   this circulates in practice.
+   ═══════════════════════════════════════════════════════════════ */
+const tenderSlug = t => t.slug ||
+  String(t.ref || t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70);
+
+/* A sponsor's name is a link, not decoration: to their own site if we
+   have one, otherwise to their listing here, otherwise plain text. */
+function sponsorLink(name, site, slug) {
+  if (!name) return '';
+  if (site) return `<a href="${esc(site)}" target="_blank" rel="nofollow sponsored noopener"
+    onclick="track('sponsor_click',{name:'${esc(name)}'})">${esc(name)}</a>`;
+  const f = slug && DATA.firms.find(x => x.slug === slug);
+  if (f) return `<a href="#/firms/${esc(f.slug)}">${esc(f.name)}</a>`;
+  return esc(name);
+}
+
+function renderTenderDetail(t) {
+  const el = document.getElementById('tenderBody');
+  if (!el) return;
+  const d = daysLeft(t.deadline);
+  const near = d <= 3;
+  el.innerHTML = `
+  <div class="container">
+    <div class="breadcrumb" style="padding:18px 0">
+      <a href="#/home">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="#/tenders">Tenders</a><span class="breadcrumb-sep">/</span>
+      <span>${esc(t.ref || t.title)}</span>
+    </div>
+    <div class="detail">
+      <div class="detail-head">
+        <div class="detail-eyebrow">
+          <span class="badge badge-verified">${esc(String(t.category || '').replace(/-/g,' '))}</span>
+          ${t.clientType ? `<span class="badge badge-client">${esc(CLIENT_TYPES[t.clientType] || t.clientType)}</span>` : ''}
+          ${t.featured ? `<span class="badge badge-platinum">\u2605 Sponsored</span>` : ''}
+        </div>
+        <h1>${esc(t.title)}</h1>
+        <p class="detail-org">${t.featured ? sponsorLink(t.org, t.orgWebsite, t.orgSlug) : esc(t.org)}</p>
+      </div>
+
+      <div class="detail-grid">
+        <div>
+          <dl class="detail-facts">
+            <div><dt>Reference</dt><dd style="font-size:.86rem">${esc(t.ref || '\u2014')}</dd></div>
+            <div><dt>Estimated value</dt><dd style="font-size:.9rem">${esc(t.value || '\u2014')}</dd></div>
+            <div><dt>Closes</dt><dd style="font-size:.9rem">${dateLabel(t.deadline)}</dd></div>
+            <div><dt>Posted</dt><dd style="font-size:.9rem">${dateLabel(t.postedAt)}</dd></div>
+          </dl>
+          <div class="detail-body">
+            ${t.body ? mdRender(t.body) : `<p>${esc(t.summary || 'Full documents are available from the procuring entity. We publish the notice so you know it exists and when it closes; the conditions, bid security and submission requirements are set out in their tender document.')}</p>`}
+            <h3>Before you bid</h3>
+            <ul>
+              <li>Confirm the reference number and closing time with ${esc(t.org)} directly.</li>
+              <li>Check your registration and tax clearance are current, not expiring mid-process.</li>
+              <li>Note whether a bid security is required and what form it must take.</li>
+            </ul>
+          </div>
+          <div class="detail-warn"><strong>We publish notices for information.</strong>
+          ${esc(SITE.name)} is not the procuring entity and takes no part in the evaluation.
+          Always verify details against the official notice before submitting anything.
+          ${t.source ? `Source: ${esc(t.source)}.` : ''}</div>
+        </div>
+
+        <aside class="detail-side">
+          <div class="countdown-big ${near ? 'near' : ''}">${d === 0 ? 'Closes today' : d === 1 ? '1 day' : d + ' days'}</div>
+          <p style="margin-bottom:14px">${d === 0 ? 'Today is the deadline.' : 'left to submit'}</p>
+          <a class="btn btn-primary" href="#/tenders">See all open tenders</a>
+          <button class="btn btn-outline" onclick="shareThis('${esc(t.title)}')">Share this notice</button>
+          <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+          <h3>Never miss one</h3>
+          <p>We message matching notices as they appear.</p>
+          <a class="btn btn-forest" href="#/tenders#alerts">Set a tender alert</a>
+        </aside>
+      </div>
+    </div>
+  </div>`;
+  document.title = t.title + ' \u2014 ' + SITE.name;
+  track('tender_view', { ref: t.ref });
+}
+
+function renderJobDetail(j) {
+  const el = document.getElementById('jobBody');
+  if (!el) return;
+  const d = j.closesAt ? daysLeft(j.closesAt) : null;
+  const firm = j.companySlug && DATA.firms.find(f => f.slug === j.companySlug);
+  el.innerHTML = `
+  <div class="container">
+    <div class="breadcrumb" style="padding:18px 0">
+      <a href="#/home">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="#/jobs">Jobs</a><span class="breadcrumb-sep">/</span><span>${esc(j.title)}</span>
+    </div>
+    <div class="detail">
+      <div class="detail-head">
+        <div class="detail-eyebrow">
+          <span class="badge badge-verified">${esc(String(j.discipline || '').replace(/-/g,' '))}</span>
+          <span class="badge badge-free">${esc(j.level || '')}</span>
+          ${j.featured ? '<span class="badge badge-platinum">\u2605 Featured</span>' : ''}
+        </div>
+        <h1>${esc(j.title)}</h1>
+        <p class="detail-org">${firm ? `<a href="#/firms/${esc(firm.slug)}">${esc(j.company)}</a>` : esc(j.company)}
+          \u00b7 ${esc(j.location || '')}</p>
+      </div>
+      <div class="detail-grid">
+        <div>
+          <dl class="detail-facts">
+            <div><dt>Type</dt><dd style="font-size:.9rem">${esc(j.type || '\u2014')}</dd></div>
+            <div><dt>Experience</dt><dd style="font-size:.9rem">${esc(j.experience || '\u2014')}</dd></div>
+            <div><dt>Salary</dt><dd style="font-size:.86rem">${esc(j.salary || 'Not stated')}</dd></div>
+            <div><dt>Closes</dt><dd style="font-size:.9rem">${j.closesAt ? dateLabel(j.closesAt) : 'Open'}</dd></div>
+          </dl>
+          <div class="detail-body">
+            ${j.body ? mdRender(j.body) : `<p>${esc(j.summary || 'The employer has not supplied a full description. Apply using the details opposite and ask them for the job description.')}</p>`}
+            <h3>Applying</h3>
+            <ul>
+              <li>Send a CV and a short covering note. One page each is enough.</li>
+              <li>Quote the job title in the subject line.</li>
+              <li>Ask for the full job description if it was not advertised.</li>
+            </ul>
+          </div>
+          <div class="detail-warn"><strong>${esc(SITE.name)} is not the employer.</strong>
+          We publish vacancies so people can find them. No legitimate employer asks for
+          payment to consider an application \u2014 if one does, tell us and we will remove the listing.</div>
+        </div>
+        <aside class="detail-side">
+          ${d !== null ? `<div class="countdown-big ${d <= 3 ? 'near' : ''}">${d === 0 ? 'Closes today' : d === 1 ? '1 day' : d + ' days'}</div>
+            <p style="margin-bottom:14px">${d === 0 ? 'Today is the deadline.' : 'left to apply'}</p>` : ''}
+          ${j.applyEmail
+            ? `<a class="btn btn-primary" href="mailto:${esc(j.applyEmail)}?subject=${encodeURIComponent('Application: ' + j.title)}"
+                 onclick="track('job_apply',{slug:'${esc(j.slug)}'})">Apply by email</a>` : ''}
+          ${firm ? `<a class="btn btn-outline" href="#/firms/${esc(firm.slug)}">About ${esc(firm.name)}</a>` : ''}
+          <button class="btn btn-outline" onclick="shareThis('${esc(j.title)}')">Share this vacancy</button>
+          <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+          <h3>Job alerts</h3>
+          <p>New vacancies in your discipline, as they are posted.</p>
+          <a class="btn btn-forest" href="#/jobs#alerts">Set a job alert</a>
+        </aside>
+      </div>
+    </div>
+  </div>`;
+  document.title = j.title + ' \u2014 ' + SITE.name;
+  track('job_view', { slug: j.slug });
+}
+
+function renderEventDetail(e) {
+  const el = document.getElementById('eventBody');
+  if (!el) return;
+  const d = daysLeft(e.start);
+  const multi = e.end && e.end !== e.start;
+  el.innerHTML = `
+  <div class="container">
+    <div class="breadcrumb" style="padding:18px 0">
+      <a href="#/home">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="#/news">Events</a><span class="breadcrumb-sep">/</span><span>${esc(e.title)}</span>
+    </div>
+    <div class="detail">
+      <div class="detail-head">
+        <div class="detail-eyebrow">
+          <span class="badge badge-verified">${esc(e.type)}</span>
+          ${e.cpd ? `<span class="badge badge-platinum">${e.cpd} CPD hours</span>` : ''}
+        </div>
+        <h1>${esc(e.title)}</h1>
+        <p class="detail-org">${esc(e.organiser)}</p>
+      </div>
+      <div class="detail-grid">
+        <div>
+          <dl class="detail-facts">
+            <div><dt>When</dt><dd style="font-size:.9rem">${multi ? dateLabel(e.start) + ' \u2013 ' + dateLabel(e.end) : dateLabel(e.start)}</dd></div>
+            <div><dt>Time</dt><dd style="font-size:.9rem">${esc(e.time || '\u2014')}</dd></div>
+            <div><dt>Where</dt><dd style="font-size:.9rem">${esc(e.venue)}</dd></div>
+            <div><dt>Cost</dt><dd style="font-size:.86rem">${esc(e.cost || '\u2014')}</dd></div>
+          </dl>
+          <div class="detail-body"><p>${esc(e.blurb)}</p></div>
+          <div class="detail-warn"><strong>Listed for information.</strong>
+          Confirm the date, venue and fee with the organiser before travelling.
+          ${e.source ? `Source: ${esc(e.source)}.` : ''}</div>
+        </div>
+        <aside class="detail-side">
+          <div class="countdown-big ${d <= 7 ? 'near' : ''}">${d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : d + ' days'}</div>
+          <p style="margin-bottom:14px">${d <= 1 ? '' : 'until it starts'}</p>
+          ${e.link ? `<a class="btn btn-primary" href="${esc(e.link)}" target="_blank" rel="noopener"
+            onclick="track('event_click',{slug:'${esc(e.slug)}'})">Organiser's page</a>`
+            : `<p style="font-size:.82rem;color:var(--muted)">No booking link supplied. Contact the organiser directly.</p>`}
+          <button class="btn btn-outline" onclick="shareThis('${esc(e.title)}')">Share this event</button>
+          <a class="btn btn-outline" href="#/news">All events</a>
+        </aside>
+      </div>
+    </div>
+  </div>`;
+  document.title = e.title + ' \u2014 ' + SITE.name;
+  track('event_view', { slug: e.slug });
+}
+
+/* Cards are clickable, but they contain their own links and buttons.
+   A click that landed on one of those belongs to it, not to the card. */
+function openCard(event, href) {
+  if (event.target.closest('a, button')) return;
+  if (window.getSelection && String(window.getSelection())) return;  // let people select text
+  location.hash = href;
+}
+
+function shareThis(title) {
+  const url = location.href;
+  if (navigator.share) { navigator.share({ title, url }).catch(() => {}); return; }
+  navigator.clipboard?.writeText(url);
+  alert('Link copied.');
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3803,7 +4428,7 @@ function renderArticle(a) {
         </div>
       </header>
       ${a.sponsored ? `<div class="art-sponsored"><strong>Sponsored article</strong>
-        This was paid for by an advertiser. We were paid to publish it, and we are telling you so
+        Paid for by ${articleSponsor(a)}. We were paid to publish this, and we are telling you so
         because a reader deserves to know which pieces are bought and which are not.</div>` : ''}
       <div class="art-body">${mdRender(a.body || a.excerpt)}</div>
       <footer class="art-foot">
@@ -3924,7 +4549,7 @@ function renderDirListings() {
         </div>
         <div class="dir-row-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
         <div class="dir-row-tags">${(l.accreditations || []).map(a => `<span class="dir-row-tag">${esc(NAMES.accreditation[a] || a)}</span>`).join('')}</div>
-        <div style="margin-top:6px">${verifiedLine(l)}${l.website ? ` &middot; <a href="${esc(l.website)}" target="_blank" rel="nofollow noopener" onclick="event.stopPropagation();track('listing_website',{firm_slug:'${esc(l.slug)}'})">Website</a>` : ''}</div>
+        <div style="margin-top:6px">${verifiedLine(l)}${l.website ? ` &middot; <a href="${esc(l.website)}" target="_blank" rel="nofollow noopener" onclick="event.stopPropagation();track('listing_website',{firm_slug:'${esc(l.slug)}'})">${esc(domainOf(l.website))}</a>` : ''}</div>
       </div>
       <div class="dir-row-meta">
         <div class="dir-row-location">${ico('pin')} ${esc(l.area)}</div>
@@ -4194,8 +4819,8 @@ function renderAlertForm() {
   if (!el) return;
   const cats = [...new Set(DATA.tenders.map(t => t.category))];
   el.innerHTML =
-    '<form name="tender-alerts" method="POST" data-netlify="true" netlify-honeypot="company-website" ' +
-    'onsubmit="return handleForm(event,\'You are subscribed. Matching notices reach you within the hour.\')">' +
+    '<form name="tender-alerts" ' +
+    'onsubmit="return saveAlert(event,\'tenders\',\'You are subscribed. Matching notices reach you within the hour.\')">' +
     '<input type="hidden" name="form-name" value="tender-alerts">' +
     '<p hidden><label>Leave blank: <input name="company-website"></label></p>' +
     '<div class="alert-cats">' + cats.map(c =>
@@ -4228,7 +4853,7 @@ function renderRfqForm() {
   const el = document.getElementById('rfqForm');
   if (!el) return;
   el.innerHTML =
-    '<form name="quote-request" method="POST" data-netlify="true" netlify-honeypot="company-website" ' +
+    '<form name="quote-request" ' +
     'onsubmit="return handleForm(event,\'Request received. We pass it to matching suppliers and they contact you directly.\')">' +
     '<input type="hidden" name="form-name" value="quote-request">' +
     '<input type="hidden" name="matched_suppliers" id="rfqMatched" value="">' +
@@ -4537,13 +5162,7 @@ function renderProfile(firm) {
           <div class="dir-row-tags">${firm.services.map(sv => `<span class="dir-row-tag">${esc(sv)}</span>`).join('')}</div>
         </div>` : ''}
 
-        ${firm.video ? `
-        <div class="profile-section"><h3>Video</h3>
-          <video src="${esc(firm.video)}" controls playsinline preload="metadata"
-            ${firm.videoPoster ? `poster="${esc(firm.videoPoster)}"` : ''}
-            style="width:100%;height:auto;border-radius:var(--r-md);border:1px solid var(--border);background:#000"
-            onplay="track('listing_video',{firm_slug:'${esc(firm.slug)}'})"></video>
-        </div>` : ''}
+        ${firmVideos(firm)}
 
         ${photoGallery(firm)}
 
@@ -4730,7 +5349,8 @@ function renderTendersFull() {
   }
 
   el.innerHTML = list.map(t => `
-    <div class="tender-card-full ${t.featured ? 'featured' : ''} ${t.urgent ? 'urgent' : ''}">
+    <div class="tender-card-full card-link ${t.featured ? 'featured' : ''} ${t.urgent ? 'urgent' : ''}"
+       onclick="openCard(event,'#/tenders/${esc(tenderSlug(t))}')">
       <div class="tender-full-header">
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
@@ -4739,8 +5359,9 @@ function renderTendersFull() {
             <span class="badge badge-verified">${esc(t.category.replace(/-/g, ' '))}</span>
             ${t.clientType ? `<span class="badge badge-client">${esc(CLIENT_TYPES[t.clientType] || t.clientType)}</span>` : ''}
           </div>
-          <div class="tender-full-title">${esc(t.title)}</div>
-          <div class="tender-full-org">${esc(t.org)}</div>
+          <a class="tender-title tender-full-title" href="#/tenders/${esc(tenderSlug(t))}">${esc(t.title)}</a>
+          <div class="tender-full-org">${t.featured
+            ? sponsorLink(t.org, t.orgWebsite, t.orgSlug) : esc(t.org)}</div>
         </div>
         <div style="text-align:right">
           <div class="tender-value" style="font-size:1.05rem">${esc(t.value)}</div>
@@ -4792,10 +5413,11 @@ function renderJobsFull() {
   }
 
   el.innerHTML = list.map(j => `
-    <div class="job-card-full ${j.featured ? 'featured' : ''}">
+    <div class="job-card-full card-link ${j.featured ? 'featured' : ''}"
+       onclick="openCard(event,'#/jobs/${esc(j.slug)}')">
       <div class="job-card-header">
         <div>
-          <div class="job-title">${esc(j.title)}</div>
+          <a class="job-title" href="#/jobs/${esc(j.slug)}">${esc(j.title)}</a>
           <div class="job-company">
             ${j.companySlug ? `<a href="#/firms/${esc(j.companySlug)}">${esc(j.company)}</a>` : esc(j.company)}
           </div>
@@ -4834,6 +5456,11 @@ function renderAll() {
   renderHomeNews();
   renderNewsArticles();
   renderSectorGrid();
+  renderNewsTabs();
+  renderAlertPanel();
+  renderJobAlertPanel();
+  renderPostTenderForm();
+  renderEventForm();
   renderEvents();
   renderEventStrip();
   renderProductOfMonth();
@@ -4843,13 +5470,12 @@ function renderAll() {
   renderJobsFull();
   renderAds();
   renderPriceIndex();
-  renderAlertForm();
   renderRfqForm();
   paintStats();
 }
 
 // ── PAGE ROUTING ──────────────────────────────────────────────────
-const PAGES = ['home','directory','profile','tenders','jobs','news','article','advertise','submit','about','privacy','terms'];
+const PAGES = ['home','directory','profile','tenders','tender','jobs','job','news','article','event','advertise','submit','about','privacy','terms'];
 
 const PAGE_TITLES = {
   home:      SITE.name + ' — Uganda\'s Construction Industry Directory',
@@ -4863,7 +5489,10 @@ const PAGE_TITLES = {
   about:     'About & Ownership — ' + SITE.name,
   privacy:   'Privacy Policy — ' + SITE.name,
   terms:     'Terms of Service — ' + SITE.name,
-  article:   'Article — ' + SITE.name
+  article:   'Article — ' + SITE.name,
+  tender:    'Tender notice — ' + SITE.name,
+  job:       'Vacancy — ' + SITE.name,
+  event:     'Industry event — ' + SITE.name
 };
 
 /* Renders a page. Called by the router — use location.hash to navigate
@@ -4913,6 +5542,26 @@ function router() {
   const path = hash.replace(/^#\/?/, '').split('?')[0];
   const parts = path.split('/').filter(Boolean);
 
+  // Detail routes
+  if (parts[0] === 'tenders' && parts[1]) {
+    if (!DATA_READY) { PENDING_ROUTE = true; return; }
+    const t = DATA.tenders.find(x => tenderSlug(x) === parts[1]);
+    if (t) { showPage('tender', { silent: true }); renderTenderDetail(t); return; }
+    showPage('tenders', { silent: true }); return;
+  }
+  if (parts[0] === 'jobs' && parts[1]) {
+    if (!DATA_READY) { PENDING_ROUTE = true; return; }
+    const j = DATA.jobs.find(x => x.slug === parts[1]);
+    if (j) { showPage('job', { silent: true }); renderJobDetail(j); return; }
+    showPage('jobs', { silent: true }); return;
+  }
+  if (parts[0] === 'events' && parts[1]) {
+    if (!DATA_READY) { PENDING_ROUTE = true; return; }
+    const e = ((DATA.events && DATA.events.events) || []).find(x => x.slug === parts[1]);
+    if (e) { showPage('event', { silent: true }); renderEventDetail(e); return; }
+    showPage('news', { silent: true }); return;
+  }
+
   // Article route: #/news/some-article-slug
   if (parts[0] === 'news' && parts[1]) {
     if (!DATA_READY) { PENDING_ROUTE = true; return; }
@@ -4958,14 +5607,16 @@ function closeMobileNav() {
 }
 
 /* ── FORMS ──────────────────────────────────────────────────────
-   On Netlify the form posts normally and this never fires, because
-   data-netlify handles it. Opened as a local file (no backend) we
+   On Vercel the form posts normally and this never fires, because
+   the serverless function handles it. Opened as a local file we
    intercept so the demo still gives feedback instead of doing nothing. */
-function handleForm(e, message) {
-  const isLocal = location.protocol === 'file:';
-  if (!isLocal) return true;
-  e.preventDefault();
-  const form = e.target;
+/* ── FORMS ───────────────────────────────────────────────────────
+   Every form posts to /api/form, a serverless function that files the
+   submission and notifies you. The submit button is disabled while it
+   is in flight, and a failure says so rather than clearing the fields
+   and pretending it worked — the worst outcome is somebody believing
+   they applied when they did not. */
+function formNote(form, html, kind) {
   let note = form.querySelector('.form-note');
   if (!note) {
     note = document.createElement('div');
@@ -4973,8 +5624,51 @@ function handleForm(e, message) {
     note.setAttribute('role', 'status');
     form.appendChild(note);
   }
-  note.textContent = message + ' (Preview mode — this submits for real once deployed to Netlify.)';
-  form.querySelectorAll('input:not([type=hidden]), textarea').forEach(i => { i.value = ''; });
+  note.className = 'form-note' + (kind ? ' form-note-' + kind : '');
+  note.innerHTML = html;
+  return note;
+}
+
+async function handleForm(e, message) {
+  e.preventDefault();
+  const form = e.target;
+  const name = form.getAttribute('name');
+  const btn = form.querySelector('button[type=submit], .btn[type=submit]');
+  const label = btn ? btn.innerHTML : '';
+
+  if (location.protocol === 'file:') {
+    formNote(form, message + ' <em style="opacity:.7">(Preview \u2014 this sends once deployed.)</em>');
+    form.querySelectorAll('input:not([type=hidden]), textarea').forEach(i => { i.value = ''; });
+    return false;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  data['form-name'] = name;
+
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Sending\u2026'; }
+  try {
+    const res = await fetch('/api/form', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const out = await res.json().catch(() => ({ ok: res.ok }));
+    if (!res.ok || !out.ok) throw new Error(out.error || 'Server returned ' + res.status);
+
+    formNote(form, '<strong>' + esc(message) + '</strong>');
+    form.querySelectorAll('input:not([type=hidden]), textarea').forEach(i => { i.value = ''; });
+    track('form_submit', { form: name });
+  } catch (err) {
+    const wa = SITE.whatsapp ? String(SITE.whatsapp).replace(/\D/g, '') : '';
+    formNote(form,
+      '<strong>That did not send.</strong> Nothing has been lost from the form \u2014 try again, or ' +
+      (wa ? 'message us on <a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>'
+          : 'email <a href="mailto:' + esc(SITE.email) + '">' + esc(SITE.email) + '</a>') + '.',
+      'error');
+    track('form_error', { form: name });
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = label; }
+  }
   return false;
 }
 
@@ -5025,7 +5719,7 @@ function selectTier(el, tier) {
   el.classList.add('selected');
   const prices = { Free: 'UGX 0', Verified: 'UGX 150,000', Premium: 'UGX 400,000', Platinum: 'UGX 1,500,000' };
   document.getElementById('selectedTierName').textContent = tier;
-  document.getElementById('selectedTierPrice').textContent = prices[tier];
+  document.getElementById('selectedTierPrice').textContent = (tier === 'Free' ? 'Free' : 'On request');
   document.getElementById('selectedTierTotal').textContent = prices[tier];
   const tf = document.getElementById('tierField');
   if (tf) tf.value = tier;
@@ -5045,7 +5739,7 @@ function showLoading() {
 function showDataError(err) {
   const msg = '<div class="data-error"><strong>We could not load the directory data.</strong> ' +
     'This usually means the site is being opened directly from a folder rather than served over http. ' +
-    'Run a local server (<code>python3 -m http.server</code>) or deploy to Netlify. ' +
+    'Run a local server (<code>python3 -m http.server</code>) or deploy to Vercel. ' +
     'Technical detail: ' + esc(err && err.message ? err.message : String(err)) + '</div>';
   ['dirListings', 'tendersFull', 'jobsFull', 'featuredListings', 'homeTenders', 'homeJobs', 'homeNews', 'newsArticles']
     .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = msg; });
@@ -5071,6 +5765,8 @@ function animateCounter(id, target) {
 // ── INITIALISE ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // Show the shell immediately, then fill it once the data arrives.
+  paintLiveDate();
+  setInterval(paintLiveDate, 60000);
   initAnalytics();
   renderCookieNotice();
   showLoading();

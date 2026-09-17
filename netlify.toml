@@ -1,45 +1,33 @@
-# ═══════════════════════════════════════════════════
-# BUILDLIST — NETLIFY CONFIGURATION
-# A product of Sharplink Ventures (U) Limited
-# Docs: https://docs.netlify.com/configure-builds/file-based-configuration/
-# ═══════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
+# BuildList.com — Netlify configuration
+#
+# This repository deploys to EITHER Netlify or Vercel without change.
+# The form endpoint is /api/form on both: here _redirects maps it to
+# netlify/functions/form.mjs, on Vercel it is api/form.js. Both import
+# the same lib/form-core.js, so behaviour is identical.
+# ═══════════════════════════════════════════════════════════════
 
 [build]
   publish = "."
-  # Stage 5: generates a real HTML file per firm, category, tender and
-  # article from data/*.json, plus the sitemap. Runs on every deploy,
-  # so committing a JSON change rebuilds every affected page.
-  # Stage 3: pull.js fetches the live database into data/*.json, then
-  # build.js turns it into static pages. If Supabase is unset or
-  # unreachable, pull.js exits quietly and the committed JSON is used,
-  # so a database outage cannot take the site down.
   command = "node supabase/pull.js && node build.js"
+  functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "18"
-  # Set SITE_URL in Netlify → Site settings → Environment variables
-  # once your real domain is live, so canonicals and the sitemap match.
+  NODE_VERSION = "20"
+  # Set SITE_URL, SUPABASE_* and the form delivery variables in
+  # Site configuration → Environment variables.
 
-# Redirect rules live in _redirects so there is one source of truth.
-# Do not duplicate them here; Netlify would apply both and the order
-# becomes hard to reason about.
-
-# ── Security headers (applied to every response) ────
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options            = "SAMEORIGIN"
-    X-Content-Type-Options     = "nosniff"
-    Referrer-Policy            = "strict-origin-when-cross-origin"
-    Permissions-Policy         = "geolocation=(), microphone=(), camera=(), payment=(), interest-cohort=()"
-    Strict-Transport-Security  = "max-age=31536000; includeSubDomains; preload"
-    # Content Security Policy. 'unsafe-inline' is required because all CSS
-    # and JS live inside index.html. If you later move them to separate
-    # files, drop 'unsafe-inline' — it is the weakest part of this policy.
-    Content-Security-Policy    = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://unpkg.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://*.tile.openstreetmap.org; media-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    X-Frame-Options           = "SAMEORIGIN"
+    X-Content-Type-Options    = "nosniff"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Permissions-Policy        = "geolocation=(), microphone=(), camera=(), payment=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy   = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://unpkg.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.github.com https://esm.sh https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://*.tile.openstreetmap.org; media-src 'self' blob: https://*.supabase.co; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
 
-# ── Cache: HTML always revalidates so updates go live instantly ──
-# Generated pages revalidate so a JSON edit goes live immediately
+# Generated pages revalidate so a data change is live immediately
 [[headers]]
   for = "/firms/*"
   [headers.values]
@@ -50,129 +38,43 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# The portal and CMS must never be cached — a stale shell with a live
-# session is a confusing way to lose someone's work.
-[[headers]]
-  for = "/portal.html"
-  [headers.values]
-    Cache-Control = "no-store"
-    X-Robots-Tag = "noindex, nofollow"
-
-[[headers]]
-  for = "/cms/*"
-  [headers.values]
-    Cache-Control = "no-store"
-    X-Robots-Tag = "noindex, nofollow"
-
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-
-# ── Cache: fingerprint-free assets, moderate lifetimes ──
-[[headers]]
-  for = "/favicon.svg"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"
-
-[[headers]]
-  for = "/og-image.png"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"
-
-[[headers]]
-  for = "/icon-192.png"
-  [headers.values]
-    Cache-Control = "public, max-age=2592000"
-
-[[headers]]
-  for = "/icon-512.png"
-  [headers.values]
-    Cache-Control = "public, max-age=2592000"
-
-[[headers]]
-  for = "/manifest.json"
-  [headers.values]
-    Cache-Control = "public, max-age=86400"
-
-[[headers]]
-  for = "/robots.txt"
-  [headers.values]
-    Cache-Control = "public, max-age=86400"
-
-[[headers]]
-  for = "/sitemap.xml"
-  [headers.values]
-    Cache-Control = "public, max-age=43200"
-
-# ── Data files ───────────────────────────────────────
-# Content changes daily (tenders) and weekly (prices), so these must
-# revalidate on every request. Caching them would show visitors a
-# tender board that closed last week.
 [[headers]]
   for = "/data/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
     Content-Type  = "application/json; charset=utf-8"
 
-# ── Access control ───────────────────────────────────
-# admin.html is protected only by a passphrase in its source, which is
-# not security — it stays blocked and is run locally.
-#
-# portal.html and /cms/ are DIFFERENT: both have real authentication
-# (Supabase for the portal, GitHub OAuth for the CMS), so they are
-# served normally. Blocking them would defeat the point of building
-# them, and neither exposes anything without a valid login.
-[[redirects]]
-  from = "/admin.html"
-  to = "/404.html"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/supabase/*"
-  to = "/404.html"
-  status = 404
-  force = true
-
-# Friendly entry points for staff
-[[redirects]]
-  from = "/login"
-  to = "/portal.html"
-  status = 301
-
-[[redirects]]
-  from = "/portal"
-  to = "/portal.html"
-  status = 301
-
-# The media kit is a sales document that changes when rates change,
-# so it revalidates rather than sitting in a CDN for a week.
 [[headers]]
   for = "/downloads/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# ── Images ───────────────────────────────────────────
-# Logos, photographs and ad creatives change only when you replace the
-# file, so cache them hard. If you swap an image and want it live
-# immediately, change the filename rather than overwriting it.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 [[headers]]
   for = "/images/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"
 
 # Video needs byte-range support so a viewer can scrub without
-# downloading the whole file. Netlify does this by default; the header
-# makes it explicit and survives a CDN config change.
+# downloading the whole file.
 [[headers]]
   for = "/images/ads/*.mp4"
   [headers.values]
     Accept-Ranges = "bytes"
     Cache-Control = "public, max-age=2592000"
 
-# ── Netlify Forms ────────────────────────────────────
-# The "newsletter", "contact" and "listing-submission" forms in
-# index.html carry data-netlify="true" and are detected automatically.
-# Submissions: Netlify Dashboard → Forms. Free tier: 100/month.
-# Turn on email alerts: Forms → [form] → Settings → Notifications.
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=43200"
+
+# The portal has a real login but should not be indexed
+[[headers]]
+  for = "/portal.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag  = "noindex, nofollow"

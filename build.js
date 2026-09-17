@@ -17,7 +17,7 @@
 
        node build.js
 
-   Netlify: set the build command to `node build.js`, publish `.`
+   Vercel: set the build command to `node build.js`, publish `.`
    ═══════════════════════════════════════════════════════════════ */
 
 const fs = require('fs');
@@ -52,7 +52,7 @@ const MIN_FOR_PAGE = 1;
 
 /* Remove previously generated pages before rebuilding. Without this a
    renamed slug leaves an orphan page on disk that Google may already
-   have indexed, and you end up with two URLs for one firm. Netlify
+   have indexed, and you end up with two URLs for one firm. Vercel
    builds in a clean checkout anyway; this keeps local builds honest. */
 function clean() {
   OUT_DIRS.forEach(d => {
@@ -154,7 +154,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script
 <header><div class="wrap">
   <a class="logo" href="/">
     <span class="logo-tile"><svg viewBox="0 0 24 24" fill="none" stroke="#1A3C2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 12 2 21 9 21 20 3 20 3 9"/><rect x="9" y="14" width="6" height="6"/></svg></span>
-    <span>BuildList<span class="tld">.com</span><small>Uganda Construction Directory</small></span>
+    <span>BuildList<span class="tld">.com</span><small>Uganda's Construction Directory</small></span>
   </a>
   <nav>
     <a href="/">Home</a><a href="/browse/">Directory</a><a href="/#/tenders">Tenders</a>
@@ -225,6 +225,14 @@ liveFirms.forEach(f => {
       }</p></div>
     ${(f.services || []).length ? `<div class="sec"><h2>Services</h2>
       ${f.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>` : ''}
+    ${(f.videos || []).length ? `<div class="sec"><h2>${f.videos.length > 1 ? 'Videos' : 'Video'}</h2>
+      ${f.videos.map(v => `<figure style="margin:0 0 14px">
+        <video src="${esc(v.src)}" ${v.poster ? `poster="${esc(v.poster)}"` : ''}
+          controls playsinline preload="metadata"
+          style="width:100%;border-radius:8px;border:1px solid var(--border);background:#000"></video>
+        ${v.title || v.caption ? `<figcaption style="font-size:.8rem;color:var(--muted);margin-top:6px">
+          ${v.title ? `<strong>${esc(v.title)}</strong> ` : ''}${esc(v.caption || '')}</figcaption>` : ''}
+      </figure>`).join('')}</div>` : ''}
     ${(f.photos || []).length ? `<div class="sec"><h2>Photographs</h2><div class="grid">
       ${f.photos.map(p => `<img src="/${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy"
         style="width:100%;border-radius:8px;border:1px solid var(--border)">`).join('')}</div></div>` : ''}
@@ -388,35 +396,63 @@ ${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${stamp}</lastmod><changefre
 </urlset>
 `);
 
-/* ═══════════════ 7. REDIRECTS ═══════════════
-   The short category URLs are generated from taxonomy.json, so they can
-   never drift from the pages that actually exist. Hand-written ones went
-   stale the moment the categories changed, and a 301 to a 404 is worse
-   than no redirect at all. */
-const REDIRECT_MARK = '# ── BEGIN generated category shortcuts (build.js) ──';
-const REDIRECT_END  = '# ── END generated category shortcuts ──';
+/* This package targets Netlify only, so the other host's config is
+   absent and its branch below simply does not fire. */
+/* ═══════════════ 7. CATEGORY SHORTCUTS ═══════════════
+   Generated from taxonomy.json into whichever host config is present,
+   so /quantity-surveying always points at a page that exists. Written
+   by hand these went stale the moment the categories changed, and a
+   301 to a 404 is worse than no redirect at all.
 
-const shortcuts = [REDIRECT_MARK,
-  '# Do not edit between these markers. Rewritten on every build.',
-  '# /quantity-surveying-kampala  →  /browse/quantity-surveying-kampala/'];
+   Both files are updated when both exist, so the repository can be
+   moved between Netlify and Vercel without a stale set left behind. */
+const liveCats = D.taxonomy.categories.filter(c =>
+  fs.existsSync(path.join(ROOT, 'browse', c.slug)));
 
-D.taxonomy.categories.forEach(cat => {
-  if (!fs.existsSync(path.join(ROOT, 'browse', cat.slug))) return;
-  shortcuts.push(`/${cat.slug}*`.padEnd(34) + `/browse/${cat.slug}:splat`.padEnd(40) + '301');
-});
-shortcuts.push(REDIRECT_END);
+/* ── vercel.json ── */
+const vPath = path.join(ROOT, 'vercel.json');
+if (fs.existsSync(vPath)) {
+  const v = JSON.parse(fs.readFileSync(vPath, 'utf8'));
+  const A = '__generated-category-shortcuts-start__';
+  const B = '__generated-category-shortcuts-end__';
+  const generated = [{ source: '/' + A, destination: '/', permanent: false }]
+    .concat(liveCats.map(c => ({
+      source: `/${c.slug}/:path*`,
+      destination: `/browse/${c.slug}/:path*`,
+      permanent: true
+    })))
+    .concat([{ source: '/' + B, destination: '/', permanent: false }]);
 
-const rPath = path.join(ROOT, '_redirects');
-let redirects = fs.readFileSync(rPath, 'utf8');
-const a = redirects.indexOf(REDIRECT_MARK);
-const b = redirects.indexOf(REDIRECT_END);
-if (a !== -1 && b !== -1) {
-  redirects = redirects.slice(0, a) + shortcuts.join('\n') + redirects.slice(b + REDIRECT_END.length);
-} else {
-  // First run: insert above the catch-all so it cannot swallow them
-  redirects = redirects.replace(/(# ── Catch-all)/, shortcuts.join('\n') + '\n\n$1');
+  const all = v.redirects || [];
+  const a = all.findIndex(r => r.source === '/' + A);
+  const b = all.findIndex(r => r.source === '/' + B);
+  v.redirects = (a !== -1 && b !== -1 && b > a)
+    ? all.slice(0, a).concat(generated, all.slice(b + 1))
+    : all.concat(generated);
+  fs.writeFileSync(vPath, JSON.stringify(v, null, 2) + '\n');
 }
-fs.writeFileSync(rPath, redirects);
+
+/* ── _redirects ── */
+const rPath = path.join(ROOT, '_redirects');
+if (fs.existsSync(rPath)) {
+  const A = '# ── BEGIN generated category shortcuts (build.js) ──';
+  const B = '# ── END generated category shortcuts ──';
+  const lines = [A, '# Rewritten on every build. Do not edit between these markers.']
+    .concat(liveCats.map(c =>
+      `/${c.slug}*`.padEnd(25) + `/browse/${c.slug}:splat`.padEnd(35) + '301'))
+    .concat([B]);
+
+  let txt = fs.readFileSync(rPath, 'utf8');
+  const a = txt.indexOf(A), b = txt.indexOf(B);
+  txt = (a !== -1 && b !== -1 && b > a)
+    ? txt.slice(0, a) + lines.join('\n') + txt.slice(b + B.length)
+    : txt + '\n' + lines.join('\n') + '\n';
+  fs.writeFileSync(rPath, txt);
+}
+
+console.log(`  ${liveCats.length} category shortcuts \u2192 ` +
+  [fs.existsSync(vPath) && 'vercel.json', fs.existsSync(rPath) && '_redirects']
+    .filter(Boolean).join(' + '));
 
 console.log(`Built ${written} pages + sitemap (${urls.length} URLs) for ${SITE_URL}`);
 console.log(`  ${liveFirms.length} firms · ${comboLinks.length} category pages · ${openTenders.length} tenders · ${D.articles.length} articles`);

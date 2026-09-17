@@ -1,0 +1,9 @@
+# Not deployed to Netlify. admin.html is additionally 404'd in
+# _redirects in case this file is ever missed.
+admin.html
+vercel.json
+.vercelignore
+cms/
+forms/
+convert.py
+verify.py

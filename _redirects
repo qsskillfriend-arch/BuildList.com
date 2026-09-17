@@ -1,57 +1,61 @@
-# BuildList — Netlify redirects
-# A product of Sharplink Ventures (U) Limited
-# Docs: https://docs.netlify.com/routing/redirects/
+# BuildList.com — Netlify redirects
+# Vercel reads vercel.json instead; both are kept so this repository
+# deploys to either host unchanged.
 
-# ── Friendly paths → the matching in-app route ───────
-# The site is a single HTML file that routes on the hash, so a clean
-# path like /directory is redirected to /#/directory. This is what
-# makes printed URLs and business-card links work.
-/directory    /browse/       301
-/tenders      /#/tenders     301
-/jobs         /#/jobs        301
-/news         /#/news        301
-/prices       /#/news        301
-/advertise    /#/advertise   301
-/submit       /#/submit      301
-/add-listing  /#/submit      301
-/about        /#/about       301
-/contact      /#/about       301
-/privacy      /#/privacy     301
-/privacy-policy /#/privacy   301
-/terms        /#/terms       301
-/terms-of-service /#/terms   301
+# ── Form endpoint ────────────────────────────────────
+# Same public path as Vercel, so the browser never needs to know which
+# platform it is on.
+/api/form                /.netlify/functions/form   200
 
-# ── Static pages (Stage 5) ───────────────────────────
-# /firms/*, /browse/*, /tenders/*, /news/* are REAL generated HTML
-# files with their own titles and structured data. Netlify serves
-# them directly — do not redirect them into the hash router or the
-# whole point of Stage 5 is lost.
+# ── Never served ─────────────────────────────────────
+# admin.html is protected only by a passphrase in its own source, which
+# is not security. supabase/ must ship because the build runs pull.js,
+# but nothing in it should be readable over the web.
+/admin.html              /404.html                  404!
+/supabase/*              /404.html                  404!
+/lib/*                   /404.html                  404!
+/netlify/*               /404.html                  404!
 
-# Category shorthand: /quantity-surveyors-kampala → /browse/…
+# ── Clean URLs ───────────────────────────────────────
+/directory               /browse/                   301
+/tenders                 /#/tenders                 301
+/jobs                    /#/jobs                    301
+/news                    /#/news                    301
+/prices                  /#/news                    301
+/events                  /#/news                    301
+/advertise               /#/advertise               301
+/submit                  /#/submit                  301
+/add-listing             /#/submit                  301
+/about                   /#/about                   301
+/contact                 /#/about                   301
+/privacy                 /#/privacy                 301
+/privacy-policy          /#/privacy                 301
+/terms                   /#/terms                   301
+/media-kit               /downloads/BuildList-Media-Kit.pdf  302
 
 # ── BEGIN generated category shortcuts (build.js) ──
-# Do not edit between these markers. Rewritten on every build.
-# /quantity-surveying-kampala  →  /browse/quantity-surveying-kampala/
-/architecture-design*             /browse/architecture-design:splat       301
-/quantity-surveying*              /browse/quantity-surveying:splat        301
-/civil-structural*                /browse/civil-structural:splat          301
-/land-surveying*                  /browse/land-surveying:splat            301
-/property-valuers*                /browse/property-valuers:splat          301
-/urban-planning*                  /browse/urban-planning:splat            301
-/general-contracting*             /browse/general-contracting:splat       301
-/electrical-contracting*          /browse/electrical-contracting:splat    301
-/plumbing-fire*                   /browse/plumbing-fire:splat             301
-/hvac*                            /browse/hvac:splat                      301
-/structural-steel*                /browse/structural-steel:splat          301
-/landscaping*                     /browse/landscaping:splat               301
-/building-management*             /browse/building-management:splat       301
-/ict-network*                     /browse/ict-network:splat               301
-/facility-management*             /browse/facility-management:splat       301
-/health-safety*                   /browse/health-safety:splat             301
-/environmental*                   /browse/environmental:splat             301
-/real-estate-development*         /browse/real-estate-development:splat   301
+# Rewritten on every build. Do not edit between these markers.
+/architecture-design*    /browse/architecture-design:splat  301
+/quantity-surveying*     /browse/quantity-surveying:splat   301
+/civil-structural*       /browse/civil-structural:splat     301
+/land-surveying*         /browse/land-surveying:splat       301
+/property-valuers*       /browse/property-valuers:splat     301
+/urban-planning*         /browse/urban-planning:splat       301
+/general-contracting*    /browse/general-contracting:splat  301
+/electrical-contracting* /browse/electrical-contracting:splat301
+/plumbing-fire*          /browse/plumbing-fire:splat        301
+/hvac*                   /browse/hvac:splat                 301
+/structural-steel*       /browse/structural-steel:splat     301
+/landscaping*            /browse/landscaping:splat          301
+/building-management*    /browse/building-management:splat  301
+/ict-network*            /browse/ict-network:splat          301
+/facility-management*    /browse/facility-management:splat  301
+/health-safety*          /browse/health-safety:splat        301
+/environmental*          /browse/environmental:splat        301
+/real-estate-development*/browse/real-estate-development:splat301
 # ── END generated category shortcuts ──
 
 # ── Catch-all ────────────────────────────────────────
-# Anything else serves the app rather than a 404.
-/*            /index.html    200
+# Netlify checks the filesystem first, so the generated /firms/ and
+# /browse/ pages are served directly and never hit this rule.
+/*                       /index.html                200

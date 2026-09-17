@@ -51,7 +51,7 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Netlify, GitHub Pages and every other host serve it correctly.
+Vercel, GitHub Pages and every other host serve it correctly.
 
 ---
 
@@ -116,13 +116,13 @@ node build.js        # no dependencies, Node 18+
 
 Generates a real HTML file per firm, category, category-and-district, tender and
 article, each with its own title, description, canonical URL and structured
-data — plus the sitemap. Netlify runs it on every deploy, so committing a JSON
+data — plus the sitemap. Vercel runs it on every deploy, so committing a JSON
 change rebuilds every affected page.
 
 Generated folders (`/firms`, `/browse`, `/tenders`, `/news`) are gitignored.
 They are output, not source.
 
-Set `SITE_URL` in Netlify's environment variables once your real domain is live,
+Set `SITE_URL` in Vercel's environment variables once your real domain is live,
 so canonical URLs and the sitemap match.
 
 ## What still does not work
@@ -182,7 +182,7 @@ buildlist/
 ├── icon-512.png        ← PWA icon (also used as maskable)
 ├── favicon.svg         ← Brand favicon, scales to any size
 ├── manifest.json       ← PWA install configuration
-├── netlify.toml        ← Deploy config, security headers, cache policy
+├── vercel.json        ← Deploy config, security headers, cache policy
 ├── _redirects          ← Clean URLs (/directory → /#/directory) and catch-all
 ├── robots.txt          ← Crawl rules, including AI-crawler blocks
 ├── sitemap.xml         ← Pages for Google and Bing
@@ -192,13 +192,13 @@ buildlist/
 
 ---
 
-## Deploy to Netlify
+## Deploy to Vercel
 
 ### Step 1 — Create a GitHub repository
 
 1. github.com → **New repository**
 2. Name it `buildlist`
-3. **Public** (required for free Netlify builds) or Private (needs Netlify Pro)
+3. **Public** (required for free Vercel builds) or Private (needs Vercel Pro)
 4. Do **not** initialise with a README — you already have one
 5. **Create repository**
 
@@ -219,14 +219,14 @@ git push -u origin main
 
 ### Step 3 — Deploy
 
-1. netlify.com → sign up with GitHub
+1. vercel.com → sign up with GitHub
 2. **Add new site** → **Import an existing project** → **GitHub**
-3. Pick the repo. Build settings auto-detect from `netlify.toml`: build command empty, publish directory `.`
+3. Pick the repo. Build settings auto-detect from `vercel.json`: build command empty, publish directory `.`
 4. **Deploy site** → live in about 30 seconds
 
 ### Step 4 — Custom domain
 
-1. Netlify → **Domain settings** → **Add custom domain**
+1. Vercel → **Domain settings** → **Add custom domain**
 2. Enter your domain, then update nameservers at your registrar
 3. Allow up to 48 hours for DNS; SSL is issued and renewed automatically
 
@@ -234,9 +234,9 @@ Registrars: **registry.co.ug** for `.co.ug` (around UGX 80,000/year) · **Namech
 
 ### Step 5 — Forms
 
-Three forms are already wired with `data-netlify="true"` and honeypot spam protection: `newsletter`, `contact` and `listing-submission`. They work as soon as you deploy — no extra setup.
+Three forms are already wired with `data-vercel="true"` and honeypot spam protection: `newsletter`, `contact` and `listing-submission`. They work as soon as you deploy — no extra setup.
 
-Submissions appear in **Netlify Dashboard → Forms**. Turn on email alerts under **Forms → [form name] → Settings → Notifications**. Free tier covers 100 submissions a month.
+Submissions appear in **Vercel Dashboard → Forms**. Turn on email alerts under **Forms → [form name] → Settings → Notifications**. Free tier covers 100 submissions a month.
 
 When you open `index.html` as a local file the forms can't post anywhere, so they show a preview confirmation instead. That's expected.
 
@@ -249,7 +249,7 @@ When you open `index.html` as a local file the forms can't post anywhere, so the
 # 2. Commit
 git add .
 git commit -m "Add 10 new firms to directory"
-# 3. Push — Netlify redeploys in ~30 seconds
+# 3. Push — Vercel redeploys in ~30 seconds
 git push
 ```
 
@@ -345,7 +345,7 @@ Search for `ad-unit` and swap the placeholder for your advertiser's banner or yo
   data-ad-format="auto"></ins>
 ```
 
-If you add AdSense, note that `netlify.toml` contains a Content Security Policy. You will need to add Google's ad domains to `script-src` and `frame-src` or the ads will be blocked.
+If you add AdSense, note that `vercel.json` contains a Content Security Policy. You will need to add Google's ad domains to `script-src` and `frame-src` or the ads will be blocked.
 
 ---
 
@@ -369,7 +369,7 @@ If you add AdSense, note that `netlify.toml` contains a Content Security Policy.
 - [ ] Weekly manual tender updates from the PPDA portal
 - [ ] Publish the first 10 SEO articles on Uganda construction keywords
 - [ ] Connect Google Analytics
-- [ ] Confirm Netlify form notifications reach a monitored inbox
+- [ ] Confirm Vercel form notifications reach a monitored inbox
 
 ### Phase 2 — Backend (Months 3–6)
 
@@ -416,7 +416,7 @@ These are list prices. Expect to discount heavily for the first ten advertisers 
 
 ## Hosting comparison
 
-| | Netlify (free) | GitHub Pages | Vercel | Cloudflare Pages |
+| | Vercel (free) | GitHub Pages | Vercel | Cloudflare Pages |
 |---|---|---|---|---|
 | Bandwidth | 100 GB/mo | 100 GB/mo | 100 GB/mo | **Unlimited** |
 | Form handling | **Built in** | No | No | No |
@@ -425,7 +425,7 @@ These are list prices. Expect to discount heavily for the first ten advertisers 
 | Instant rollback | Yes | No | Yes | Yes |
 | Beginner friendly | Highest | Medium | High | Medium |
 
-Start on Netlify — the built-in form handling alone saves you a backend. Move to Cloudflare Pages past roughly 50,000 monthly visitors.
+Start on Vercel — the built-in form handling alone saves you a backend. Move to Cloudflare Pages past roughly 50,000 monthly visitors.
 
 ---
 

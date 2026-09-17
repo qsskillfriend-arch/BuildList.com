@@ -1,299 +1,157 @@
-# Deploying BuildList.com
+# Deploying BuildList.com to Netlify
 
-### GitHub → Netlify → Cloudflare
 **A product of Sharplink Ventures (U) Limited**
 
-Total time: about 40 minutes of work, plus up to 24 hours of DNS waiting.
-Cost: free, apart from the domain.
+**This package is configured for Netlify.** A matching Vercel package exists
+separately; the only differences are the config file and the function wrapper.
 
----
-
-## Read this first — the one decision that trips everybody up
-
-You are combining two services that both want to be your CDN, and they conflict.
-
-**Netlify's own support guide recommends not running Cloudflare's proxy ("Accelerate and Protect", the orange cloud) in front of a Netlify site.** Netlify has to terminate TLS itself to issue and renew your Let's Encrypt certificate. If Cloudflare is proxying, Netlify cannot validate the domain, the certificate never provisions, and you get `Error 525: SSL handshake failed` — a site that looks broken to every visitor.
-
-So there are two valid setups:
-
-| | Setup A — **recommended** | Setup B — advanced |
+| | Netlify | Vercel |
 |---|---|---|
-| Cloudflare role | DNS only (grey cloud) | Full proxy (orange cloud) |
-| Who serves the site | Netlify | Cloudflare, pulling from Netlify |
-| Certificate | Netlify, automatic, free | Cloudflare Origin Certificate, uploaded to Netlify by hand |
-| You get | Fast DNS, easy domain management | WAF, bot rules, Cloudflare analytics, caching |
-| You risk | Nothing | Double caching, stale deploys, cert renewal breaking silently |
-| Setup difficulty | 5 minutes | 45 minutes, and it can break later |
+| Config | `netlify.toml` + `_redirects` | `vercel.json` |
+| Form function | `netlify/functions/form.mjs` | `api/form.js` |
+| Shared logic | `lib/form-core.js` | `lib/form-core.js` |
+| Public form endpoint | `/api/form` | `/api/form` |
+| Build command | `node supabase/pull.js && node build.js` | same |
+| Publish directory | `.` | `.` |
 
-**Do Setup A.** Steps 1–9 below. It gives you Cloudflare's fast global DNS and keeps your domain management in one place, without the SSL fight.
+The form endpoint is the same path on both, so nothing in the browser knows or
+cares which host it is on. On Netlify `_redirects` maps `/api/form` to the
+function; on Vercel it is the file path. Both import the same core, so a
+submission behaves identically either way.
 
-Only do Setup B (Step 10) if you specifically need Cloudflare's firewall or bot protection — and only after Setup A is working.
-
-A third option exists: **drop Netlify entirely and host on Cloudflare Pages.** Faster in East Africa and unlimited bandwidth. But Cloudflare Pages has no equivalent of Netlify Forms, and you have four live forms — listing submissions, contact, newsletter and tender alerts. You would need to rebuild all four. Not worth it until you outgrow Netlify's 100GB/month, which is a long way off.
+**We deliberately do not use Netlify Forms.** That would mean two code paths and
+two sets of behaviour to keep in step. One function, one set of delivery rules,
+both hosts.
 
 ---
 
-# PART 1 — GitHub
+## 1. GitHub
 
-## Step 1 — Create the repository
+Push the whole folder. These must reach the repository root:
 
-1. Go to **github.com** → sign in → **New repository** (green button, top right)
-2. Repository name: `buildlist`
-3. **Public** — required for Netlify's free tier to build it. Private needs a paid Netlify plan.
-4. Do **not** tick "Add a README file" — you already have one
-5. **Create repository**
-
-## Step 2 — Upload the files
-
-**Option A — web browser, no software needed**
-
-1. On the empty repo page, click **uploading an existing file**
-2. Unzip `buildlist.zip` on your computer
-3. Open the `buildlist` folder, select **everything inside it** (not the folder itself) and drag it into the browser
-
-   ⚠️ Some files start with a dot — `.gitignore` — and your file manager may hide them. On Windows: View → Show → Hidden items. On Mac: `Cmd + Shift + .`
-4. Scroll down, commit message: `Initial commit`
-5. **Commit changes**
-
-**Option B — command line**
-
-```bash
-cd buildlist
-git init
-git add .
-git commit -m "Initial commit — BuildList.com"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/buildlist.git
-git push -u origin main
+```
+index.html  build.js  vercel.json  netlify.toml  _redirects
+api/  netlify/  lib/  data/  images/  supabase/  downloads/
 ```
 
-## Step 3 — Check what uploaded
+## 2a. Netlify
 
-Your repo should show: `index.html`, `admin.html`, `build.js`, `netlify.toml`, `data/`, `images/`, `supabase/`, plus the config files.
+1. **Add new site → Import an existing project → GitHub →** `buildlist`
+2. Settings auto-fill from `netlify.toml`:
+   - Build command `node supabase/pull.js && node build.js`
+   - Publish directory `.`
+   - Functions directory `netlify/functions`
+3. **Deploy**
 
-Two things you should **not** see, and that is correct:
+## 2b. Vercel
 
-- **No `firms/`, `browse/`, `tenders/` or `news/` folders.** They are generated by `build.js` on every deploy and are gitignored. Committing them would let the repo drift from the data.
-- **`admin.html` is there.** That is fine — `netlify.toml` 404s it on the live site so nobody can reach it. You run it locally.
+1. **Add New → Project →** import `buildlist`
+2. Framework Preset **Other**. The rest auto-fills from `vercel.json`.
+   Leave Install Command blank — there are no dependencies.
+3. **Deploy**
 
----
+Either way the build log should end with:
 
-# PART 2 — Netlify
+```
+Supabase not configured — keeping the existing data/*.json files.
+  18 category shortcuts -> vercel.json + _redirects
+Built 702 pages + sitemap (705 URLs)
+  618 firms · 73 category pages · 6 tenders · 4 articles
+```
 
-## Step 4 — Connect the repository
+That first line is expected when the database is not connected. `pull.js` exits
+quietly and the committed JSON is used, so **a database outage cannot take the
+public site down.**
 
-1. **netlify.com** → **Sign up** → **GitHub** → authorise
-2. **Add new site** → **Import an existing project** → **Deploy with GitHub**
-3. Authorise Netlify to read your repositories. You can grant access to only `buildlist` rather than all repos.
-4. Select **buildlist**
+## 3. Environment variables
 
-## Step 5 — Confirm the build settings
+Same names on both hosts. None are required to deploy, but forms go nowhere
+useful until at least one delivery target is set.
 
-Netlify reads `netlify.toml`, so these should already be filled in. Check them anyway:
-
-| Field | Value |
+| Variable | Purpose |
 |---|---|
-| Branch to deploy | `main` |
-| Build command | `node build.js` |
-| Publish directory | `.` |
+| `SITE_URL` | `https://buildlist.com` — canonical URLs and the sitemap. **Set this first.** |
+| `SUPABASE_URL` | Project URL |
+| `SUPABASE_ANON_KEY` | Used by `pull.js` at build time. Safe to expose. |
+| `SUPABASE_SERVICE_KEY` | Used by the form function only. **Bypasses every security policy — never commit it or put it in any HTML file.** |
+| `RESEND_API_KEY` | Emails each submission |
+| `FORM_NOTIFY_EMAIL` | Where those go. Comma-separate for several. |
+| `FORM_FROM_EMAIL` | Sender, once your domain is verified with Resend |
+| `FORM_WEBHOOK_URL` | Optional: Slack, Make, Zapier |
 
-**If the build command is blank, type it in.** Without it you get the app but none of the 703 static pages, and Google sees one page instead of seven hundred.
+Redeploy after adding them. Neither host applies new variables to an existing build.
 
-Click **Deploy buildlist**.
+## 4. Test the forms before announcing anything
 
-## Step 6 — Watch the first build
+Open `/#/submit`, fill the listing form, submit. Then check, in order:
 
-It takes about 30 seconds. Click into the deploy log and look for:
+- **Function logs** — Netlify: Functions → form. Vercel: Logs.
+- Your inbox, if Resend is set
+- Supabase → Table editor → `submissions`, if the database is set
 
-```
-Built 703 pages + sitemap (704 URLs) for https://buildlist.com
-  618 firms · 73 category pages · 7 tenders · 4 articles
-```
+With nothing configured the function still returns success and logs the
+submission, and the visitor sees a normal confirmation. That is deliberate — a
+visitor should never meet a server error — but it means **you must read the log
+once** to confirm delivery actually works.
 
-If you see that, everything worked. Your site is live at something like `https://calm-lamington-a1b2c3.netlify.app`.
+## 5. Domain
 
-**Open it and check three things:**
+Add it in the host's domain settings; both issue certificates automatically.
 
-- The homepage shows **618** registered firms, not a loading skeleton
-- `/#/directory` lists firms and the filters respond
-- `/firms/air-water-earth/` loads as a real page with its own title
-
-If the directory is empty, the data files did not upload. Go back to Step 2.
-
-## Step 7 — Set the environment variable
-
-This one is easy to forget and quietly wrong if you skip it.
-
-1. **Site configuration** → **Environment variables** → **Add a variable**
-2. Key: `SITE_URL`
-3. Value: `https://buildlist.com` (your real domain, no trailing slash)
-4. **Create**, then **Deploys** → **Trigger deploy** → **Deploy site**
-
-Without it, every canonical URL, sitemap entry and piece of structured data on 703 pages points at the default. Google would index the wrong address.
-
-## Step 8 — Turn on form notifications
-
-Your four forms already work. They just need to tell you when something arrives.
-
-1. **Forms** in the sidebar — you should see `listing-submission`, `contact`, `newsletter` and `tender-alerts` detected after the first deploy
-2. For each: **Settings and usage** → **Form notifications** → **Add notification** → **Email notification**
-3. Send to a **monitored** inbox. A listing application sitting unread for a week is a lost customer.
-
-Free tier covers 100 submissions a month. Watch it once field collection ramps up.
+Using Cloudflare for DNS, on either host: point `www` and the apex at the host's
+target with **DNS only (grey cloud)**, and set Cloudflare SSL to **Full
+(strict)**. The host must terminate TLS itself to issue its certificate —
+proxying breaks it.
 
 ---
 
-# PART 3 — Cloudflare
+## Access: what is and is not on the server
 
-## Step 9 — DNS (Setup A, recommended)
+| | Netlify | Vercel |
+|---|---|---|
+| `admin.html` | 404 via `_redirects`, and in `.netlifyignore` | not deployed (`.vercelignore`) |
+| `supabase/` | 404 — it ships because the build needs `pull.js` | 404, same reason |
+| `lib/`, `netlify/` | 404 | 404 |
+| `portal.html` | served, `noindex` | served, `noindex` |
 
-### 9a. Register the domain
-
-Cloudflare Registrar does **not** sell `.ug` or `.co.ug`. Options:
-
-- **`.co.ug`** — register through **registry.co.ug** or a local reseller, around UGX 80,000/year
-- **`.com`** — Namecheap, Porkbun or Cloudflare Registrar, around USD 10/year
-
-For a Ugandan directory a `.co.ug` also helps you rank for Uganda-based searches and separates you from the several unrelated "BuildList.com" products online. If you want it, tell me and I will switch the default.
-
-### 9b. Add the domain to Cloudflare
-
-1. **dash.cloudflare.com** → **Sign up** (free plan)
-2. **Add a site** → type your domain → **Continue**
-3. Choose the **Free** plan
-4. Cloudflare scans your existing DNS records. Delete any it imported that you do not recognise — parked-domain records from the registrar cause confusing failures later.
-5. Cloudflare gives you **two nameservers**, like `dana.ns.cloudflare.com` and `rob.ns.cloudflare.com`. Copy them.
-
-### 9c. Point the registrar at Cloudflare
-
-Log in to wherever you bought the domain, find **Nameservers** or **DNS management**, choose **Custom nameservers**, and replace what is there with Cloudflare's two.
-
-For `.co.ug` domains this is done through your registrar's control panel or by emailing them — some Ugandan resellers still handle it by hand, so allow a day.
-
-Cloudflare emails you when the change is active. Usually under an hour, occasionally 24.
-
-### 9d. Add the Netlify records
-
-Back in Cloudflare → **DNS** → **Records**. Add these two:
-
-| Type | Name | Content | Proxy status |
-|---|---|---|---|
-| `CNAME` | `www` | `YOUR-SITE.netlify.app` | **DNS only (grey cloud)** |
-| `CNAME` | `@` | `YOUR-SITE.netlify.app` | **DNS only (grey cloud)** |
-
-Replace `YOUR-SITE.netlify.app` with your actual Netlify subdomain from Step 6.
-
-🔴 **Both clouds must be GREY, not orange.** Click the orange cloud icon to toggle it. This is the single most important instruction in this document. Orange breaks the certificate.
-
-Cloudflare supports CNAME on the apex (`@`) through CNAME flattening, so you do not need an A record.
-
-### 9e. Set SSL mode
-
-**SSL/TLS** → **Overview** → set encryption mode to **Full (strict)**.
-
-Not "Flexible". Flexible sends unencrypted traffic to your origin and causes redirect loops.
-
-### 9f. Add the domain in Netlify
-
-1. Netlify → **Domain management** → **Add a domain**
-2. Enter `buildlist.com` → **Verify** → **Add domain**
-3. Netlify will also add `www.buildlist.com`
-4. Choose which is primary. **`www` is the safer primary** — it keeps the apex free for email and other records.
-
-### 9g. Wait for the certificate
-
-**Domain management** → **HTTPS**. It should say "Netlify is provisioning a certificate". This takes 5 minutes to a few hours.
-
-When it says **"Your site has HTTPS enabled"**, you are done.
-
-Then turn on **Force HTTPS redirect** (same panel).
-
-### 9h. Final checks
-
-- `https://buildlist.com` loads with a padlock
-- `http://buildlist.com` redirects to `https://`
-- `https://www.buildlist.com` works
-- `https://buildlist.com/firms/air-water-earth/` loads a real page
-- `https://buildlist.com/sitemap.xml` shows 704 URLs
-- `https://buildlist.com/admin.html` returns **404** ← confirm this one
-- Share the link in WhatsApp — the BuildList.com preview image should appear
+`admin.html` is protected only by a passphrase written in its own source. That
+stops an idle click, not a person. **Run it locally and keep it off the server.**
+The portal is the one with a real login.
 
 ---
 
-## Step 10 — Optional: Cloudflare proxy (Setup B)
+## Moving between hosts later
 
-Only if you need the WAF, bot protection or Cloudflare's analytics. **Get Setup A fully working first,** including a valid certificate.
-
-1. Cloudflare → **SSL/TLS** → **Origin Server** → **Create Certificate**
-2. Hostnames: `buildlist.com, *.buildlist.com`. Validity: 15 years. **Create**
-3. Copy the **Origin Certificate** and the **Private Key** — the key is shown once only
-4. Get Cloudflare's intermediate certificate from their Origin CA documentation
-5. Netlify → **Domain management** → **HTTPS** → **Set custom certificate**. Paste certificate, private key, and the intermediate into the chain field.
-6. Only now, in Cloudflare DNS, switch both CNAMEs to **orange cloud**
-7. Test immediately. If you see **Error 525**, switch back to grey — the certificate did not take.
-
-Then in **Caching** → **Configuration**, create a **Cache Rule** to bypass cache for `/data/*`. Otherwise Cloudflare serves yesterday's tender board and you will not understand why your edits are not appearing.
-
-**The honest warning:** this setup is a known source of silent breakage. Certificates expire, Netlify changes IPs, cached deploys go stale. If you are not going to monitor it, stay on Setup A.
+Nothing to change. `build.js` writes its generated category shortcuts into
+whichever config files it finds, so both stay current on every build and neither
+goes stale while the other is in use.
 
 ---
 
-# PART 4 — After it is live
-
-## Step 11 — Google
-
-1. **Google Search Console** → **Add property** → **URL prefix** → `https://buildlist.com`
-2. Verify by **HTML tag**: copy the meta tag, paste it into `index.html` just before `</head>`, commit, wait for the deploy, click Verify
-3. **Sitemaps** → submit `sitemap.xml`
-4. **Google Analytics** → create a GA4 property → copy the Measurement ID (`G-XXXXXXXXXX`)
-5. Paste it into **two** places and commit:
-   - `index.html` → `SITE.analytics.measurementId`
-   - `admin.html` → `ADMIN.ga.measurementId`
-6. Open the site, then check GA4 → **Realtime**. You should see yourself.
-
-## Step 12 — Your daily workflow from now on
-
-```
-Open admin.html locally  →  edit  →  Publish tab  →  download changed JSON
-        →  upload to data/ on GitHub  →  commit  →  live in 30 seconds
-```
-
-Netlify runs `node build.js` on every commit, so a JSON edit rebuilds every affected page automatically. You never touch Netlify again.
-
----
-
-# Troubleshooting
+## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| **Error 525 SSL handshake failed** | Cloudflare orange cloud on | Switch both CNAMEs to grey cloud |
-| **"DNS verification failed"** in Netlify | Proxy hiding the records, or DNS not propagated | Grey cloud, then wait for TTL to expire |
-| Certificate never provisions | Same as above | Netlify must terminate TLS. Grey cloud. |
-| Redirect loop | Cloudflare SSL set to "Flexible" | Change to **Full (strict)** |
-| Site loads, directory empty | `data/` did not upload | Check the folder exists in GitHub |
-| Only the homepage exists, no `/firms/` pages | Build command blank | Set it to `node build.js`, redeploy |
-| Canonical URLs point at the wrong domain | `SITE_URL` not set | Add the env var, redeploy |
-| Edits not appearing | Cloudflare caching (Setup B only) | Purge cache, add the `/data/*` bypass rule |
-| Forms not detected | Deployed before forms existed | Trigger a fresh deploy |
-| `admin.html` reachable publicly | `netlify.toml` not applied | Confirm it is in the repo root |
+| Only the homepage exists, no `/firms/` pages | Build command blank | Set `node supabase/pull.js && node build.js` |
+| Canonical URLs point at the wrong domain | `SITE_URL` unset | Add it, redeploy |
+| Form returns 404 | Function not deployed | Netlify: check the functions directory is `netlify/functions`. Vercel: check `api/form.js` is in the repo. |
+| Form succeeds but nothing arrives | No delivery target | Set Supabase, Resend or webhook variables and redeploy |
+| Supabase video will not play | CSP | `media-src` must allow `https://*.supabase.co` — already set in both configs |
+| `Error 525` on a custom domain | Cloudflare proxying | Grey cloud, SSL Full (strict) |
 
-**Check DNS propagation** at `dnschecker.org` — paste your domain and watch it turn green worldwide.
 
 ---
 
-# Costs
+## What is in this package that is not in the Vercel one
 
-| Item | Cost |
-|---|---|
-| GitHub (public repo) | Free |
-| Netlify (100GB/mo, 300 build min, 100 forms/mo) | Free |
-| Cloudflare DNS | Free |
-| Domain `.co.ug` | ~UGX 80,000/year |
-| Domain `.com` | ~USD 10/year |
-| **Total** | **The domain, and nothing else** |
+```
+netlify.toml            build, headers, caching
+_redirects              clean URLs, /api/form mapping, generated shortcuts
+netlify/functions/      the form function
+.netlifyignore
+```
 
-At roughly 50,000 monthly visitors, revisit Netlify's bandwidth. That is a good problem and a long way off.
-
----
-
-*BuildList.com is a product of Sharplink Ventures (U) Limited.*
+`lib/form-core.js` is shared and identical in both. If you ever move to Vercel,
+take the Vercel package rather than adding `vercel.json` here — `build.js` writes
+its generated category shortcuts into whichever config it finds, and having both
+present means maintaining both.

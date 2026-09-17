@@ -377,7 +377,7 @@ const ADMIN = {
   // set in index.html (SITE.analytics.measurementId) for the site to send
   // anything at all — this one only builds the report links.
   ga: { measurementId: '', propertyId: '' },
-  // Netlify → Site configuration → Build hooks → Add build hook.
+  // Vercel → Site configuration → Build hooks → Add build hook.
   // Paste the URL here for a one-click "rebuild the public site" button.
   rebuildHook: '',
   stalePriceDays: 10,
@@ -1478,7 +1478,7 @@ RENDER.export = el => {
   el.innerHTML =
     '<div class="note"><b>How publishing works in this version.</b>'+
     'There is no server, so nothing saves itself. Download the files you changed, '+
-    'drop them into <span class="mono">data/</span> on GitHub, and commit. Netlify redeploys in about 30 seconds. '+
+    'drop them into <span class="mono">data/</span> on GitHub, and commit. Vercel redeploys in about 30 seconds. '+
     'Your work is held in this browser until you do.</div>'+
     (DIRTY.size
       ? '<div class="toolbar"><button class="btn btn-g" onclick="downloadAll()">Download '+DIRTY.size+' changed file'+(DIRTY.size>1?'s':'')+'</button>'+
@@ -1498,7 +1498,7 @@ function renderPublishSupabase(el){
   el.innerHTML =
     '<div class="note"><b>Connected to the live database.</b>'+
     'Saving writes your changes straight to Supabase. The public site rebuilds from the '+
-    'database on the next deploy \u2014 Netlify runs <span class="mono">supabase/pull.js</span> '+
+    'database on the next deploy \u2014 Vercel runs <span class="mono">supabase/pull.js</span> '+
     'then <span class="mono">build.js</span>, which regenerates every affected page.</div>'+
     (DIRTY.size
       ? '<div class="toolbar">'+
@@ -1515,7 +1515,7 @@ function renderPublishSupabase(el){
     }).join('')+
     '<div class="note" style="margin-top:18px"><b>Trigger the public rebuild.</b>'+
     'Saving here updates the database immediately, but the public site is static and only '+
-    'changes when it rebuilds. Either commit anything to GitHub, or set a Netlify build hook '+
+    'changes when it rebuilds. Either commit anything to GitHub, or set a Vercel build hook '+
     'and paste it into <span class="mono">ADMIN.rebuildHook</span> to add a one-click button here.</div>'+
     (ADMIN.rebuildHook
       ? '<div class="toolbar"><button class="btn btn-p" onclick="triggerRebuild()">Rebuild the public site</button></div>'

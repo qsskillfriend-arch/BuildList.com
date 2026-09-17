@@ -170,7 +170,11 @@ tbody tr:hover{background:#FAFBFA}
 .mcard{background:var(--white);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .mthumb{aspect-ratio:4/3;background:#F4F6F4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Crect width='7' height='7' fill='%23EDEFED'/%3E%3Crect x='7' y='7' width='7' height='7' fill='%23EDEFED'/%3E%3C/svg%3E");
   display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
-.mthumb img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.mthumb img,.mthumb video{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
+.mthumb{position:relative}
+.mbadge{position:absolute;top:6px;left:6px;background:rgba(15,26,20,.82);color:#fff;
+  font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.03em}
+.mact button{flex:1;font-size:11px;padding:4px 4px}
 .mmeta{padding:10px 12px;font-size:12px}
 .mmeta b{display:block;font-size:12.5px;word-break:break-all;line-height:1.35}
 .mmeta .dim{font-family:var(--mono);color:var(--text-3);font-size:11px;margin-top:3px}
@@ -456,7 +460,8 @@ window.signOut = async function () {
 
 async function loadAll() {
   setSync('Loading\u2026');
-  const [firms, tenders, jobs, articles, cats, dists, accs, tiers, staff] = await Promise.all([
+  const [firms, tenders, jobs, articles, cats, dists, accs, tiers, staff,
+         media, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
     sb.from('firms').select('*').order('name'),
     sb.from('tenders').select('*').order('deadline'),
     sb.from('jobs').select('*').order('posted_at', { ascending: false }),
@@ -465,7 +470,13 @@ async function loadAll() {
     sb.from('districts').select('*'),
     sb.from('accreditations').select('*'),
     sb.from('tiers').select('*').order('rank'),
-    can('staff') ? sb.from('staff').select('*') : Promise.resolve({ data: [] })
+    can('staff') ? sb.from('staff').select('*') : Promise.resolve({ data: [] }),
+    sb.from('media').select('*').order('created_at', { ascending: false }).limit(300),
+    sb.from('spotlight').select('*').eq('active', true),
+    can('ads') ? sb.from('ads').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+    can('ads') ? sb.from('ad_slots').select('*') : Promise.resolve({ data: [] }),
+    sb.from('price_snapshots').select('*').order('collected_on', { ascending: false }).limit(1),
+    sb.from('price_items').select('*')
   ]);
   DB.firms = firms.data || [];
   DB.tenders = tenders.data || [];
@@ -476,6 +487,59 @@ async function loadAll() {
     accreditations: accs.data || [], tiers: tiers.data || []
   };
   DB.staff = staff.data || [];
+
+  /* Media: the database stores columns, the portal works in records.
+     Map once here so nothing downstream has to know the difference. */
+  DB.media = (media.data || []).map(m => ({
+    id: 'db-' + m.id, dbId: m.id, base: m.base, kind: m.kind || 'image',
+    target: m.target, mime: m.mime, bytes: m.bytes, duration: m.duration,
+    naturalW: m.natural_w, naturalH: m.natural_h,
+    posterUrl: m.poster_url, storagePath: m.storage_path,
+    firmId: m.firm_id, variants: m.variants || [], urls: m.urls || {},
+    uploaded: (m.created_at || '').slice(0, 10), usedBy: []
+  }));
+
+  /* Monthly slots */
+  const sp = { product: null, project: null };
+  (spotlight.data || []).forEach(r => {
+    sp[r.slot] = {
+      active: r.active, month: r.month, monthLabel: r.month_label,
+      sponsored: r.sponsored, advertiser: r.advertiser, name: r.name,
+      tagline: r.tagline, body: r.body, image: r.image_url, alt: r.alt,
+      link: r.link, cta: r.cta, supplierId: r.supplier_id, rateUgx: r.rate_ugx,
+      location: r.location, sector: r.sector, completed: r.completed, credit: r.credit,
+      specs: r.specs || [], facts: r.facts || [], lessons: r.lessons || [], dbId: r.id
+    };
+  });
+  DB.spotlight = sp;
+
+  /* Advertising inventory */
+  DB.ads = {
+    slots: Object.fromEntries((adSlots.data || []).map(x =>
+      [x.key, { label: x.label, size: x.size, rateUgx: x.rate_ugx }])),
+    ads: (ads.data || []).map(a => ({
+      id: a.campaign_id, dbId: a.id, slot: a.slot, advertiser: a.advertiser,
+      image: a.image_url, alt: a.alt, title: a.title, body: a.body, cta: a.cta,
+      link: a.link, linkType: a.link_type, firmSlug: a.firm_slug,
+      active: a.active, start: a.starts_on, end: a.ends_on
+    }))
+  };
+
+  /* Material prices — latest snapshot and its rows */
+  const snap = (prices.data || [])[0];
+  if (snap) {
+    DB.prices = {
+      updated: snap.collected_on,
+      sources: snap.sources || [],
+      note: snap.note || '',
+      snapshotId: snap.id,
+      items: (priceItems.data || [])
+        .filter(i => i.snapshot_id === snap.id)
+        .map(i => ({ name: i.material, val: i.value_text, change: i.change_text,
+                     up: i.direction === 'up' ? true : i.direction === 'down' ? false : null }))
+    };
+  }
+
   setSync('Synced ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
 }
 
@@ -746,6 +810,31 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
 
 window.saveDrawer = async function () {
+  if (CURRENT && CURRENT.kind === 'attach') {
+    const m = CURRENT.item;
+    const firmId = val('a_firm');
+    m.title = val('a_title'); m.caption = val('a_caption');
+    m.firmId = firmId || null;
+
+    if (!SESSION.demo && sb) {
+      /* One row per firm+video. Replacing the attachment removes the old
+         row rather than leaving an orphan on the previous profile. */
+      await sb.from('firm_videos').delete().eq('url', m.urls.video);
+      if (firmId) {
+        const { error } = await sb.from('firm_videos').insert({
+          firm_id: firmId, url: m.urls.video, poster_url: m.posterUrl,
+          title: m.title, caption: m.caption, mime: m.mime,
+          bytes: m.bytes, duration: m.duration
+        });
+        if (error) { toast('Rejected by the database: ' + error.message); return; }
+      }
+      await sb.from('media').update({ firm_id: firmId || null }).eq('storage_path', m.storagePath);
+    }
+    closeDrawer(); paintLibrary();
+    toast(firmId ? 'Attached. It now shows on that firm\u2019s profile.' : 'Detached.');
+    return;
+  }
+
   if (EDITING) {
     const a = EDITING.item;
     a.title = val('e_title'); if (!a.title) return toast('An article needs a headline');
@@ -864,7 +953,10 @@ const IMG = {
     'article':         { w: 1200, h: 675, label: 'Article image' },
     'logo':            { w: 400,  h: 400, label: 'Firm logo' },
     'firm-photo':      { w: 1200, h: 900, label: 'Firm photograph' },
-    'spotlight':       { w: 1200, h: 900, label: 'Monthly spotlight' }
+    'spotlight':       { w: 1200, h: 900, label: 'Monthly spotlight' },
+    'project-photo':   { w: 1200, h: 900, label: 'Project photograph' },
+    'firm-video':      { w: 0,    h: 0,   label: 'Firm video', video: true },
+    'ad-video':        { w: 0,    h: 0,   label: 'Advertisement video', video: true }
   }
 };
 
@@ -952,6 +1044,194 @@ async function processImage(file, targetKey) {
   };
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   VIDEO PIPELINE
+   Browsers cannot re-encode video, so unlike images the file goes up
+   as it arrived. Three things we can do, and do:
+
+     1. Cap the size. Supabase Free applies a 50MB global file limit;
+        we stop at 45MB so a file never fails at the ceiling with an
+        opaque error.
+     2. Generate a poster frame. A video with no poster shows a black
+        rectangle until it plays, which on a slow connection is most
+        of the time. We seek to one second, draw to canvas and upload
+        that alongside.
+     3. Upload resumably. Supabase recommends its TUS endpoint above
+        roughly 6MB; a 40MB file over Ugandan mobile data will drop at
+        least once, and a plain POST starts again from zero.
+   ═══════════════════════════════════════════════════════════════ */
+const VIDEO_CFG = {
+  maxBytes: 45 * 1024 * 1024,
+  resumableAbove: 6 * 1024 * 1024,
+  chunk: 6 * 1024 * 1024,
+  accept: ['video/mp4', 'video/webm', 'video/quicktime'],
+  bucket: 'videos'
+};
+
+function humanBytes(n) {
+  return n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB'
+       : n >= 1024 ? Math.round(n / 1024) + 'KB' : n + 'B';
+}
+
+/* Poster frame. MOV often will not decode in the browser even though
+   Supabase will store it — we return null rather than failing the
+   whole upload, and the portal says so. */
+function posterFrom(file) {
+  return new Promise(resolve => {
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.muted = true;
+    v.playsInline = true;
+    const url = URL.createObjectURL(file);
+    let done = false;
+    const finish = out => { if (done) return; done = true; URL.revokeObjectURL(url); resolve(out); };
+
+    v.onloadedmetadata = () => {
+      const meta = { width: v.videoWidth, height: v.videoHeight, duration: v.duration };
+      if (!v.videoWidth) return finish({ blob: null, meta });
+      v.currentTime = Math.min(1, (v.duration || 2) / 2);
+      v.onseeked = () => {
+        try {
+          const c = document.createElement('canvas');
+          const scale = Math.min(1, 1280 / v.videoWidth);
+          c.width = Math.round(v.videoWidth * scale);
+          c.height = Math.round(v.videoHeight * scale);
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          c.toBlob(b => finish({ blob: b, meta }), WEBP ? 'image/webp' : 'image/jpeg', 0.8);
+        } catch (e) { finish({ blob: null, meta }); }
+      };
+    };
+    v.onerror = () => finish({ blob: null, meta: {} });
+    setTimeout(() => finish({ blob: null, meta: {} }), 12000);
+    v.src = url;
+  });
+}
+
+/* Minimal TUS client for Supabase resumable uploads. Enough of the
+   protocol to create an upload and PATCH it in chunks, reporting
+   progress and surviving a dropped connection. */
+async function tusUpload(file, path, onProgress) {
+  const base = SUPABASE_URL.replace(/\/$/, '') + '/storage/v1/upload/resumable';
+  const token = (await sb.auth.getSession()).data.session?.access_token || SUPABASE_ANON_KEY;
+  const b64 = v => btoa(unescape(encodeURIComponent(v)));
+
+  const create = await fetch(base, {
+    method: 'POST',
+    headers: {
+      'Tus-Resumable': '1.0.0',
+      'Upload-Length': String(file.size),
+      'Upload-Metadata': [
+        'bucketName ' + b64(VIDEO_CFG.bucket),
+        'objectName ' + b64(path),
+        'contentType ' + b64(file.type || 'video/mp4'),
+        'cacheControl ' + b64('2592000')
+      ].join(','),
+      Authorization: 'Bearer ' + token,
+      'x-upsert': 'true'
+    }
+  });
+  if (!create.ok) throw new Error('Could not start upload: ' + (await create.text()).slice(0, 160));
+  const location = create.headers.get('location');
+  if (!location) throw new Error('Server did not return an upload location');
+  const url = location.startsWith('http') ? location : base.replace('/upload/resumable', '') + location;
+
+  let offset = 0;
+  while (offset < file.size) {
+    const end = Math.min(offset + VIDEO_CFG.chunk, file.size);
+    let attempt = 0, ok = false;
+    while (attempt < 3 && !ok) {
+      attempt++;
+      try {
+        const res = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Tus-Resumable': '1.0.0',
+            'Upload-Offset': String(offset),
+            'Content-Type': 'application/offset+octet-stream',
+            Authorization: 'Bearer ' + token
+          },
+          body: file.slice(offset, end)
+        });
+        if (!res.ok) throw new Error('chunk ' + res.status);
+        offset = parseInt(res.headers.get('upload-offset') || end, 10);
+        ok = true;
+      } catch (err) {
+        if (attempt >= 3) throw new Error('Upload stalled at ' + humanBytes(offset) + '. Check the connection and try again.');
+        await new Promise(r => setTimeout(r, 900 * attempt));
+      }
+    }
+    onProgress && onProgress(Math.round(offset / file.size * 100));
+  }
+  return true;
+}
+
+async function processVideo(file, item) {
+  if (!VIDEO_CFG.accept.includes(file.type))
+    throw new Error('Needs to be MP4, WebM or MOV. This is ' + (file.type || 'an unknown type') + '.');
+  if (file.size > VIDEO_CFG.maxBytes)
+    throw new Error(humanBytes(file.size) + ' is over the 45MB limit. Export it smaller \u2014 720p at a lower bitrate is usually plenty.');
+
+  item.msg = 'Reading the video\u2026'; item.pct = 8; paintQueue();
+  const { blob: posterBlob, meta } = await posterFrom(file);
+
+  const stamp = Date.now().toString(36);
+  const base = file.name.replace(/\.[^.]+$/, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'video';
+  const ext = file.type === 'video/webm' ? 'webm' : file.type === 'video/quicktime' ? 'mov' : 'mp4';
+  const vpath = `${MEDIA_TARGET}/${base}-${stamp}.${ext}`;
+
+  let videoUrl, posterUrl = null;
+
+  if (SESSION.demo || !sb) {
+    videoUrl = URL.createObjectURL(file);
+    if (posterBlob) posterUrl = URL.createObjectURL(posterBlob);
+  } else {
+    if (posterBlob) {
+      const ppath = `${MEDIA_TARGET}/${base}-${stamp}-poster.${WEBP ? 'webp' : 'jpg'}`;
+      const up = await sb.storage.from('media').upload(ppath, posterBlob, {
+        contentType: WEBP ? 'image/webp' : 'image/jpeg', cacheControl: '604800', upsert: true
+      });
+      if (!up.error) posterUrl = sb.storage.from('media').getPublicUrl(ppath).data.publicUrl;
+    }
+
+    if (file.size > VIDEO_CFG.resumableAbove) {
+      item.msg = 'Uploading (resumable)\u2026'; paintQueue();
+      await tusUpload(file, vpath, p => { item.pct = 10 + Math.round(p * 0.85); item.msg = 'Uploading\u2026 ' + p + '%'; paintQueue(); });
+    } else {
+      item.msg = 'Uploading\u2026'; item.pct = 40; paintQueue();
+      const { error } = await sb.storage.from(VIDEO_CFG.bucket).upload(vpath, file, {
+        contentType: file.type, cacheControl: '2592000', upsert: false
+      });
+      if (error) throw new Error(error.message);
+    }
+    videoUrl = sb.storage.from(VIDEO_CFG.bucket).getPublicUrl(vpath).data.publicUrl;
+  }
+
+  const rec = {
+    id: 'm-' + stamp + Math.random().toString(36).slice(2, 5),
+    kind: 'video', base, target: MEDIA_TARGET, mime: file.type, bytes: file.size,
+    naturalW: meta.width || 0, naturalH: meta.height || 0,
+    duration: meta.duration || 0,
+    posterUrl, storagePath: vpath,
+    uploaded: new Date().toISOString().slice(0, 10),
+    variants: [{ width: meta.width || 0, height: meta.height || 0, name: vpath, bytes: file.size }],
+    urls: { video: videoUrl },
+    firmId: null, usedBy: []
+  };
+
+  if (!SESSION.demo && sb) {
+    await sb.from('media').insert({
+      base, kind: 'video', target: MEDIA_TARGET, mime: file.type, bytes: file.size,
+      natural_w: meta.width || null, natural_h: meta.height || null,
+      duration: meta.duration || null, poster_url: posterUrl, storage_path: vpath,
+      variants: rec.variants, urls: rec.urls
+    });
+  }
+  DB.media.unshift(rec);
+  return { posterMade: !!posterBlob, rec };
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MEDIA LIBRARY
    ═══════════════════════════════════════════════════════════════ */
@@ -999,8 +1279,23 @@ RENDER.media = el => {
 
 async function queueFiles(files) {
   for (const f of Array.from(files)) {
-    const item = { name: f.name, status: 'working', pct: 10, msg: 'Reading\u2026' };
+    const item = { name: f.name, status: 'working', pct: 6, msg: 'Reading\u2026' };
     UPLOADS.unshift(item); paintQueue();
+
+    if (/^video\//.test(f.type)) {
+      try {
+        const { posterMade, rec } = await processVideo(f, item);
+        item.status = 'done'; item.pct = 100;
+        item.msg = humanBytes(f.size) +
+          (rec.duration ? ' \u00b7 ' + Math.round(rec.duration) + 's' : '') +
+          (posterMade ? ' \u00b7 poster made' : ' \u00b7 no poster (add one by hand)');
+      } catch (err) {
+        item.status = 'error'; item.pct = 100; item.msg = err.message;
+      }
+      paintQueue(); paintLibrary(); buildNav();
+      continue;
+    }
+
     try {
       const out = await processImage(f, MEDIA_TARGET);
       item.pct = 60; item.msg = 'Resizing\u2026'; paintQueue();
@@ -1065,28 +1360,96 @@ function paintQueue() {
     </div>`).join('') + '</div>';
 }
 
+function mediaPublicUrl(m) {
+  if (m.kind === 'video') return m.urls.video;
+  const ws = Object.keys(m.urls).map(Number).filter(n => !isNaN(n));
+  return ws.length ? m.urls[Math.max(...ws)] : Object.values(m.urls)[0];
+}
+
 function paintLibrary() {
   const el = document.getElementById('mgrid');
   if (!el) return;
-  document.getElementById('mCount').textContent =
-    DB.media.length + (DB.media.length === 1 ? ' image' : ' images');
+  const imgs = DB.media.filter(m => m.kind !== 'video').length;
+  const vids = DB.media.length - imgs;
+  const cEl = document.getElementById('mCount');
+  if (cEl) cEl.textContent = imgs + (imgs === 1 ? ' image' : ' images') +
+    (vids ? ' \u00b7 ' + vids + (vids === 1 ? ' video' : ' videos') : '');
   if (!DB.media.length) {
-    el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>Nothing uploaded yet</b>Drop an image above.</div>';
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1"><b>Nothing uploaded yet</b>Drop an image or a video above.</div>';
     return;
   }
   el.innerHTML = DB.media.map(m => {
-    const src = m.urls[Math.min(...Object.keys(m.urls).map(Number))] || Object.values(m.urls)[0];
-    const total = m.variants.reduce((a, v) => a + v.bytes, 0);
+    const isVid = m.kind === 'video';
+    const firm = m.firmId && DB.firms.find(f => String(f.id) === String(m.firmId));
+    const thumb = isVid
+      ? (m.posterUrl
+          ? `<img src="${m.posterUrl}" alt="" loading="lazy"><span class="mbadge">\u25B6 video</span>`
+          : `<video src="${m.urls.video}" preload="metadata" muted></video><span class="mbadge">\u25B6 video</span>`)
+      : `<img src="${mediaPublicUrl(m)}" alt="" loading="lazy">`;
+    const detail = isVid
+      ? `${m.naturalW ? m.naturalW + '\u00d7' + m.naturalH + ' \u00b7 ' : ''}${m.duration ? Math.round(m.duration) + 's \u00b7 ' : ''}${humanBytes(m.bytes || 0)}`
+      : `${m.naturalW}\u00d7${m.naturalH} \u00b7 ${m.variants.length} sizes \u00b7 ${Math.round(m.variants.reduce((a,v)=>a+v.bytes,0)/1024)}KB`;
     return `<div class="mcard">
-      <div class="mthumb" onclick="copyImageRef('${m.id}')" title="Click to copy for an article">
-        <img src="${src}" alt="" loading="lazy"></div>
+      <div class="mthumb" onclick="previewMedia('${m.id}')" title="Preview">${thumb}</div>
       <div class="mmeta"><b>${esc(m.base)}</b>
-        <div class="dim">${m.naturalW}\u00d7${m.naturalH} \u00b7 ${m.variants.length} sizes \u00b7 ${Math.round(total/1024)}KB</div></div>
+        <div class="dim">${detail}</div>
+        ${firm ? `<div class="dim" style="color:var(--live)">on ${esc(firm.name)}</div>` : ''}</div>
       <div class="mact">
-        <button class="btn" onclick="copyImageRef('${m.id}')">Copy</button>
-        <button class="btn btn-d" onclick="removeMedia('${m.id}')">Remove</button>
+        <button class="btn" onclick="copyPublicUrl('${m.id}')">Copy URL</button>
+        ${isVid
+          ? `<button class="btn" onclick="attachToFirm('${m.id}')">Attach</button>`
+          : `<button class="btn" onclick="copyImageRef('${m.id}')">For article</button>`}
+        <button class="btn btn-d" onclick="removeMedia('${m.id}')">Delete</button>
       </div></div>`;
   }).join('');
+}
+
+function copyPublicUrl(id) {
+  const m = DB.media.find(x => x.id === id);
+  if (!m) return;
+  const url = mediaPublicUrl(m);
+  navigator.clipboard?.writeText(url);
+  toast('Public URL copied.');
+}
+
+function previewMedia(id) {
+  const m = DB.media.find(x => x.id === id);
+  if (!m) return;
+  const body = m.kind === 'video'
+    ? `<video src="${m.urls.video}" ${m.posterUrl ? `poster="${m.posterUrl}"` : ''} controls playsinline
+         style="width:100%;border-radius:6px;background:#000"></video>
+       <p class="rowsub" style="margin-top:10px">${esc(m.mime || '')} \u00b7 ${humanBytes(m.bytes||0)}
+       ${m.duration ? ' \u00b7 ' + Math.round(m.duration) + ' seconds' : ''}</p>`
+    : `<img src="${mediaPublicUrl(m)}" alt="" style="width:100%;border-radius:6px">
+       <p class="rowsub" style="margin-top:10px">${m.naturalW}\u00d7${m.naturalH} \u00b7
+       ${m.variants.length} sizes generated</p>`;
+  openDrawer(m.base, body +
+    `<div class="f" style="margin-top:16px"><label>Public URL</label>
+       <input type="text" readonly value="${esc(mediaPublicUrl(m))}" onclick="this.select()"></div>` +
+    (m.kind === 'video'
+      ? `<button class="btn btn-p" onclick="closeDrawer();attachToFirm('${m.id}')">Attach to a firm</button>`
+      : ''));
+  document.querySelector('.drawer-foot').style.display = 'none';
+}
+
+/* Attaching a video to a firm writes a firm_videos row, which is what
+   the public profile reads. The media record keeps a reference so the
+   library can show where an asset is in use before you delete it. */
+function attachToFirm(id) {
+  const m = DB.media.find(x => x.id === id);
+  if (!m || m.kind !== 'video') return;
+  const opts = DB.firms.slice(0, 600)
+    .map(f => `<option value="${esc(f.id)}"${String(m.firmId)===String(f.id)?' selected':''}>${esc(f.name)}</option>`).join('');
+  CURRENT = { kind: 'attach', item: m };
+  openDrawer('Attach video to a firm',
+    `<p class="rowsub" style="margin-bottom:14px">This video will appear on that firm's public profile.</p>
+     <div class="f"><label for="a_firm">Firm</label>
+       <select id="a_firm"><option value="">Not attached</option>${opts}</select></div>
+     <div class="f"><label for="a_title">Title</label>
+       <input type="text" id="a_title" value="${esc(m.title || '')}" placeholder="e.g. Site walkthrough, Namanve warehouse"></div>
+     <div class="f"><label for="a_caption">Caption</label>
+       <input type="text" id="a_caption" value="${esc(m.caption || '')}"></div>`);
+  document.querySelector('.drawer-foot').style.display = '';
 }
 
 function copyImageRef(id) {
@@ -1302,7 +1665,8 @@ Object.assign(window, {
   IMG, WEBP, MEDIA_TARGET, UPLOADS, DB,
   queueFiles, paintLibrary, paintQueue, copyImageRef, removeMedia,
   processImage, assess, editArticle, togglePublish, ins, pickImage,
-  paintPreview, md
+  paintPreview, md, processVideo, posterFrom, tusUpload, humanBytes,
+  copyPublicUrl, previewMedia, attachToFirm, mediaPublicUrl, VIDEO_CFG
 });
 Object.defineProperty(window, 'MEDIA_TARGET', {
   get: () => MEDIA_TARGET, set: v => { MEDIA_TARGET = v; }, configurable: true

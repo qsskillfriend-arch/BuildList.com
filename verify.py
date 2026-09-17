@@ -18,8 +18,13 @@ with sync_playwright() as p:
     pg.goto(U + 'index.html'); pg.wait_for_timeout(2500)
     check('Topbar: No.1 claim restored',
           "No.1 Construction Industry Platform" in pg.inner_text('.topbar-claim'))
-    check('Topbar: Sharplink attribution kept',
-          'Sharplink Ventures (U) Limited' in pg.inner_text('.owner-badge'))
+    check('Topbar shows a live date',
+          bool(pg.evaluate('document.getElementById("liveDate").textContent.trim()')),
+          pg.evaluate('document.getElementById("liveDate").textContent'))
+    check('Live dot animates',
+          pg.evaluate('getComputedStyle(document.querySelector(".live-dot")).animationName') != 'none')
+    check('Ownership still credited in the footer',
+          'Sharplink Ventures (U) Limited' in pg.inner_text('footer'))
     check('Data loaded', pg.evaluate('DATA_READY'))
     NF = pg.evaluate('DATA.firms.length')
     PS = pg.evaluate('PAGE_SIZE')
@@ -159,8 +164,9 @@ with sync_playwright() as p:
     pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(1500)
     check('Tender alerts form renders',
           pg.evaluate('document.querySelectorAll("#alertForm .alert-cats label").length') >= 3)
-    check('Alerts form is Netlify-wired',
-          pg.evaluate('!!document.querySelector("form[name=tender-alerts][data-netlify]")'))
+    check('Alerts form posts to the API',
+          pg.evaluate('!!document.querySelector("form[name=tender-alerts]")') and
+          pg.evaluate('typeof handleForm === "function"'))
     check('Closed tenders auto-hidden',
           pg.evaluate('document.querySelectorAll("#tendersFull .tender-card-full").length') ==
           pg.evaluate('openTenders().length'))
@@ -187,13 +193,13 @@ with sync_playwright() as p:
 
     # ═══ FORMS ═══
     pg.goto(U + 'index.html#/submit'); pg.wait_for_timeout(1200)
-    check('Listing form is Netlify-wired',
-          pg.evaluate('!!document.querySelector("form[name=listing-submission][data-netlify]")'))
+    check('Listing form present and wired',
+          pg.evaluate('!!document.querySelector("form[name=listing-submission]")'))
     check('Listing form fields all named',
           pg.evaluate('[...document.querySelectorAll("form[name=listing-submission] input,form[name=listing-submission] select,form[name=listing-submission] textarea")].every(e=>e.name)'))
     pg.goto(U + 'index.html#/about'); pg.wait_for_timeout(1000)
-    check('Contact form wired',
-          pg.evaluate('!!document.querySelector("form[name=contact][data-netlify]")'))
+    check('Contact form present and wired',
+          pg.evaluate('!!document.querySelector("form[name=contact]")'))
     check('Ownership block on About',
           'Sharplink Ventures (U) Limited' in pg.inner_text('#page-about'))
     check('Regulator disclosure present',
@@ -228,7 +234,7 @@ with sync_playwright() as p:
     check('Tender client tabs present',
           set(tabs) == {'', 'government', 'parastatal', 'ngo', 'private'}, str(tabs))
     check('Tabs carry live counts',
-          pg.evaluate('document.querySelectorAll(".tab-btn .tab-n").length') == 5)
+          pg.evaluate('document.querySelectorAll(".tab-btn[data-client] .tab-n").length') == 5)
     pg.evaluate('resetTenderFilter()')          # an earlier test left a status filter set
     pg.click('[data-client=government]')
     gov = pg.evaluate('DATA.tenders.filter(t=>t.clientType==="government" && new Date(t.deadline)>=new Date()).length')
@@ -332,6 +338,87 @@ with sync_playwright() as p:
           pg.evaluate('''(()=>{const b=document.querySelector('.tab-btn.active');
             const c=getComputedStyle(b);
             return c.boxShadow !== 'none' && c.backgroundColor !== 'rgba(0, 0, 0, 0)';})()'''))
+
+    # ═══ VERCEL / FORMS ═══
+    pg.goto(U + 'index.html#/submit'); pg.wait_for_timeout(1400)
+    check('No Netlify attributes remain',
+          pg.evaluate('document.querySelectorAll("[data-netlify]").length') == 0)
+    KNOWN = ['listing-submission','contact','newsletter','tender-alerts','quote-request',
+             'event-submission','tender-submission','job-alerts']
+    seen = set()
+    for route in ['submit','tenders','jobs','news','directory','about']:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(1100)
+        seen |= set(pg.evaluate('[...document.querySelectorAll("form[name]")].map(f=>f.getAttribute("name"))'))
+    check('Every form name is one the API recognises',
+          seen <= set(KNOWN), str(sorted(seen - set(KNOWN))))
+    check('Every form submits through a handler',
+          pg.evaluate('''[...document.querySelectorAll('form[name]')]
+            .every(f => /handleForm|saveAlert/.test(f.getAttribute('onsubmit')||''))'''))
+    pg.goto(U + 'index.html#/submit'); pg.wait_for_timeout(1200)
+    check('Failure path offers a fallback',
+          'form-note-error' in pg.content())
+    check("Possessive in the brand line",
+          "Uganda's Construction Directory" in pg.content())
+
+    # ═══ FIRM VIDEO RENDERING ═══
+    check('Public profile can render firm videos',
+          pg.evaluate('typeof firmVideos === "function"'))
+    check('Video helper handles a firm with none',
+          pg.evaluate('firmVideos({slug:"x"}) === ""'))
+    check('Video helper renders when present',
+          'controls' in pg.evaluate('''firmVideos({slug:"x", videos:[{src:"a.mp4",poster:"p.jpg",title:"T"}]})'''))
+
+    # ═══ DETAIL PAGES ═══
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(2000)
+    check('Tender titles link to a detail page',
+          pg.evaluate('document.querySelectorAll("#tendersFull a.tender-title").length') > 0)
+    tslug = pg.evaluate('tenderSlug(openTenders()[0])')
+    pg.goto(U + 'index.html#/tenders/' + tslug); pg.wait_for_timeout(1200)
+    check('Tender detail page opens',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-tender'])
+    check('Tender detail shows a countdown',
+          bool(pg.evaluate('document.querySelector(".countdown-big")')))
+    pg.goto(U + 'index.html#/jobs'); pg.wait_for_timeout(1600)
+    check('Job titles link to a detail page',
+          pg.evaluate('document.querySelectorAll("#jobsFull a.job-title").length') > 0)
+    jslug = pg.evaluate('openJobs()[0].slug')
+    pg.goto(U + 'index.html#/jobs/' + jslug); pg.wait_for_timeout(1200)
+    check('Job detail page opens',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-job'])
+    eslug = pg.evaluate('openEvents()[0].slug')
+    pg.goto(U + 'index.html#/events/' + eslug); pg.wait_for_timeout(1200)
+    check('Event detail page opens',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-event'])
+    check('Cards are not nested anchors',
+          pg.evaluate('document.querySelectorAll("a a").length') == 0)
+
+    # ═══ ALERTS AND FORMS ═══
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(1800)
+    check('Alerts sit below the tender list',
+          pg.evaluate('''(()=>{const t=document.getElementById('tendersFull'),a=document.getElementById('alerts');
+            return !!t && !!a && a.getBoundingClientRect().top > t.getBoundingClientRect().top;})()'''))
+    for name in ['tender-alerts', 'tender-submission']:
+        check('Form present: ' + name, pg.evaluate('n => !!document.querySelector("form[name=" + n + "]")', name))
+    pg.goto(U + 'index.html#/jobs'); pg.wait_for_timeout(1500)
+    check('Form present: job-alerts', pg.evaluate('!!document.querySelector("form[name=job-alerts]")'))
+    pg.goto(U + 'index.html#/news'); pg.wait_for_timeout(1600)
+    check('Form present: event-submission', pg.evaluate('!!document.querySelector("form[name=event-submission]")'))
+    check('News categories are generated with counts',
+          pg.evaluate('document.querySelectorAll("#newsTabs .tab-btn").length') >= 3)
+    n_all = pg.evaluate('document.querySelectorAll(\'#newsArticles a[href*="news/"]\').length')
+    pg.evaluate('document.querySelectorAll("#newsTabs .tab-btn")[1].click()'); pg.wait_for_timeout(700)
+    check('News category filters the list',
+          pg.evaluate('document.querySelectorAll(\'#newsArticles a[href*="news/"]\').length') < n_all)
+    check('Price report button downloads the data',
+          pg.evaluate('typeof downloadPriceCsv === "function"'))
+
+    # ═══ NO RATES ANYWHERE PUBLIC ═══
+    for route in ['advertise', 'submit', 'tenders', 'jobs']:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(1200)
+        txt = pg.inner_text('#page-' + route)
+        bad = [l for l in txt.split('\n') if 'UGX' in l and ('/year' in l or 'per notice' in l or 'per post' in l)]
+        check('No BuildList rates on the %s page' % route, not bad, str(bad[:2]))
+    check('"Rate card" is gone from the site', 'rate card' not in pg.content().lower())
 
     # ═══ EVENTS ═══
     pg.goto(U + 'index.html#/news'); pg.wait_for_timeout(2000)
@@ -591,6 +678,46 @@ with sync_playwright() as p:
     check('Takedown hides but keeps the article',
           pt.evaluate('DB.articles[0].published') is False and
           pt.evaluate('DB.articles.length') == n_before + 1)
+
+    # ═══ VIDEO PIPELINE ═══
+    pt.evaluate("go('media')"); pt.wait_for_timeout(700)
+    check('Video limits match Supabase Free',
+          pt.evaluate('VIDEO_CFG.maxBytes') == 45 * 1024 * 1024 and
+          pt.evaluate('VIDEO_CFG.resumableAbove') == 6 * 1024 * 1024)
+    check('Accepts MP4, WebM and MOV',
+          set(pt.evaluate('VIDEO_CFG.accept')) == {'video/mp4', 'video/webm', 'video/quicktime'})
+    check('Resumable uploader present', pt.evaluate('typeof tusUpload === "function"'))
+    check('Poster generator present', pt.evaluate('typeof posterFrom === "function"'))
+    pt.evaluate('''async () => {
+      const r = await fetch('/clip-test.webm').catch(()=>null);
+      if (!r || !r.ok) return;
+      const f = new File([await r.blob()], 'walkthrough.webm', {type:'video/webm'});
+      window.MEDIA_TARGET='firm-video';
+      await queueFiles([f]);
+    }''')
+    pt.wait_for_timeout(3500)
+    vid = pt.evaluate('DB.media.find(m=>m.kind==="video")')
+    if vid:
+        check('Video upload records dimensions and duration',
+              vid['naturalW'] == 640 and vid['duration'] > 0, str(vid.get('naturalW')))
+        check('Poster frame generated automatically', bool(vid.get('posterUrl')))
+    else:
+        check('Video upload records dimensions and duration', False, 'no test clip served')
+        check('Poster frame generated automatically', False, 'no test clip served')
+    pt.evaluate('''async () => {
+      await queueFiles([new File([new Uint8Array(47*1024*1024)],'huge.mp4',{type:'video/mp4'})]);
+    }''')
+    pt.wait_for_timeout(2200)
+    check('Oversize video rejected with a useful message',
+          '45MB' in pt.evaluate('UPLOADS[0].msg'))
+    pt.evaluate('''async () => {
+      await queueFiles([new File([new Uint8Array(500)],'x.avi',{type:'video/x-msvideo'})]);
+    }''')
+    pt.wait_for_timeout(1400)
+    check('Unsupported video format rejected',
+          'MP4, WebM or MOV' in pt.evaluate('UPLOADS[0].msg'))
+    check('Library distinguishes images from video',
+          pt.evaluate('typeof mediaPublicUrl === "function" && typeof attachToFirm === "function"'))
 
     check('Portal has no JS errors', not perr, str(perr[:2]))
     pt.close()
