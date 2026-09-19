@@ -235,6 +235,46 @@ enforces this — the project form has no advertiser or link field at all, and
 Keep that line. The moment the project slot can be bought, readers stop trusting
 it, and you have lost the thing that makes anyone read the homepage twice.
 
+## Rotation
+
+Several campaigns can share one slot and take turns. Six per slot is comfortable;
+more and any single advertiser's share gets thin.
+
+Set `weight` on a campaign to show it more often — a Platinum booking might be 3
+to a filler's 1, which is how a premium slot is worth more without needing
+separate inventory.
+
+**Every creative in a slot must be that slot's own size.** Nothing is ever
+stretched; a mismatch letterboxes instead, which is correct but wastes the space
+the advertiser paid for.
+
+Four things the rotator does deliberately:
+
+- **Only rotates a slot that is on screen.** Counting an impression for an advert
+  nobody could see is charging for nothing, and it is the quickest way to lose an
+  advertiser who checks.
+- **Pauses while the pointer is over it.** Swapping the advert somebody is
+  reading is how you lose the click you just earned.
+- **Lets a video finish.** A five-second cut of a thirty-second film is worth
+  nothing to the advertiser who paid for it.
+- **Stops entirely** for anyone who has asked for reduced motion.
+
+## The shine
+
+A diagonal highlight crosses every filled slot at the same moment, every
+twenty seconds.
+
+That interval is deliberate. Done occasionally it reads as the page being alive
+and pulls the eye back to the slots. Done every three seconds it reads as a
+gambling site, people learn to ignore that whole region, and you have made your
+inventory worth less rather than more. Twenty seconds is roughly once per screen
+of reading.
+
+It is off for anyone with reduced motion enabled, and it never fires on a
+background tab.
+
+To change it, find `startShine()` in `index.html`.
+
 ### Checking a creative before it goes live
 
 Open the admin dashboard and go to **Media check**. It loads every image and
