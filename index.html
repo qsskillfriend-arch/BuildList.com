@@ -793,6 +793,25 @@ a { text-decoration: none; color: inherit; }
    being squashed to fit. A distorted logo is worse than a small one,
    and an advertiser who sees their brand stretched does not renew. */
 .ad-creative { display: block; width: 100%; line-height: 0; background: var(--white); }
+
+/* A diagonal highlight that crosses every slot at once. Subtle and
+   infrequent on purpose — an advert that shimmers constantly stops
+   being looked at. */
+.ad-unit { position: relative; overflow: hidden; }
+.ad-unit.shine::after {
+  content: ''; position: absolute; inset: -60% -20%;
+  background: linear-gradient(115deg,
+    rgba(255,255,255,0) 38%, rgba(255,255,255,.42) 50%, rgba(255,255,255,0) 62%);
+  transform: translateX(-130%); pointer-events: none;
+  animation: adShine 1.25s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes adShine { to { transform: translateX(130%); } }
+@media (prefers-reduced-motion: reduce) { .ad-unit.shine::after { display: none; } }
+
+/* Fade between campaigns rather than snapping */
+.ad-unit > * { animation: adIn .45s ease; }
+@keyframes adIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ad-unit > * { animation: none; } }
 .ad-nolink { cursor: default; }
 .ad-creative img, .ad-creative video {
   width: 100%; height: auto; max-height: 100%;
@@ -3422,23 +3441,121 @@ function adWrap(ad, inner, click) {
     : '<a class="ad-creative" href="' + esc(d.href) + '" onclick="' + click + '">' + inner + '</a>';
 }
 
-function liveAdFor(slotKey) {
-  if (!DATA.ads || !DATA.ads.ads) return null;
+/* Every campaign currently eligible for a slot, in weight order. A
+   'weight' of 3 means that advertiser appears three times in the
+   rotation to everyone else's once — which is how a Platinum booking
+   is worth more than a filler without needing a separate slot. */
+function liveAdsFor(slotKey) {
+  if (!DATA.ads || !DATA.ads.ads) return [];
   const today = new Date().toISOString().slice(0, 10);
-  return DATA.ads.ads.find(a =>
-    a.slot === slotKey &&
-    a.active !== false &&
-    (!a.start || a.start <= today) &&
-    (!a.end || a.end >= today)
-  ) || null;
+  const eligible = DATA.ads.ads.filter(a =>
+    a.slot === slotKey && a.active !== false &&
+    (!a.start || a.start <= today) && (!a.end || a.end >= today));
+  const out = [];
+  eligible.forEach(a => {
+    const w = Math.max(1, Math.min(5, parseInt(a.weight, 10) || 1));
+    for (let i = 0; i < w; i++) out.push(a);
+  });
+  return out;
 }
 
+function liveAdFor(slotKey) { return liveAdsFor(slotKey)[0] || null; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   AD ROTATION
+   Several campaigns share a slot and take turns.
+
+   Four things this deliberately does, because a rotator that ignores
+   them is worse than no rotation:
+
+     1. Only rotates a slot that is actually on screen. Counting an
+        impression for an advert nobody could see is charging for
+        nothing, and it is the quickest way to lose an advertiser who
+        checks.
+     2. Pauses while the pointer is over the slot. Swapping the advert
+        someone is reading is how you lose the click you just earned.
+     3. Lets a video finish. A five-second cut of a thirty-second film
+        is worth nothing to the advertiser who paid for it.
+     4. Stops entirely for anyone who has asked for reduced motion.
+   ═══════════════════════════════════════════════════════════════ */
+const ROTATE = { ms: 9000, timers: new Map(), paused: new Set() };
+const reducedMotion = () =>
+  window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function startRotation(el, key) {
+  const list = liveAdsFor(key);
+  if (list.length < 2 || reducedMotion()) return;
+
+  let index = 0;
+  el.dataset.rotating = 'true';
+
+  el.addEventListener('mouseenter', () => ROTATE.paused.add(key));
+  el.addEventListener('mouseleave', () => ROTATE.paused.delete(key));
+  el.addEventListener('focusin', () => ROTATE.paused.add(key));
+  el.addEventListener('focusout', () => ROTATE.paused.delete(key));
+
+  /* Only count and rotate while the slot is in view */
+  let visible = false;
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+    }, { threshold: 0.4 }).observe(el);
+  } else visible = true;
+
+  const tick = () => {
+    if (!document.body.contains(el)) return;                 // page changed
+    if (!visible || ROTATE.paused.has(key) || document.hidden) return schedule();
+    const video = el.querySelector('video');
+    if (video && !video.paused && !video.ended) return schedule();   // let it finish
+
+    index = (index + 1) % list.length;
+    paintAd(el, key, list[index]);
+    schedule();
+  };
+  const schedule = () => {
+    clearTimeout(ROTATE.timers.get(key));
+    ROTATE.timers.set(key, setTimeout(tick, ROTATE.ms));
+  };
+  schedule();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE SHINE
+   A diagonal highlight crosses every slot at the same moment. Done
+   once every 20 seconds it reads as the page being alive; done every
+   three it reads as a casino, and people stop seeing adverts at all.
+   Never for anyone who has asked for reduced motion.
+   ═══════════════════════════════════════════════════════════════ */
+function startShine() {
+  if (reducedMotion()) return;
+  const sweep = () => {
+    if (document.hidden) return;
+    const units = document.querySelectorAll('.ad-unit.ad-filled');
+    units.forEach(u => u.classList.add('shine'));
+    /* Remove together so the next sweep can restart the animation */
+    setTimeout(() => units.forEach(u => u.classList.remove('shine')), 1400);
+  };
+  setTimeout(sweep, 4000);
+  setInterval(sweep, 20000);
+}
+
+
 function renderAds() {
-  const slots = (DATA.ads && DATA.ads.slots) || {};
   document.querySelectorAll('[data-ad]').forEach(el => {
     const key = el.getAttribute('data-ad');
-    const meta = slots[key] || { label: key, size: '' };
-    const ad = liveAdFor(key);
+    const list = liveAdsFor(key);
+    paintAd(el, key, list[0] || null);
+    if (!el.dataset.rotating) startRotation(el, key);
+  });
+}
+
+/* Draw one campaign into one slot. Called on the first render and on
+   every rotation, so the two can never drift apart. */
+function paintAd(el, key, ad) {
+  const slots = (DATA.ads && DATA.ads.slots) || {};
+  const meta = slots[key] || { label: key, size: '' };
+  {
     const isInfeed = el.classList.contains('infeed-ad');
 
     if (!ad) {
@@ -3509,12 +3626,12 @@ function renderAds() {
         '<span class="ad-label">Advertisement \u00b7 ' + esc(ad.advertiser) + '</span>';
     }
     track('ad_impression', { slot: key, ad: ad.id, format: kind });
-  });
+  }
 }
-
 /* ═══════════════════════════════════════════════════════════════
    RENDER: PRICE TICKER
    ═══════════════════════════════════════════════════════════════ */
+
 function renderTicker() {
   const el = document.getElementById('priceTicker');
   if (!el || !DATA.prices) return;
@@ -5456,6 +5573,7 @@ function renderAll() {
   renderHomeNews();
   renderNewsArticles();
   renderSectorGrid();
+  startShine();
   renderNewsTabs();
   renderAlertPanel();
   renderJobAlertPanel();

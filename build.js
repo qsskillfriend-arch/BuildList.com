@@ -396,8 +396,6 @@ ${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${stamp}</lastmod><changefre
 </urlset>
 `);
 
-/* This package targets Netlify only, so the other host's config is
-   absent and its branch below simply does not fire. */
 /* ═══════════════ 7. CATEGORY SHORTCUTS ═══════════════
    Generated from taxonomy.json into whichever host config is present,
    so /quantity-surveying always points at a page that exists. Written
