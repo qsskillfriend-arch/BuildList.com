@@ -37,17 +37,17 @@
       "accepts": "image, video or text"
     },
     "jobs-leaderboard": {
-      "label": "Jobs board leaderboard",
+      "label": "Jobs top leaderboard",
       "size": "970x90",
-      "accepts": "image, video or text"
+      "accepts": "image, flier or video"
     },
     "jobs-sidebar": {
-      "label": "Jobs board sidebar",
+      "label": "Jobs sidebar",
       "size": "300x250",
       "accepts": "image, flier or video"
     },
     "news-sidebar": {
-      "label": "News & prices sidebar",
+      "label": "News sidebar",
       "size": "300x250",
       "accepts": "image, flier or video"
     },
@@ -56,8 +56,38 @@
       "size": "728x90",
       "accepts": "image, video or text"
     },
-    "news-sidebar-lower": {
-      "label": "News sidebar, lower",
+    "jobs-sidebar-2": {
+      "label": "Jobs sidebar, second",
+      "size": "300x250",
+      "accepts": "image, flier or video"
+    },
+    "jobs-sidebar-3": {
+      "label": "Jobs sidebar, third",
+      "size": "300x250",
+      "accepts": "image, flier or video"
+    },
+    "news-leaderboard": {
+      "label": "News top leaderboard",
+      "size": "970x90",
+      "accepts": "image, flier or video"
+    },
+    "news-sidebar-2": {
+      "label": "News sidebar, second",
+      "size": "300x250",
+      "accepts": "image, flier or video"
+    },
+    "news-sidebar-3": {
+      "label": "News sidebar, third",
+      "size": "300x250",
+      "accepts": "image, flier or video"
+    },
+    "tenders-sidebar-2": {
+      "label": "Tenders sidebar, second",
+      "size": "300x250",
+      "accepts": "image, flier or video"
+    },
+    "tenders-sidebar-3": {
+      "label": "Tenders sidebar, third",
       "size": "300x250",
       "accepts": "image, flier or video"
     }
@@ -619,7 +649,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/leaderboard-1.png",
-      "alt": "Placeholder creative 1 for the Jobs board leaderboard slot",
+      "alt": "Placeholder creative 1 for the Jobs top leaderboard slot",
       "weight": 1
     },
     {
@@ -632,7 +662,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/leaderboard-2.png",
-      "alt": "Placeholder creative 2 for the Jobs board leaderboard slot",
+      "alt": "Placeholder creative 2 for the Jobs top leaderboard slot",
       "weight": 1
     },
     {
@@ -645,7 +675,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/leaderboard-3.png",
-      "alt": "Placeholder creative 3 for the Jobs board leaderboard slot",
+      "alt": "Placeholder creative 3 for the Jobs top leaderboard slot",
       "weight": 1
     },
     {
@@ -658,7 +688,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/leaderboard-4.png",
-      "alt": "Placeholder creative 4 for the Jobs board leaderboard slot",
+      "alt": "Placeholder creative 4 for the Jobs top leaderboard slot",
       "weight": 1
     },
     {
@@ -671,7 +701,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/leaderboard-5.png",
-      "alt": "Placeholder creative 5 for the Jobs board leaderboard slot",
+      "alt": "Placeholder creative 5 for the Jobs top leaderboard slot",
       "weight": 1
     },
     {
@@ -684,7 +714,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/leaderboard-6.png",
-      "alt": "Placeholder creative 6 for the Jobs board leaderboard slot",
+      "alt": "Placeholder creative 6 for the Jobs top leaderboard slot",
       "weight": 1
     },
     {
@@ -697,7 +727,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-1.png",
-      "alt": "Placeholder creative 1 for the Jobs board sidebar slot",
+      "alt": "Placeholder creative 1 for the Jobs sidebar slot",
       "weight": 1
     },
     {
@@ -710,7 +740,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-2.png",
-      "alt": "Placeholder creative 2 for the Jobs board sidebar slot",
+      "alt": "Placeholder creative 2 for the Jobs sidebar slot",
       "weight": 1
     },
     {
@@ -723,7 +753,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-3.png",
-      "alt": "Placeholder creative 3 for the Jobs board sidebar slot",
+      "alt": "Placeholder creative 3 for the Jobs sidebar slot",
       "weight": 1
     },
     {
@@ -736,7 +766,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-4.png",
-      "alt": "Placeholder creative 4 for the Jobs board sidebar slot",
+      "alt": "Placeholder creative 4 for the Jobs sidebar slot",
       "weight": 1
     },
     {
@@ -749,7 +779,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-5.png",
-      "alt": "Placeholder creative 5 for the Jobs board sidebar slot",
+      "alt": "Placeholder creative 5 for the Jobs sidebar slot",
       "weight": 1
     },
     {
@@ -762,7 +792,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-6.png",
-      "alt": "Placeholder creative 6 for the Jobs board sidebar slot",
+      "alt": "Placeholder creative 6 for the Jobs sidebar slot",
       "weight": 1
     },
     {
@@ -775,7 +805,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-1.png",
-      "alt": "Placeholder creative 1 for the News & prices sidebar slot",
+      "alt": "Placeholder creative 1 for the News sidebar slot",
       "weight": 1
     },
     {
@@ -788,7 +818,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-2.png",
-      "alt": "Placeholder creative 2 for the News & prices sidebar slot",
+      "alt": "Placeholder creative 2 for the News sidebar slot",
       "weight": 1
     },
     {
@@ -801,7 +831,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-3.png",
-      "alt": "Placeholder creative 3 for the News & prices sidebar slot",
+      "alt": "Placeholder creative 3 for the News sidebar slot",
       "weight": 1
     },
     {
@@ -814,7 +844,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-4.png",
-      "alt": "Placeholder creative 4 for the News & prices sidebar slot",
+      "alt": "Placeholder creative 4 for the News sidebar slot",
       "weight": 1
     },
     {
@@ -827,7 +857,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-5.png",
-      "alt": "Placeholder creative 5 for the News & prices sidebar slot",
+      "alt": "Placeholder creative 5 for the News sidebar slot",
       "weight": 1
     },
     {
@@ -840,7 +870,7 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-6.png",
-      "alt": "Placeholder creative 6 for the News & prices sidebar slot",
+      "alt": "Placeholder creative 6 for the News sidebar slot",
       "weight": 1
     },
     {
@@ -922,8 +952,8 @@
       "weight": 1
     },
     {
-      "id": "news-sidebar-lower-sample-1",
-      "slot": "news-sidebar-lower",
+      "id": "jobs-sidebar-2-sample-1",
+      "slot": "jobs-sidebar-2",
       "advertiser": "Sample Advertiser 1",
       "active": true,
       "start": "2026-09-19",
@@ -931,12 +961,12 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-1.png",
-      "alt": "Placeholder creative 1 for the News sidebar, lower slot",
+      "alt": "Placeholder creative 1 for the Jobs sidebar, second slot",
       "weight": 1
     },
     {
-      "id": "news-sidebar-lower-sample-2",
-      "slot": "news-sidebar-lower",
+      "id": "jobs-sidebar-2-sample-2",
+      "slot": "jobs-sidebar-2",
       "advertiser": "Sample Advertiser 2",
       "active": true,
       "start": "2026-09-19",
@@ -944,12 +974,12 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-2.png",
-      "alt": "Placeholder creative 2 for the News sidebar, lower slot",
+      "alt": "Placeholder creative 2 for the Jobs sidebar, second slot",
       "weight": 1
     },
     {
-      "id": "news-sidebar-lower-sample-3",
-      "slot": "news-sidebar-lower",
+      "id": "jobs-sidebar-2-sample-3",
+      "slot": "jobs-sidebar-2",
       "advertiser": "Sample Advertiser 3",
       "active": true,
       "start": "2026-09-19",
@@ -957,12 +987,12 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-3.png",
-      "alt": "Placeholder creative 3 for the News sidebar, lower slot",
+      "alt": "Placeholder creative 3 for the Jobs sidebar, second slot",
       "weight": 1
     },
     {
-      "id": "news-sidebar-lower-sample-4",
-      "slot": "news-sidebar-lower",
+      "id": "jobs-sidebar-2-sample-4",
+      "slot": "jobs-sidebar-2",
       "advertiser": "Sample Advertiser 4",
       "active": true,
       "start": "2026-09-19",
@@ -970,12 +1000,12 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-4.png",
-      "alt": "Placeholder creative 4 for the News sidebar, lower slot",
+      "alt": "Placeholder creative 4 for the Jobs sidebar, second slot",
       "weight": 1
     },
     {
-      "id": "news-sidebar-lower-sample-5",
-      "slot": "news-sidebar-lower",
+      "id": "jobs-sidebar-2-sample-5",
+      "slot": "jobs-sidebar-2",
       "advertiser": "Sample Advertiser 5",
       "active": true,
       "start": "2026-09-19",
@@ -983,12 +1013,12 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-5.png",
-      "alt": "Placeholder creative 5 for the News sidebar, lower slot",
+      "alt": "Placeholder creative 5 for the Jobs sidebar, second slot",
       "weight": 1
     },
     {
-      "id": "news-sidebar-lower-sample-6",
-      "slot": "news-sidebar-lower",
+      "id": "jobs-sidebar-2-sample-6",
+      "slot": "jobs-sidebar-2",
       "advertiser": "Sample Advertiser 6",
       "active": true,
       "start": "2026-09-19",
@@ -996,7 +1026,475 @@
       "linkType": "none",
       "link": "",
       "image": "images/ads/rectangle-6.png",
-      "alt": "Placeholder creative 6 for the News sidebar, lower slot",
+      "alt": "Placeholder creative 6 for the Jobs sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "jobs-sidebar-3-sample-1",
+      "slot": "jobs-sidebar-3",
+      "advertiser": "Sample Advertiser 1",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-1.png",
+      "alt": "Placeholder creative 1 for the Jobs sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "jobs-sidebar-3-sample-2",
+      "slot": "jobs-sidebar-3",
+      "advertiser": "Sample Advertiser 2",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-2.png",
+      "alt": "Placeholder creative 2 for the Jobs sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "jobs-sidebar-3-sample-3",
+      "slot": "jobs-sidebar-3",
+      "advertiser": "Sample Advertiser 3",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-3.png",
+      "alt": "Placeholder creative 3 for the Jobs sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "jobs-sidebar-3-sample-4",
+      "slot": "jobs-sidebar-3",
+      "advertiser": "Sample Advertiser 4",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-4.png",
+      "alt": "Placeholder creative 4 for the Jobs sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "jobs-sidebar-3-sample-5",
+      "slot": "jobs-sidebar-3",
+      "advertiser": "Sample Advertiser 5",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-5.png",
+      "alt": "Placeholder creative 5 for the Jobs sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "jobs-sidebar-3-sample-6",
+      "slot": "jobs-sidebar-3",
+      "advertiser": "Sample Advertiser 6",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-6.png",
+      "alt": "Placeholder creative 6 for the Jobs sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "news-leaderboard-sample-1",
+      "slot": "news-leaderboard",
+      "advertiser": "Sample Advertiser 1",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/leaderboard-1.png",
+      "alt": "Placeholder creative 1 for the News top leaderboard slot",
+      "weight": 1
+    },
+    {
+      "id": "news-leaderboard-sample-2",
+      "slot": "news-leaderboard",
+      "advertiser": "Sample Advertiser 2",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/leaderboard-2.png",
+      "alt": "Placeholder creative 2 for the News top leaderboard slot",
+      "weight": 1
+    },
+    {
+      "id": "news-leaderboard-sample-3",
+      "slot": "news-leaderboard",
+      "advertiser": "Sample Advertiser 3",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/leaderboard-3.png",
+      "alt": "Placeholder creative 3 for the News top leaderboard slot",
+      "weight": 1
+    },
+    {
+      "id": "news-leaderboard-sample-4",
+      "slot": "news-leaderboard",
+      "advertiser": "Sample Advertiser 4",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/leaderboard-4.png",
+      "alt": "Placeholder creative 4 for the News top leaderboard slot",
+      "weight": 1
+    },
+    {
+      "id": "news-leaderboard-sample-5",
+      "slot": "news-leaderboard",
+      "advertiser": "Sample Advertiser 5",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/leaderboard-5.png",
+      "alt": "Placeholder creative 5 for the News top leaderboard slot",
+      "weight": 1
+    },
+    {
+      "id": "news-leaderboard-sample-6",
+      "slot": "news-leaderboard",
+      "advertiser": "Sample Advertiser 6",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/leaderboard-6.png",
+      "alt": "Placeholder creative 6 for the News top leaderboard slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-2-sample-1",
+      "slot": "news-sidebar-2",
+      "advertiser": "Sample Advertiser 1",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-1.png",
+      "alt": "Placeholder creative 1 for the News sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-2-sample-2",
+      "slot": "news-sidebar-2",
+      "advertiser": "Sample Advertiser 2",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-2.png",
+      "alt": "Placeholder creative 2 for the News sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-2-sample-3",
+      "slot": "news-sidebar-2",
+      "advertiser": "Sample Advertiser 3",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-3.png",
+      "alt": "Placeholder creative 3 for the News sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-2-sample-4",
+      "slot": "news-sidebar-2",
+      "advertiser": "Sample Advertiser 4",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-4.png",
+      "alt": "Placeholder creative 4 for the News sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-2-sample-5",
+      "slot": "news-sidebar-2",
+      "advertiser": "Sample Advertiser 5",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-5.png",
+      "alt": "Placeholder creative 5 for the News sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-2-sample-6",
+      "slot": "news-sidebar-2",
+      "advertiser": "Sample Advertiser 6",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-6.png",
+      "alt": "Placeholder creative 6 for the News sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-3-sample-1",
+      "slot": "news-sidebar-3",
+      "advertiser": "Sample Advertiser 1",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-1.png",
+      "alt": "Placeholder creative 1 for the News sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-3-sample-2",
+      "slot": "news-sidebar-3",
+      "advertiser": "Sample Advertiser 2",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-2.png",
+      "alt": "Placeholder creative 2 for the News sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-3-sample-3",
+      "slot": "news-sidebar-3",
+      "advertiser": "Sample Advertiser 3",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-3.png",
+      "alt": "Placeholder creative 3 for the News sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-3-sample-4",
+      "slot": "news-sidebar-3",
+      "advertiser": "Sample Advertiser 4",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-4.png",
+      "alt": "Placeholder creative 4 for the News sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-3-sample-5",
+      "slot": "news-sidebar-3",
+      "advertiser": "Sample Advertiser 5",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-5.png",
+      "alt": "Placeholder creative 5 for the News sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "news-sidebar-3-sample-6",
+      "slot": "news-sidebar-3",
+      "advertiser": "Sample Advertiser 6",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-6.png",
+      "alt": "Placeholder creative 6 for the News sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-2-sample-1",
+      "slot": "tenders-sidebar-2",
+      "advertiser": "Sample Advertiser 1",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-1.png",
+      "alt": "Placeholder creative 1 for the Tenders sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-2-sample-2",
+      "slot": "tenders-sidebar-2",
+      "advertiser": "Sample Advertiser 2",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-2.png",
+      "alt": "Placeholder creative 2 for the Tenders sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-2-sample-3",
+      "slot": "tenders-sidebar-2",
+      "advertiser": "Sample Advertiser 3",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-3.png",
+      "alt": "Placeholder creative 3 for the Tenders sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-2-sample-4",
+      "slot": "tenders-sidebar-2",
+      "advertiser": "Sample Advertiser 4",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-4.png",
+      "alt": "Placeholder creative 4 for the Tenders sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-2-sample-5",
+      "slot": "tenders-sidebar-2",
+      "advertiser": "Sample Advertiser 5",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-5.png",
+      "alt": "Placeholder creative 5 for the Tenders sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-2-sample-6",
+      "slot": "tenders-sidebar-2",
+      "advertiser": "Sample Advertiser 6",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-6.png",
+      "alt": "Placeholder creative 6 for the Tenders sidebar, second slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-3-sample-1",
+      "slot": "tenders-sidebar-3",
+      "advertiser": "Sample Advertiser 1",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-1.png",
+      "alt": "Placeholder creative 1 for the Tenders sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-3-sample-2",
+      "slot": "tenders-sidebar-3",
+      "advertiser": "Sample Advertiser 2",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-2.png",
+      "alt": "Placeholder creative 2 for the Tenders sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-3-sample-3",
+      "slot": "tenders-sidebar-3",
+      "advertiser": "Sample Advertiser 3",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-3.png",
+      "alt": "Placeholder creative 3 for the Tenders sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-3-sample-4",
+      "slot": "tenders-sidebar-3",
+      "advertiser": "Sample Advertiser 4",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-4.png",
+      "alt": "Placeholder creative 4 for the Tenders sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-3-sample-5",
+      "slot": "tenders-sidebar-3",
+      "advertiser": "Sample Advertiser 5",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-5.png",
+      "alt": "Placeholder creative 5 for the Tenders sidebar, third slot",
+      "weight": 1
+    },
+    {
+      "id": "tenders-sidebar-3-sample-6",
+      "slot": "tenders-sidebar-3",
+      "advertiser": "Sample Advertiser 6",
+      "active": true,
+      "start": "2026-09-19",
+      "end": "2026-12-18",
+      "linkType": "none",
+      "link": "",
+      "image": "images/ads/rectangle-6.png",
+      "alt": "Placeholder creative 6 for the Tenders sidebar, third slot",
       "weight": 1
     }
   ]
