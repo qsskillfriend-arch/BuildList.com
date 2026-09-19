@@ -77,14 +77,43 @@ async function api(method, table, body, query) {
   return text ? JSON.parse(text) : [];
 }
 
+/* Which column decides "this row already exists".
+
+   PostgREST needs telling. With resolution=merge-duplicates alone it
+   matches on the PRIMARY KEY, so a table whose primary key is a serial
+   id but whose real identity is a slug will happily try to insert a
+   second Kampala and hit the unique constraint. That is exactly the
+   409 this script used to fail on. */
+const CONFLICT = {
+  tiers: 'slug', districts: 'slug', categories: 'slug', accreditations: 'slug',
+  ad_slots: 'key', firms: 'slug', jobs: 'slug', articles: 'slug',
+  ads: 'campaign_id', tenders: 'ref',
+  firm_categories: 'firm_id,category_id',
+  firm_accreditations: 'firm_id,accreditation_id'
+};
+
+/* Child tables with a plain serial key have no natural identity, so a
+   re-run would duplicate every row. We clear a firm's rows first and
+   write them fresh — the only safe way to make this idempotent. */
+const REPLACE_BY_FIRM = ['firm_services', 'firm_photos', 'firm_projects'];
+
+async function clearForFirms(table, firmIds) {
+  if (!firmIds.length) return;
+  for (let i = 0; i < firmIds.length; i += 100) {
+    const batch = firmIds.slice(i, i + 100);
+    await api('DELETE', table, null, 'firm_id=in.(' + batch.join(',') + ')');
+  }
+}
+
 /* Supabase rejects very large single payloads. Chunking also means a
    failure halfway through tells you exactly which batch broke. */
 async function upsertAll(table, rows, chunk = 200) {
   let done = 0;
   const out = [];
+  const conflict = CONFLICT[table];
   for (let i = 0; i < rows.length; i += chunk) {
     const batch = rows.slice(i, i + chunk);
-    const r = await api('POST', table, batch);
+    const r = await api('POST', table, batch, conflict ? 'on_conflict=' + conflict : undefined);
     out.push(...r);
     done += batch.length;
     process.stdout.write('\r  ' + table.padEnd(22) + done + ' / ' + rows.length);
@@ -167,6 +196,9 @@ async function main() {
   });
   if (links.length)    await upsertAll('firm_categories', links, 500);
   if (accLinks.length) await upsertAll('firm_accreditations', accLinks, 500);
+  /* Replace rather than add, so a second run does not double them up */
+  const firmIds = [...new Set([...services, ...photos, ...projects].map(r => r.firm_id))];
+  for (const t of REPLACE_BY_FIRM) await clearForFirms(t, firmIds);
   if (services.length) await upsertAll('firm_services', services, 500);
   if (photos.length)   await upsertAll('firm_photos', photos, 500);
   if (projects.length) await upsertAll('firm_projects', projects, 500);
@@ -250,6 +282,6 @@ async function main() {
 main().catch(err => {
   console.error('\n\n  MIGRATION FAILED\n  ' + err.message + '\n');
   console.error('  Nothing is half-written that a re-run will not fix — every');
-  console.error('  insert is an upsert keyed on slug, so running it again is safe.\n');
+  console.error('  insert is matched on its natural key, so running it again is safe.\n');
   process.exit(1);
 });

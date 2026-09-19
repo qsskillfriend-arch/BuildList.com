@@ -222,7 +222,10 @@ async function main() {
       id: a.campaign_id, slot: a.slot, advertiser: a.advertiser,
       image: a.image_url || '', alt: a.alt || '',
       title: a.title || '', body: a.body || '', cta: a.cta || '',
-      link: a.link, active: a.active, start: a.starts_on, end: a.ends_on
+      link: a.link, active: a.active,
+        weight: a.weight || 1,
+        linkType: a.link_type || (a.link ? 'website' : 'none'),
+        firmSlug: a.firm_slug || '', start: a.starts_on, end: a.ends_on
     }))
   });
 

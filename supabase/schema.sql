@@ -671,6 +671,57 @@ create policy "staff writes videos" on storage.objects
   for all using (bucket_id = 'videos' and is_staff())
   with check (bucket_id = 'videos' and is_staff());
 
+
+-- ═══════════════════════════════════════════════════════════════
+-- ROW LEVEL SECURITY — THE REMAINING TABLES
+--
+-- These were created without RLS. On Supabase that means anyone
+-- holding the anon key — which is published in the browser, by
+-- design — could write to them. Nobody could tamper with firms,
+-- because that table was protected, but they could have posted a
+-- fake tender, a fake vacancy or an article.
+--
+-- Public content is world-readable and staff-writable. Analytics
+-- events accept an insert from anyone (that is how counting works)
+-- and are readable only by staff.
+-- ═══════════════════════════════════════════════════════════════
+do $$
+declare t text;
+begin
+  foreach t in array array['tenders','jobs','articles','price_snapshots','price_items'] loop
+    execute format('alter table %I enable row level security', t);
+    execute format('drop policy if exists "public reads %1$s" on %1$I', t);
+    execute format('create policy "public reads %1$s" on %1$I for select using (true)', t);
+    execute format('drop policy if exists "staff writes %1$s" on %1$I', t);
+    execute format('create policy "staff writes %1$s" on %1$I
+      for all using (is_staff()) with check (is_staff())', t);
+  end loop;
+end $$;
+
+-- Articles are the exception: a draft or a taken-down piece must not
+-- be readable by the public, only by staff.
+drop policy if exists "public reads articles" on articles;
+create policy "public reads articles" on articles
+  for select using (published or is_staff());
+
+alter table ad_events enable row level security;
+drop policy if exists "anyone logs an ad event" on ad_events;
+create policy "anyone logs an ad event" on ad_events
+  for insert with check (true);
+drop policy if exists "staff read ad events" on ad_events;
+create policy "staff read ad events" on ad_events
+  for select using (is_staff());
+
+-- ── Natural keys, so migrate.js can be run twice safely ───────
+-- Without these, a re-run inserts a second copy of every tender
+-- instead of updating the one already there.
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'tenders_ref_key') then
+    alter table tenders add constraint tenders_ref_key unique (ref);
+  end if;
+end $$;
+
 -- ── Make yourself an admin ────────────────────────────────────
 -- 1. Create your account: Authentication → Users → Add user
 -- 2. Copy its UUID, then run:

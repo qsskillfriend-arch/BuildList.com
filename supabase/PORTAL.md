@@ -93,6 +93,57 @@ avoid, which is why this config talks to GitHub directly.
 Staff sign in at `buildlist.com/portal` with an email and password. What they see
 and what they may change depends on their role.
 
+## What you can edit in the portal
+
+| Section | What you can do |
+|---|---|
+| **Firms** | Add, edit, approve, set tier and verification (admin only) |
+| **Tenders** | Add and edit notices. Closed ones hide themselves on the site. |
+| **Jobs** | Add and edit vacancies. A closing date is required. |
+| **Articles** | Write, illustrate, publish, take down |
+| **Media library** | Upload images and video, attach video to a firm |
+| **Prices** | Edit the weekly grid and save a dated snapshot |
+| **Monthly slots** | Product of the Month (paid) and Benchmark Project (editorial) |
+| **Advertising** | Campaigns and slots (admin only) |
+| **Staff** | Who has access (admin only) |
+
+Every section is built. Nothing says "coming next".
+
+## Analytics: two different things
+
+**Site-wide traffic stays in Google Analytics.** There is no point rebuilding
+it, so the portal links straight into your own property: live view, pages and
+traffic sources, and Search Console.
+
+One thing to understand about those figures: the GA tag only loads for visitors
+who accept the cookie notice. Your real traffic is higher than GA reports, by
+whatever share declines. That is expected and lawful, not a fault.
+
+**Per-listing activity is yours**, in the `listing_events` table, and it is the
+number the whole sales argument rests on:
+
+> "Your listing was viewed 46 times last month and 11 people tapped your number."
+
+A field agent can put that in front of a shop owner. You could not print it from
+someone else's dashboard, which is why it is recorded in your own database.
+
+The per-listing table sorts by views and shows tier, views, contact taps and tap
+rate. **A free-tier firm with 40 views and 9 taps is the easiest upgrade you
+will ever sell** — you are not predicting a result, you are reporting one. Sort
+by taps and work down the list.
+
+Two rules the editors enforce, because the site depends on them:
+
+- **A tender needs a closing date.** Without one it never expires and the board
+  fills with notices that closed months ago.
+- **A vacancy needs a closing date**, for the same reason. A jobs board full of
+  filled positions stops being used.
+
+Saving prices writes a **new dated snapshot** rather than overwriting the last
+one. After twelve months that series is a continuous record of Kampala material
+prices that nobody else holds — and it is sellable. Overwriting would throw it
+away for no saving at all.
+
 ## Content studio: images and articles
 
 Two sections in the portal, for the person who writes and illustrates.
