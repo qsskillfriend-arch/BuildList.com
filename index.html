@@ -581,6 +581,18 @@ a { text-decoration: none; color: inherit; }
   .ev-when { grid-column: 2; text-align: left; margin-top: 6px; }
 }
 
+/* Claim dialogue ─────────────────────────────────────────────── */
+.modal-scrim { position: fixed; inset: 0; background: rgba(15,26,20,.55);
+  z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-scrim.on { display: flex; }
+.modal-box { background: var(--white); border-radius: var(--r-lg); max-width: 560px;
+  width: 100%; max-height: 90vh; display: flex; flex-direction: column; }
+.modal-head { display: flex; align-items: center; gap: 14px; padding: 18px 22px;
+  border-bottom: 1px solid var(--border); }
+.modal-head h3 { margin: 0; font-size: 1.1rem; }
+.modal-head .btn { margin-left: auto; }
+.modal-body { padding: 20px 22px 24px; overflow-y: auto; }
+
 /* ════════════════════════════════════════════
    DETAIL PAGES — tender, job, event
    A read-one-thing layout: the facts in a panel you can scan in five
@@ -1872,7 +1884,9 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <select class="form-input" style="margin-bottom:10px"><option>All Categories</option><option>Building Works</option><option>Roads</option><option>Consultancy</option></select>
           <a class="btn btn-forest btn-sm" style="width:100%;justify-content:center" href="#/tenders#alerts" onclick="focusAlerts('alertForm')">Activate Free Alert</a>
         </div>
-        <div class="ad-unit ad-rectangle-sm ad-sponsored" style="height:200px;margin-bottom:16px" data-ad="tenders-sidebar"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-bottom:16px" data-ad="tenders-sidebar"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-bottom:16px" data-ad="tenders-sidebar-2"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-bottom:16px" data-ad="tenders-sidebar-3"></div>
         <div class="tender-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bar-chart"></use></svg> Tender Statistics</h4>
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -1900,7 +1914,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
   <div style="background:var(--white);padding:16px 0;border-bottom:1px solid var(--border)">
     <div class="container">
-      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="jobs-sidebar"></div>
+      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="jobs-leaderboard"></div>
     </div>
   </div>
   <div class="container">
@@ -1938,7 +1952,9 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
             <tr><td>Foreman</td><td style="color:var(--forest);font-weight:700">800K–1.5M</td></tr>
           </table>
         </div>
-        <div class="ad-unit ad-rectangle-sm ad-sponsored" style="height:180px" data-ad="jobs-leaderboard"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" data-ad="jobs-sidebar"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:16px" data-ad="jobs-sidebar-2"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:16px" data-ad="jobs-sidebar-3"></div>
       </div>
     </div>
   </div>
@@ -1957,7 +1973,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   </div>
   <div style="background:var(--white);padding:16px 0;border-bottom:1px solid var(--border)">
     <div class="container">
-      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="news-sidebar"></div>
+      <div class="ad-unit ad-leaderboard ad-sponsored" data-ad="news-leaderboard"></div>
     </div>
   </div>
   <div class="container">
@@ -2070,7 +2086,9 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           </div>
         </div>
 
-        <div class="ad-unit ad-rectangle-sm ad-sponsored" style="height:200px" data-ad="news-sidebar-lower"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" data-ad="news-sidebar"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:16px" data-ad="news-sidebar-2"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:16px" data-ad="news-sidebar-3"></div>
       </div>
     </div>
   </div>
@@ -3379,6 +3397,82 @@ function logoMarkup(firm, cls, extraStyle) {
 /* Firm videos. Uploaded through the portal, attached to a firm, and
    pulled into the generated profile at build time. Muted-by-default is
    deliberate: a video that starts talking is how people close a tab. */
+
+/* ═══════════════════════════════════════════════════════════════
+   CLAIMING A LISTING
+   The form collects a name, a role and a number. Nothing changes
+   until somebody telephones the number ALREADY ON THE LISTING and
+   confirms it — the same check the verified badge rests on.
+
+   That matters: without it, claiming a competitor's listing would be
+   a form you fill in. It is also why we ask for the claimant's own
+   number separately from the one we will ring.
+   ═══════════════════════════════════════════════════════════════ */
+function openClaim(slug) {
+  const f = DATA.firms.find(x => x.slug === slug);
+  if (!f) return;
+  const box = document.getElementById('claimModal') || (() => {
+    const d = document.createElement('div');
+    d.id = 'claimModal'; d.className = 'modal-scrim';
+    d.addEventListener('click', e => { if (e.target === d) closeClaim(); });
+    document.body.appendChild(d);
+    return d;
+  })();
+
+  box.innerHTML = `
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="claimTitle">
+      <div class="modal-head">
+        <h3 id="claimTitle">Claim ${esc(f.name)}</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeClaim()">Close</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.88rem;color:var(--slate);margin-bottom:16px;line-height:1.6">
+          We telephone the number already on this listing to confirm the claim before handing it
+          over. That call is the whole protection \u2014 without it, anyone could claim anyone.
+          Expect it within two working days.</p>
+        <form name="claim-listing"
+          onsubmit="return handleForm(event,'Claim received. We will ring the number on the listing to confirm, usually within two working days.')">
+          <input type="hidden" name="firm" value="${esc(f.name)}">
+          <input type="hidden" name="firm_slug" value="${esc(f.slug)}">
+          <input type="hidden" name="listed_number" value="${esc(f.phone || '')}">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="clName">Your name</label>
+              <input class="form-input" id="clName" name="claimant" required></div>
+            <div class="form-group"><label class="form-label" for="clRole">Your role</label>
+              <input class="form-input" id="clRole" name="role" required placeholder="Director, manager\u2026"></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="clPhone">Your phone or WhatsApp</label>
+              <input class="form-input" id="clPhone" name="phone" required placeholder="+256\u2026"></div>
+            <div class="form-group"><label class="form-label" for="clEmail">Email</label>
+              <input class="form-input" id="clEmail" name="email" type="email"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="clEvidence">Anything that helps us confirm it is you</label>
+            <textarea class="form-input" id="clEvidence" name="evidence" style="min-height:74px"
+              placeholder="A URSB number, your website, or just the name of someone here who knows you."></textarea>
+          </div>
+          <div class="form-group" style="font-size:.8rem;color:var(--muted);line-height:1.55">
+            The number we will ring is the one on this listing${f.phone ? ': <strong>' + esc(f.phone) + '</strong>' : ''}.
+            If that number is wrong or no longer yours, say so above and we will find another way.
+          </div>
+          <button class="btn btn-primary" type="submit">Send the claim</button>
+        </form>
+      </div>
+    </div>`;
+  box.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('clName')?.focus(), 80);
+  track('claim_opened', { firm_slug: slug });
+}
+
+function closeClaim() {
+  const box = document.getElementById('claimModal');
+  if (box) box.classList.remove('on');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeClaim(); });
+
 function firmVideos(firm) {
   const list = firm.videos && firm.videos.length ? firm.videos
              : (firm.video ? [{ src: firm.video, poster: firm.videoPoster || '' }] : []);
@@ -5269,7 +5363,8 @@ function renderProfile(firm) {
               ? ' If this is your business, you can correct or remove it at any time \u2014 we action removals within 48 hours.'
               : ''}</p>
           ${provenanceOf(firm) !== 'verified'
-            ? `<a class="btn btn-outline btn-sm" href="#/submit" style="margin-top:10px">This is my business \u2014 update it</a>`
+            ? `<button class="btn btn-outline btn-sm" style="margin-top:10px"
+                 onclick="openClaim('${esc(firm.slug)}')">This is my business \u2014 claim it</button>`
             : ''}
         </div>
 

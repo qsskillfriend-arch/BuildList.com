@@ -6,6 +6,7 @@
 # Same public path as Vercel, so the browser never needs to know which
 # platform it is on.
 /api/form                /.netlify/functions/form   200
+/api/publish             /.netlify/functions/publish 200
 
 # ── Never served ─────────────────────────────────────
 # admin.html is protected only by a passphrase in its own source, which

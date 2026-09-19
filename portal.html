@@ -294,6 +294,7 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
       <h1 id="pageTitle">Board</h1>
       <span class="sub" id="pageSub"></span>
       <div class="spacer"></div>
+      <span id="publishBar"></span>
       <span class="rowsub" id="syncState"></span>
     </div>
     <div class="wrap" id="pages"></div>
@@ -351,9 +352,14 @@ const ROLES = {
 };
 const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
 
+/* Google Analytics identifiers, so the links below go straight to your
+   own property rather than a generic sign-in page. Paste the same
+   Measurement ID you put in index.html. */
+const GA = { measurementId: '', propertyId: '' };
+
 const SESSION = { user: null, role: null, name: null, demo: false };
 let sb = null;
-const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [], media: [] };
+const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [], media: [], claims: [] };
 
 /* ═══════════════════════════════════════════════════════════════
    BOOT
@@ -391,6 +397,14 @@ window.demoAs = async function (role) {
     fetch('data/' + f + '.json').then(r => r.json()).catch(() => null)));
   files.forEach((f, i) => { if (res[i]) DB[f] = res[i]; });
   DB.media = [];
+  DB.claims = DB.firms.slice(0, 3).map((f, i) => ({
+    id: 'demo-claim-' + i, firm_id: f.id, claimant: ['Moses Kigozi','Sarah Nabukenya','David Okot'][i],
+    role: ['Director','Operations manager','Owner'][i],
+    phone: '+25677' + (1234567 + i), email: 'demo' + i + '@example.com',
+    evidence: i === 0 ? 'URSB 80020001234567, and our sign is in your photo.' : '',
+    status: i === 2 ? 'approved' : 'pending', note: i === 2 ? 'Rang the listed number, spoke to David, confirmed.' : '',
+    user_id: null, created_at: new Date(Date.now() - i * 86400000).toISOString()
+  }));
   DB.articles.forEach(a => { if (a.published === undefined) a.published = true;
     if (!a.body) a.body = (a.excerpt || '') + String.fromCharCode(10,10) + '## What this means' + String.fromCharCode(10,10) + 'Write the rest here.'; });
   DB.staff = [
@@ -433,6 +447,152 @@ window.resetPassword = async function () {
   msg(error ? 'err' : 'ok', error ? error.message : '<b>Sent.</b>Check your email for a reset link.');
 };
 
+
+/* ═══════════════════════════════════════════════════════════════
+   TWO-FACTOR AUTHENTICATION
+   Supabase calls this AAL: aal1 is "signed in with a password",
+   aal2 is "and proved a second factor". A staff account here can
+   approve listings, set tiers and read every submission, so a leaked
+   or reused password should not be enough on its own.
+
+   The flow:
+     sign in  ->  if the account has a verified factor, demand a code
+                  before showing anything
+              ->  if it has none, offer enrolment (and require it for
+                  administrators, who can change money and staff)
+
+   The check is server-side. A person who edits the JavaScript to skip
+   the prompt still holds an aal1 token, and every policy that matters
+   can be written to require aal2.
+   ═══════════════════════════════════════════════════════════════ */
+const MFA = { required: ['admin'] };   // roles that must enrol
+
+async function currentAal() {
+  if (!sb) return { current: 'aal1', next: 'aal1' };
+  const { data } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  return data || { current: 'aal1', next: 'aal1' };
+}
+
+async function verifiedFactors() {
+  if (!sb) return [];
+  const { data } = await sb.auth.mfa.listFactors();
+  return (data && data.totp || []).filter(f => f.status === 'verified');
+}
+
+function mfaScreen(html) {
+  document.getElementById('app').classList.remove('on');
+  const gate = document.getElementById('auth');
+  gate.style.display = 'flex';
+  gate.querySelector('.auth-box').innerHTML = html;
+}
+
+/* Step 2 of signing in: prove the second factor. */
+async function promptForCode(factor) {
+  mfaScreen(`
+    <div class="auth-logo"><span class="auth-tile">\u2713</span>
+      <b>BuildList<span>.com</span><small>Two-factor</small></b></div>
+    <h1>Enter your code</h1>
+    <p class="sub">Open your authenticator app and type the six digits for
+      <strong>BuildList.com</strong>. The code changes every 30 seconds.</p>
+    <div id="mfaMsg"></div>
+    <label for="mfaCode">Six-digit code</label>
+    <input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+      style="letter-spacing:.4em;font-size:20px;text-align:center" placeholder="000000">
+    <button onclick="submitCode('${factor.id}')">Verify</button>
+    <button class="alt" onclick="signOut()">Sign in as someone else</button>
+    <p style="color:#6E857E;font-size:12px;margin-top:14px;line-height:1.6">
+      Lost your device? An administrator can remove your factor in Supabase
+      (Authentication \u2192 Users \u2192 your account \u2192 Factors) and you can enrol again.</p>`);
+  document.getElementById('mfaCode').focus();
+  document.getElementById('mfaCode').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitCode(factor.id);
+  });
+}
+
+async function submitCode(factorId) {
+  const code = (document.getElementById('mfaCode').value || '').replace(/\D/g, '');
+  if (code.length !== 6) { msg('err', 'That needs to be six digits.'); return; }
+  const { data: ch, error: e1 } = await sb.auth.mfa.challenge({ factorId });
+  if (e1) return msg('err', e1.message);
+  const { error: e2 } = await sb.auth.mfa.verify({ factorId, challengeId: ch.id, code });
+  if (e2) {
+    msg('err', '<b>That code was not accepted.</b>Codes expire after 30 seconds \u2014 wait for ' +
+      'the next one rather than retyping the same digits. If it keeps failing, check your phone\u2019s clock is correct.');
+    document.getElementById('mfaCode').value = '';
+    return;
+  }
+  location.reload();
+}
+
+/* Enrolment. Shown when an administrator has no factor yet. */
+async function startEnrolment(canSkip) {
+  const { data, error } = await sb.auth.mfa.enroll({
+    factorType: 'totp', friendlyName: 'BuildList portal ' + Date.now()
+  });
+  if (error) return msg('err', error.message);
+
+  mfaScreen(`
+    <div class="auth-logo"><span class="auth-tile">\u2713</span>
+      <b>BuildList<span>.com</span><small>Set up two-factor</small></b></div>
+    <h1>Add a second step</h1>
+    <p class="sub">Your account can approve listings, set tiers and read every submission.
+      A password alone is not enough for that \u2014 particularly one that might also be used elsewhere.</p>
+    <div style="background:#fff;padding:14px;border-radius:8px;text-align:center;margin-bottom:14px">
+      <img src="${data.totp.qr_code}" alt="QR code for your authenticator app" style="width:190px;height:190px">
+    </div>
+    <p style="color:#8FA396;font-size:12.5px;line-height:1.6;margin-bottom:6px">
+      Scan this with Google Authenticator, Microsoft Authenticator or Authy.
+      Cannot scan? Type this key instead:</p>
+    <p style="font-family:var(--mono);font-size:12.5px;color:#fff;background:#1B3B36;
+      padding:9px 12px;border-radius:6px;word-break:break-all;margin-bottom:16px">${data.totp.secret}</p>
+    <div id="mfaMsg"></div>
+    <label for="enrolCode">Enter the code it shows</label>
+    <input id="enrolCode" inputmode="numeric" maxlength="6"
+      style="letter-spacing:.4em;font-size:20px;text-align:center" placeholder="000000">
+    <button onclick="finishEnrolment('${data.id}')">Turn on two-factor</button>
+    ${canSkip ? '<button class="alt" onclick="afterMfa()">Set this up later</button>'
+              : '<p style="color:#6E857E;font-size:12px;margin-top:12px">Required for administrators.</p>'}`);
+  document.getElementById('enrolCode').focus();
+}
+
+async function finishEnrolment(factorId) {
+  const code = (document.getElementById('enrolCode').value || '').replace(/\D/g, '');
+  if (code.length !== 6) { msg('err', 'That needs to be six digits.'); return; }
+  const { data: ch, error: e1 } = await sb.auth.mfa.challenge({ factorId });
+  if (e1) return msg('err', e1.message);
+  const { error: e2 } = await sb.auth.mfa.verify({ factorId, challengeId: ch.id, code });
+  if (e2) {
+    msg('err', '<b>That code was not accepted.</b>Wait for the next one \u2014 codes last 30 seconds.');
+    document.getElementById('enrolCode').value = '';
+    return;
+  }
+  /* Unenrolled factors linger and confuse the next sign-in */
+  const { data: list } = await sb.auth.mfa.listFactors();
+  for (const f of (list && list.totp || [])) {
+    if (f.status !== 'verified') await sb.auth.mfa.unenroll({ factorId: f.id });
+  }
+  location.reload();
+}
+
+/* Decide what to do after a password sign-in succeeds. */
+async function mfaGate() {
+  if (!sb) return true;
+  const aal = await currentAal();
+  const factors = await verifiedFactors();
+
+  if (aal.current === 'aal1' && aal.next === 'aal2' && factors.length) {
+    await promptForCode(factors[0]);
+    return false;
+  }
+  if (!factors.length && MFA.required.includes(SESSION.role)) {
+    await startEnrolment(false);
+    return false;
+  }
+  return true;
+}
+
+function afterMfa() { location.reload(); }
+
 async function afterLogin(user) {
   const { data: staff, error } = await sb.from('staff')
     .select('role,name').eq('user_id', user.id).maybeSingle();
@@ -449,6 +609,12 @@ async function afterLogin(user) {
     return;
   }
   SESSION.user = user; SESSION.role = staff.role; SESSION.name = staff.name || user.email;
+
+  /* Second factor before anything loads. Fetching the data first and
+     then hiding it would mean the records had already crossed the
+     network to a session that has not finished proving itself. */
+  if (!(await mfaGate())) return;
+
   await loadAll();
   startApp();
 }
@@ -461,7 +627,7 @@ window.signOut = async function () {
 async function loadAll() {
   setSync('Loading\u2026');
   const [firms, tenders, jobs, articles, cats, dists, accs, tiers, staff,
-         media, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
+         media, claims, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
     sb.from('firms').select('*').order('name'),
     sb.from('tenders').select('*').order('deadline'),
     sb.from('jobs').select('*').order('posted_at', { ascending: false }),
@@ -472,6 +638,7 @@ async function loadAll() {
     sb.from('tiers').select('*').order('rank'),
     can('staff') ? sb.from('staff').select('*') : Promise.resolve({ data: [] }),
     sb.from('media').select('*').order('created_at', { ascending: false }).limit(300),
+    sb.from('firm_claims').select('*').order('created_at', { ascending: false }).limit(200),
     sb.from('spotlight').select('*').eq('active', true),
     can('ads') ? sb.from('ads').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
     can('ads') ? sb.from('ad_slots').select('*') : Promise.resolve({ data: [] }),
@@ -487,6 +654,7 @@ async function loadAll() {
     accreditations: accs.data || [], tiers: tiers.data || []
   };
   DB.staff = staff.data || [];
+  DB.claims = claims.data || [];
 
   /* Media: the database stores columns, the portal works in records.
      Map once here so nothing downstream has to know the difference. */
@@ -521,6 +689,7 @@ async function loadAll() {
       id: a.campaign_id, dbId: a.id, slot: a.slot, advertiser: a.advertiser,
       image: a.image_url, alt: a.alt, title: a.title, body: a.body, cta: a.cta,
       link: a.link, linkType: a.link_type, firmSlug: a.firm_slug,
+      weight: a.weight || 1,
       active: a.active, start: a.starts_on, end: a.ends_on
     }))
   };
@@ -555,6 +724,7 @@ function startApp() {
     '<span class="role role-' + SESSION.role + '">' + ROLES[SESSION.role].label + '</span>' +
     '<button onclick="signOut()">Sign out</button>';
   buildNav();
+  paintPublish();
   go('board');
 }
 
@@ -564,6 +734,10 @@ function startApp() {
 const SECTIONS = [
   { id:'board',     label:'Board',        group:'Daily',     perm:'board' },
   { id:'firms',     label:'Firms',        group:'Content',   perm:'firms',    count:()=>DB.firms.length },
+  /* Claims hold a named person's phone number and decide who controls
+     a listing. A field agent collects; they do not adjudicate. */
+  { id:'claims',    label:'Claims',       group:'Daily',     perm:'firms.verify',
+      count:()=>openClaims().length, flag:()=>openClaims().length },
   { id:'tenders',   label:'Tenders',      group:'Content',   perm:'tenders',  count:()=>DB.tenders.length },
   { id:'jobs',      label:'Jobs',         group:'Content',   perm:'jobs',     count:()=>DB.jobs.length },
   { id:'articles',  label:'Articles',     group:'Content',   perm:'articles', count:()=>DB.articles.length },
@@ -572,7 +746,9 @@ const SECTIONS = [
   { id:'spotlight', label:'Monthly slots',group:'Content',   perm:'spotlight' },
   { id:'ads',       label:'Advertising',  group:'Revenue',   perm:'ads' },
   { id:'analytics', label:'Analytics',    group:'Revenue',   perm:'analytics' },
-  { id:'staff',     label:'Staff',        group:'Admin',     perm:'staff',    count:()=>DB.staff.length }
+  { id:'staff',     label:'Staff',        group:'Admin',     perm:'staff',    count:()=>DB.staff.length },
+  { id:'publish',   label:'Publish',      group:'Daily',     perm:'board',
+      flag:()=>pending().length }
 ];
 
 function buildNav() {
@@ -589,6 +765,7 @@ function buildNav() {
 const TITLES = {
   board:['Board','What needs doing today'],
   firms:['Firms','Listings, verification and tiers'],
+  claims:['Listing claims','A firm says \u201cthis is us\u201d \u2014 ring the listed number before handing it over'],
   tenders:['Tenders','Closed notices hide themselves'],
   jobs:['Jobs','Vacancies expire on their closing date'],
   articles:['Articles','Write, illustrate, publish \u2014 or take down'],
@@ -597,7 +774,8 @@ const TITLES = {
   spotlight:['Monthly slots','One paid, one editorial'],
   ads:['Advertising','Slots, campaigns and rates'],
   analytics:['Analytics','Traffic and contact events'],
-  staff:['Staff','Who has access, and to what']
+  staff:['Staff','Who has access, and to what'],
+  publish:['Publish','Push what you have saved out to the public site']
 };
 
 window.go = function (id) {
@@ -643,6 +821,9 @@ RENDER.board = el => {
     '<span class="d">' + d + '</span></span></button>';
 
   let jobs = [];
+  if (openClaims().length)
+    jobs.push(task('urgent', openClaims().length, 'Listing claims awaiting a call',
+      'Ring the number on the listing before approving \u2014 that call is the whole check', 'claims'));
   if (can('firms.approve') && pending.length)
     jobs.push(task('due', pending.length, 'Firms awaiting approval', 'Review and set live, or reject', 'firms'));
   if (!can('firms.approve') && pending.length)
@@ -791,6 +972,12 @@ window.editFirm = function (id) {
 const fld = (id, label, v, hint) => '<div class="f"><label for="' + id + '">' + label + '</label>' +
   '<input type="text" id="' + id + '" value="' + esc(v == null ? '' : v) + '">' +
   (hint ? '<div class="hint">' + hint + '</div>' : '') + '</div>';
+const sel = (id, label, v, opts, hint) =>
+  '<div class="f"><label for="' + id + '">' + label + '</label><select id="' + id + '">' +
+  opts.map(o => '<option value="' + esc(o[0]) + '"' + (String(v) === String(o[0]) ? ' selected' : '') +
+    '>' + esc(o[1]) + '</option>').join('') + '</select>' +
+  (hint ? '<div class="hint">' + hint + '</div>' : '') + '</div>';
+
 const area_ = (id, label, v) => '<div class="f"><label for="' + id + '">' + label + '</label>' +
   '<textarea id="' + id + '">' + esc(v || '') + '</textarea></div>';
 
@@ -810,6 +997,169 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
 
 window.saveDrawer = async function () {
+  if (CURRENT && CURRENT.kind === 'claim') {
+    const c = CURRENT.item;
+    const decision = val('e_decision');
+    c.note = val('e_note');
+    if (decision !== 'pending' && !c.note)
+      return toast('Write what happened on the call \u2014 the next person has only this to go on');
+    c.status = decision;
+
+    if (!SESSION.demo && sb) {
+      const patch = { status: c.status, note: c.note,
+        decided_by: decision === 'pending' ? null : SESSION.user.id,
+        decided_at: decision === 'pending' ? null : new Date().toISOString() };
+      const { error } = await sb.from('firm_claims').update(patch).eq('id', c.id);
+      if (error) return toast('Rejected by the database: ' + error.message);
+
+      /* Approving is what actually hands the listing over */
+      if (decision === 'approved' && c.user_id) {
+        const { error: e2 } = await sb.from('firms')
+          .update({ owner_id: c.user_id }).eq('id', c.firm_id);
+        if (e2) return toast('Claim saved, but linking the owner failed: ' + e2.message);
+      }
+    }
+    closeDrawer(); go('claims'); buildNav();
+    toast(decision === 'approved' ? 'Approved. They can now correct their own listing.'
+        : decision === 'rejected' ? 'Rejected and noted.' : 'Saved as pending.');
+    return;
+  }
+
+  if (CURRENT && CURRENT.kind === 'spotlight') {
+    const key = CURRENT.id, paid = key === 'product', o = CURRENT.item;
+    o.active = val('e_active') === 'yes';
+    o.month = val('e_month') || thisMonthStr();
+    o.monthLabel = val('e_monthLabel');
+    o.name = val('e_name'); if (!o.name) return toast('Give it a name');
+    o.tagline = val('e_tagline'); o.body = val('e_body');
+    o.image = val('e_image'); o.alt = val('e_alt');
+    if (o.image && !o.alt) return toast('Describe the image');
+    const pairs = [...document.querySelectorAll('#specRep [data-pair]')].map(n => ({
+      label: n.querySelector('[data-p=label]').value.trim(),
+      value: n.querySelector('[data-p=value]').value.trim()
+    })).filter(x => x.label && x.value);
+
+    if (paid) {
+      o.advertiser = val('e_advertiser');
+      if (o.active && !o.advertiser) return toast('Who is paying for this month?');
+      o.link = val('e_link'); o.cta = val('e_cta');
+      o.rateUgx = parseInt(val('e_rate'), 10) || null;
+      o.specs = pairs; o.sponsored = true;
+    } else {
+      o.location = val('e_location'); o.sector = val('e_sector');
+      o.completed = val('e_completed'); o.credit = val('e_credit');
+      o.facts = pairs;
+      o.lessons = val('e_lessons').split('\n').map(x => x.trim()).filter(Boolean);
+      /* Never sold. The database trigger enforces this too. */
+      o.sponsored = false; o.advertiser = null; o.rateUgx = null;
+    }
+
+    DB.spotlight = DB.spotlight || {};
+    DB.spotlight[key] = o;
+
+    if (!SESSION.demo && sb) {
+      const payload = { slot: key, month: o.month, month_label: o.monthLabel,
+        active: o.active, sponsored: o.sponsored, advertiser: o.advertiser,
+        name: o.name, tagline: o.tagline, body: o.body, image_url: o.image, alt: o.alt,
+        link: o.link, cta: o.cta, rate_ugx: o.rateUgx, location: o.location,
+        sector: o.sector, completed: o.completed, credit: o.credit,
+        specs: o.specs || [], facts: o.facts || [], lessons: o.lessons || [] };
+      const { error } = await sb.from('spotlight').upsert(payload, { onConflict: 'slot,month' });
+      if (error) return toast('Rejected by the database: ' + error.message);
+    }
+    notePending('Monthly slot: ' + o.name); closeDrawer(); go('spotlight'); toast('Saved');
+    return;
+  }
+
+  if (CURRENT && CURRENT.kind === 'ad') {
+    const a = CURRENT.item;
+    a.advertiser = val('e_adv'); if (!a.advertiser) return toast('Who is paying for this?');
+    a.id = val('e_id') || a.advertiser.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '-' + todayStr();
+    a.slot = val('e_slot'); a.start = val('e_start'); a.end = val('e_end');
+    if (a.active !== false && !a.end)
+      return toast('Every running campaign needs an end date \u2014 otherwise it runs free until someone notices');
+    if (a.end && a.start && a.end < a.start) return toast('The end date is before the start date');
+    a.active = val('e_active') === 'yes';
+    a.linkType = val('e_linkType'); a.link = val('e_link'); a.firmSlug = val('e_firmSlug');
+    if (a.linkType === 'website' && !a.link) return toast('Give the website address, or change the destination');
+    if (a.linkType === 'profile' && !a.firmSlug) return toast('Which listing should the click open?');
+    a.weight = Math.max(1, Math.min(5, parseInt(val('e_weight'), 10) || 1));
+    a.image = val('e_image'); a.flier = val('e_flier'); a.video = val('e_video');
+    a.alt = val('e_alt'); a.title = val('e_title'); a.body = val('e_body'); a.cta = val('e_cta');
+    const filled = [a.image, a.flier, a.video, a.title].filter(Boolean).length;
+    if (!filled) return toast('Give it a banner, a flier, a video or a text headline');
+    if (filled > 1) return toast('Fill only one creative type \u2014 ' + filled + ' are set and only the first shows');
+    if ((a.image || a.flier || a.video) && !a.alt) return toast('Describe the creative');
+
+    DB.ads = DB.ads || { slots: {}, ads: [] };
+    if (!CURRENT.id) DB.ads.ads.push(a);
+
+    if (!SESSION.demo && sb) {
+      const payload = { campaign_id: a.id, slot: a.slot, advertiser: a.advertiser,
+        image_url: a.image, alt: a.alt, title: a.title, body: a.body, cta: a.cta,
+        link: a.link, link_type: a.linkType, firm_slug: a.firmSlug || null,
+        weight: a.weight, active: a.active,
+        starts_on: a.start || null, ends_on: a.end || null };
+      const { error } = await sb.from('ads').upsert(payload, { onConflict: 'campaign_id' });
+      if (error) return toast('Rejected by the database: ' + error.message);
+    }
+    notePending('Campaign: ' + a.advertiser); closeDrawer(); go('ads'); toast('Saved');
+    return;
+  }
+
+  if (CURRENT && CURRENT.kind === 'tender') {
+    const t = CURRENT.item;
+    t.title = val('e_title'); if (!t.title) return toast('A tender needs a title');
+    t.deadline = val('e_deadline');
+    if (!t.deadline) return toast('Without a closing date it will never expire');
+    t.ref = val('e_ref'); t.org = val('e_org');
+    t.clientType = val('e_client'); t.category = val('e_cat');
+    t.value = val('e_value'); t.valueUgx = parseInt(val('e_valueUgx'), 10) || null;
+    t.postedAt = val('e_posted') || todayStr();
+    t.source = val('e_source'); t.featured = val('e_featured') === 'yes';
+
+    if (!SESSION.demo && sb) {
+      const payload = { ref:t.ref, title:t.title, org:t.org, category:t.category,
+        client_type:t.clientType, deadline:t.deadline, value_text:t.value,
+        value_ugx:t.valueUgx, featured:t.featured, source:t.source, posted_at:t.postedAt };
+      const q = t.id ? sb.from('tenders').update(payload).eq('id', t.id)
+                     : sb.from('tenders').insert(payload).select().single();
+      const { data, error } = await q;
+      if (error) return toast('Rejected by the database: ' + error.message);
+      if (!t.id && data) { Object.assign(t, data); DB.tenders.unshift(t); }
+    } else if (!CURRENT.id) DB.tenders.unshift(t);
+    notePending('Tender: ' + t.title); closeDrawer(); go('tenders'); buildNav(); toast('Saved');
+    return;
+  }
+
+  if (CURRENT && CURRENT.kind === 'job') {
+    const j = CURRENT.item;
+    j.title = val('e_title'); if (!j.title) return toast('A vacancy needs a title');
+    j.closesAt = val('e_closes');
+    if (!j.closesAt) return toast('Give it a closing date, or it sits there after the job is filled');
+    j.slug = val('e_slug') || j.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    j.company = val('e_company'); j.district = val('e_district');
+    j.location = val('e_location'); j.type = val('e_type');
+    j.discipline = val('e_disc'); j.salary = val('e_salary');
+    j.experience = val('e_exp'); j.level = val('e_level');
+    j.applyEmail = val('e_apply'); j.postedAt = val('e_posted') || todayStr();
+    j.featured = val('e_featured') === 'yes';
+
+    if (!SESSION.demo && sb) {
+      const payload = { slug:j.slug, title:j.title, company:j.company, district:j.district,
+        location:j.location, employment:j.type, discipline:j.discipline, salary:j.salary,
+        experience:j.experience, level:j.level, apply_email:j.applyEmail,
+        featured:j.featured, posted_at:j.postedAt, closes_at:j.closesAt };
+      const q = j.id ? sb.from('jobs').update(payload).eq('id', j.id)
+                     : sb.from('jobs').insert(payload).select().single();
+      const { data, error } = await q;
+      if (error) return toast('Rejected by the database: ' + error.message);
+      if (!j.id && data) { Object.assign(j, data); DB.jobs.unshift(j); }
+    } else if (!CURRENT.id) DB.jobs.unshift(j);
+    notePending('Vacancy: ' + j.title); closeDrawer(); go('jobs'); buildNav(); toast('Saved');
+    return;
+  }
+
   if (CURRENT && CURRENT.kind === 'attach') {
     const m = CURRENT.item;
     const firmId = val('a_firm');
@@ -859,7 +1209,7 @@ window.saveDrawer = async function () {
     }
     if (EDITING.index === null) DB.articles.unshift(a);
     EDITING = null;
-    closeDrawer(); go('articles'); buildNav(); toast('Saved');
+    notePending('Article: ' + a.title); closeDrawer(); go('articles'); buildNav(); toast('Saved');
     return;
   }
   if (!CURRENT) return;
@@ -899,7 +1249,7 @@ window.saveDrawer = async function () {
   const { data, error } = await q;
   if (error) return toast('Rejected by the database: ' + error.message);
   if (!CURRENT.id && data) DB.firms.unshift(data);
-  closeDrawer(); paintFirms(); buildNav(); toast('Saved');
+  notePending('Firm: ' + f.name); closeDrawer(); paintFirms(); buildNav(); toast('Saved');
 };
 
 /* ── Staff (admin only) ── */
@@ -1625,38 +1975,785 @@ function paintPreview() {
 }
 
 /* ── Placeholder renderers reuse the same table pattern ── */
-['tenders','jobs'].forEach(key => {
-  RENDER[key] = el => {
-    const rows = DB[key] || [];
-    el.innerHTML = rows.length
-      ? '<div class="tablewrap"><table><thead><tr><th>Title</th><th>Detail</th><th>Date</th></tr></thead><tbody>' +
-        rows.slice(0, 200).map(r =>
-          '<tr><td class="rowname">' + esc(r.title) + '</td>' +
-          '<td class="rowsub">' + esc(r.org || r.company || r.category || '') + '</td>' +
-          '<td class="mono rowsub">' + esc(r.deadline || r.closes_at || r.closesAt || r.published_at || r.date || '') + '</td></tr>').join('') +
-        '</tbody></table></div>'
-      : '<div class="empty"><b>Nothing here yet</b>Add the first one.</div>';
-  };
-});
 
-RENDER.prices = el => {
-  const p = DB.prices;
-  el.innerHTML = p
-    ? '<div class="note"><b>Last collected ' + esc(p.updated) + '.</b>' +
-      daysSince(p.updated) + ' days ago.</div>' +
-      '<div class="tablewrap"><table><thead><tr><th>Material</th><th>Price</th><th>Change</th></tr></thead><tbody>' +
-      p.items.map(i => '<tr><td>' + esc(i.name) + '</td><td class="mono">' + esc(i.val) +
-        '</td><td class="mono">' + esc(i.change) + '</td></tr>').join('') + '</tbody></table></div>'
-    : '<div class="empty"><b>No price data</b></div>';
+/* ═══════════════════════════════════════════════════════════════
+   TENDERS
+   Closed notices hide themselves on the site, so the only job here
+   is adding new ones and correcting mistakes.
+   ═══════════════════════════════════════════════════════════════ */
+const dTo = d => Math.ceil((new Date(d) - new Date()) / 86400000);
+
+RENDER.tenders = el => {
+  const list = (DB.tenders || []).slice()
+    .sort((a, b) => String(a.deadline).localeCompare(String(b.deadline)));
+  el.innerHTML =
+    '<div class="note"><b>Closed notices disappear on their own.</b>' +
+    'Anything past its closing date is already hidden from the public site. You only need to ' +
+    'add new ones.</div>' +
+    '<div class="toolbar"><div class="spacer"></div>' +
+    '<button class="btn btn-p" onclick="editTender(null)">Add tender</button></div>' +
+    '<div class="tscroll"><table><thead><tr><th>Reference</th><th>Title</th><th>Entity</th>' +
+    '<th>Value</th><th>Closes</th><th></th></tr></thead><tbody>' +
+    (list.length ? list.map(t => {
+      const d = dTo(t.deadline);
+      const pill = d < 0 ? '<span class="pill p-off">closed</span>'
+        : d <= 3 ? '<span class="pill p-wait">' + d + 'd left</span>'
+        : '<span class="pill p-live">' + d + 'd left</span>';
+      return '<tr><td class="mono sub">' + esc(t.ref || '') + '</td>' +
+        '<td><span class="nm">' + esc(t.title) + '</span>' +
+        (t.featured ? '<span class="pill p-new">featured</span>' : '') + '</td>' +
+        '<td class="sub">' + esc(t.org || '') + '</td>' +
+        '<td class="mono sub">' + esc(t.value || t.value_text || '') + '</td>' +
+        '<td>' + pill + '<br><span class="sub mono">' + esc(t.deadline || '') + '</span></td>' +
+        '<td class="act"><button class="btn" onclick="editTender(\'' + esc(t.id || t.ref) + '\')">Edit</button></td></tr>';
+    }).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No tenders yet</b>Add the first notice.</div></td></tr>') +
+    '</tbody></table></div>';
 };
 
+function editTender(id) {
+  const isNew = !id;
+  const t = isNew
+    ? { ref:'', title:'', org:'', category:'building-works', clientType:'government',
+        deadline:'', value:'', featured:false, source:'', postedAt: todayStr() }
+    : Object.assign({}, (DB.tenders || []).find(x => String(x.id || x.ref) === String(id)));
+  CURRENT = { kind:'tender', id, item:t };
+
+  openDrawer(isNew ? 'Add tender notice' : 'Edit tender',
+    '<fieldset><legend>The notice</legend>' +
+      fld('e_ref','Reference number', t.ref, 'As printed on the notice.') +
+      fld('e_title','Title', t.title) +
+      fld('e_org','Procuring entity', t.org) +
+      '<div class="f2">' +
+        sel('e_client','Client type', t.clientType || t.client_type, [
+          ['government','Government'], ['parastatal','Parastatal / authority'],
+          ['ngo','NGO & donor funded'], ['private','Private sector']]) +
+        sel('e_cat','Category', t.category, [
+          ['building-works','Building works'], ['roads-civil','Roads & civil'],
+          ['consultancy','Consultancy'], ['water-sanitation','Water & sanitation'],
+          ['supply','Supply']]) +
+      '</div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Value and timing</legend>' +
+      '<div class="f2">' +
+        fld('e_value','Value as displayed', t.value || t.value_text, 'e.g. UGX 8.4B') +
+        fld('e_valueUgx','Value in shillings', t.valueUgx || t.value_ugx, 'Digits only. Used for sorting.') +
+      '</div>' +
+      '<div class="f2">' +
+        fld('e_deadline','Closing date', t.deadline, 'It hides itself after this date. Required.') +
+        fld('e_posted','Date posted', t.postedAt || t.posted_at) +
+      '</div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Listing</legend>' +
+      fld('e_source','Where you found it', t.source) +
+      sel('e_featured','Featured', t.featured ? 'yes' : 'no',
+        [['no','No'], ['yes','Yes \u2014 paid placement']],
+        'Featured notices sit at the top. This is sold, so only set it for a paying advertiser.') +
+    '</fieldset>');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   JOBS
+   ═══════════════════════════════════════════════════════════════ */
+RENDER.jobs = el => {
+  const list = (DB.jobs || []).slice()
+    .sort((a, b) => String(a.closes_at || a.closesAt || '').localeCompare(String(b.closes_at || b.closesAt || '')));
+  el.innerHTML =
+    '<div class="toolbar"><div class="spacer"></div>' +
+    '<button class="btn btn-p" onclick="editJob(null)">Add vacancy</button></div>' +
+    '<div class="tscroll"><table><thead><tr><th>Role</th><th>Employer</th><th>District</th>' +
+    '<th>Level</th><th>Closes</th><th></th></tr></thead><tbody>' +
+    (list.length ? list.map(j => {
+      const c = j.closes_at || j.closesAt;
+      const d = c ? dTo(c) : null;
+      const pill = d === null ? '<span class="pill p-off">no date</span>'
+        : d < 0 ? '<span class="pill p-off">closed</span>'
+        : d <= 7 ? '<span class="pill p-wait">' + d + 'd left</span>'
+        : '<span class="pill p-live">' + d + 'd left</span>';
+      return '<tr><td><span class="nm">' + esc(j.title) + '</span>' +
+        (j.featured ? '<span class="pill p-new">featured</span>' : '') + '</td>' +
+        '<td class="sub">' + esc(j.company || '') + '</td>' +
+        '<td class="sub">' + esc(j.district || '') + '</td>' +
+        '<td class="sub">' + esc(j.level || '') + '</td>' +
+        '<td>' + pill + '<br><span class="sub mono">' + esc(c || '') + '</span></td>' +
+        '<td class="act"><button class="btn" onclick="editJob(\'' + esc(j.id || j.slug) + '\')">Edit</button></td></tr>';
+    }).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No vacancies yet</b>Add the first one.</div></td></tr>') +
+    '</tbody></table></div>';
+};
+
+function editJob(id) {
+  const isNew = !id;
+  const j = isNew
+    ? { slug:'', title:'', company:'', district:'kampala', location:'', type:'Full-time',
+        discipline:'', salary:'', experience:'', level:'mid', applyEmail:'',
+        postedAt: todayStr(), closesAt:'', featured:false }
+    : Object.assign({}, (DB.jobs || []).find(x => String(x.id || x.slug) === String(id)));
+  CURRENT = { kind:'job', id, item:j };
+  const tx = DB.taxonomy || { districts: [] };
+
+  openDrawer(isNew ? 'Add vacancy' : 'Edit vacancy',
+    '<fieldset><legend>The role</legend>' +
+      fld('e_title','Job title', j.title) +
+      fld('e_slug','Web address', j.slug, 'Lower case with hyphens. Leave blank and we make one.') +
+      '<div class="f2">' + fld('e_company','Employer', j.company) +
+      sel('e_level','Level', j.level, [['entry','Entry'],['mid','Mid'],['senior','Senior'],['principal','Principal']]) +
+      '</div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Where and terms</legend>' +
+      '<div class="f2">' +
+        sel('e_district','District', j.district, (tx.districts || []).map(d => [d.slug, d.name])) +
+        fld('e_location','Location as displayed', j.location) +
+      '</div>' +
+      '<div class="f2">' + fld('e_type','Employment type', j.type, 'Full-time, Contract\u2026') +
+      fld('e_disc','Discipline', j.discipline || j.discipline, 'e.g. quantity-surveying') + '</div>' +
+      '<div class="f2">' + fld('e_salary','Salary range', j.salary, 'Optional') +
+      fld('e_exp','Experience', j.experience, 'e.g. 3\u20135 years') + '</div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Listing</legend>' +
+      '<div class="f2">' + fld('e_posted','Date posted', j.postedAt || j.posted_at) +
+      fld('e_closes','Closing date', j.closesAt || j.closes_at,
+        'Required \u2014 the vacancy hides itself after this date.') + '</div>' +
+      fld('e_apply','Applications to', j.applyEmail || j.apply_email) +
+      sel('e_featured','Featured', j.featured ? 'yes' : 'no', [['no','No'],['yes','Yes \u2014 paid placement']]) +
+    '</fieldset>');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MATERIAL PRICES
+   Edited as a grid, because that is how the data is collected — one
+   walk round three suppliers with a notebook.
+   ═══════════════════════════════════════════════════════════════ */
+RENDER.prices = el => {
+  const p = DB.prices;
+  if (!p) {
+    el.innerHTML = '<div class="empty"><b>No price snapshot yet</b>' +
+      '<button class="btn btn-p" style="margin-top:12px" onclick="newSnapshot()">Start this week\u2019s prices</button></div>';
+    return;
+  }
+  const age = Math.floor((new Date() - new Date(p.updated)) / 86400000);
+  el.innerHTML =
+    (age > 10
+      ? '<div class="note"><b>Last collected ' + age + ' days ago.</b>People quote from this table. A stale index is worse than none.</div>'
+      : '<div class="note"><b>Collected ' + age + ' day' + (age === 1 ? '' : 's') + ' ago.</b>Use the same three suppliers each week so the series stays comparable.</div>') +
+    '<div class="toolbar">' +
+      '<label for="pDate" style="font-size:13px;color:var(--text-2)">Date collected</label>' +
+      '<input type="date" id="pDate" value="' + esc(p.updated) + '" onchange="DB.prices.updated=this.value">' +
+      '<div class="spacer"></div>' +
+      '<button class="btn" onclick="addPriceRow()">Add material</button>' +
+      '<button class="btn btn-p" onclick="savePrices()">Save this week</button>' +
+    '</div>' +
+    '<div class="tscroll"><table><thead><tr><th>Material</th><th>Price</th><th>Change</th>' +
+    '<th>Direction</th><th>On the site</th><th></th></tr></thead><tbody id="priceRows">' +
+    p.items.map((it, i) =>
+      '<tr><td><input value="' + esc(it.name) + '" oninput="DB.prices.items[' + i + '].name=this.value;refreshChip(' + i + ')" style="width:100%"></td>' +
+      '<td><input value="' + esc(it.val) + '" oninput="DB.prices.items[' + i + '].val=this.value;refreshChip(' + i + ')" style="width:100%"></td>' +
+      '<td><input value="' + esc(it.change || '') + '" oninput="DB.prices.items[' + i + '].change=this.value;refreshChip(' + i + ')" style="width:90px"></td>' +
+      '<td><select onchange="DB.prices.items[' + i + '].up=(this.value===\'up\'?true:this.value===\'down\'?false:null);refreshChip(' + i + ')">' +
+        '<option value="up"' + (it.up === true ? ' selected' : '') + '>Up</option>' +
+        '<option value="down"' + (it.up === false ? ' selected' : '') + '>Down</option>' +
+        '<option value="flat"' + (it.up == null ? ' selected' : '') + '>Flat</option></select></td>' +
+      '<td>' + tickerChip(it) + '</td>' +
+      '<td class="act"><button class="btn btn-d" onclick="delPriceRow(' + i + ')">Remove</button></td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<div class="note" style="margin-top:16px"><b>Saving writes a new dated snapshot.</b>' +
+    'Previous weeks are kept, not overwritten \u2014 after twelve months that series is a record ' +
+    'of Kampala material prices nobody else holds, and it is sellable.</div>';
+};
+
+/* Exactly what the live prices ribbon on the site will show for this
+   row — same arrow, same colour. Editing a direction here and only
+   finding out it was wrong on the live site is a needless round trip. */
+function tickerChip(it) {
+  const up = it.up === true, down = it.up === false;
+  const arrow = up ? '\u25B2' : down ? '\u25BC' : '\u2014';
+  const colour = up ? '#1F7A4D' : down ? '#B83232' : 'var(--text-3)';
+  return '<span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;' +
+    'background:#0F1A14;color:#E6EDE8;padding:3px 10px;border-radius:12px;white-space:nowrap">' +
+    '<span style="color:#9DB3AC">' + esc(it.name) + '</span>' +
+    '<strong>' + esc(it.val) + '</strong>' +
+    '<span style="color:' + colour + ';font-weight:700">' + arrow + ' ' + esc(it.change || '') + '</span></span>';
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function newSnapshot() {
+  DB.prices = { updated: todayStr(), sources: [], items: [
+    { name:'Cement (50kg)', val:'UGX 0', change:'0%', up:null }] };
+  go('prices');
+}
+function addPriceRow() {
+  DB.prices.items.push({ name:'New material', val:'UGX 0', change:'0%', up:null });
+  go('prices');
+}
+function delPriceRow(i) { DB.prices.items.splice(i, 1); go('prices'); }
+function refreshChip(i) {
+  const row = document.querySelectorAll('#priceRows tr')[i];
+  if (row) row.children[4].innerHTML = tickerChip(DB.prices.items[i]);
+}
+
+async function savePrices() {
+  const p = DB.prices;
+  if (SESSION.demo || !sb) { toast('Saved in demo only \u2014 nothing was written'); return; }
+  const { data: snap, error } = await sb.from('price_snapshots')
+    .upsert({ collected_on: p.updated, sources: p.sources || [], note: p.note || '' },
+            { onConflict: 'collected_on' })
+    .select().single();
+  if (error) return toast('Rejected by the database: ' + error.message);
+  await sb.from('price_items').delete().eq('snapshot_id', snap.id);
+  const rows = p.items.map(i => ({
+    snapshot_id: snap.id, material: i.name, value_text: i.val,
+    change_text: i.change, direction: i.up === true ? 'up' : i.up === false ? 'down' : 'flat'
+  }));
+  const { error: e2 } = await sb.from('price_items').insert(rows);
+  if (e2) return toast('Rejected by the database: ' + e2.message);
+  notePending('Material prices for ' + p.updated); toast('Saved. ' + rows.length + ' materials recorded for ' + p.updated);
+}
+
+
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PUBLISHING
+   Saving writes to the database. The public site is generated at
+   build time, so a visitor sees nothing until a deploy runs. This is
+   the button that runs one.
+
+   The count of unsaved-to-site changes is kept locally rather than in
+   the database on purpose: it answers "have I published since I
+   started editing", which is a question about this session, not about
+   the data. Two people editing at once each see their own count, and
+   either one publishing serves both.
+   ═══════════════════════════════════════════════════════════════ */
+const PENDING_KEY = 'buildlist-portal-pending';
+
+function pending() {
+  try { return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function notePending(what) {
+  const list = pending();
+  list.unshift({ what, at: Date.now() });
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(list.slice(0, 60))); } catch (e) {}
+  paintPublish();
+}
+function clearPending() {
+  try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  paintPublish();
+}
+
+function paintPublish() {
+  const el = document.getElementById('publishBar');
+  if (!el) return;
+  const n = pending().length;
+  el.innerHTML = n
+    ? '<button class="btn btn-g btn-sm" onclick="go(\'publish\')">' +
+      n + ' change' + (n === 1 ? '' : 's') + ' not on the site yet</button>'
+    : '<span class="rowsub">Site is up to date</span>';
+}
+
+RENDER.publish = el => {
+  const list = pending();
+  el.innerHTML =
+    '<div class="note"><b>Saving and publishing are two different things.</b>' +
+    'Everything you save is in the database immediately and is not at risk. But the public ' +
+    'site is built from that data, so a visitor sees your change only after a build runs. ' +
+    'Publishing starts one; it takes about a minute.</div>' +
+
+    (list.length
+      ? '<div class="toolbar"><div class="spacer"></div>' +
+        '<button class="btn btn-p" id="pubBtn" onclick="publishSite()">Publish ' +
+        list.length + ' change' + (list.length === 1 ? '' : 's') + '</button></div>' +
+        '<div class="tscroll"><table><thead><tr><th>What changed</th><th>When</th></tr></thead><tbody>' +
+        list.map(p => '<tr><td>' + esc(p.what) + '</td>' +
+          '<td class="sub mono">' + new Date(p.at).toLocaleString('en-GB',
+            { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + '</td></tr>').join('') +
+        '</tbody></table></div>'
+      : '<div class="empty"><b>Nothing waiting</b>Everything you have saved is already on the site, ' +
+        'or the site has been built since.' +
+        '<div style="margin-top:14px"><button class="btn" onclick="publishSite()">Build anyway</button></div></div>') +
+
+    '<div id="pubResult"></div>' +
+
+    '<div class="note" style="margin-top:20px"><b>If the button says nothing is configured.</b>' +
+    'Create a build hook in your host and add the URL as an environment variable named ' +
+    '<span class="mono">BUILD_HOOK_URL</span>:<br><br>' +
+    '<strong>Netlify:</strong> Site configuration \u2192 Build &amp; deploy \u2192 Build hooks \u2192 Add build hook<br>' +
+    '<strong>Vercel:</strong> Settings \u2192 Git \u2192 Deploy Hooks \u2192 Create Hook<br><br>' +
+    'Mark it as a secret. It is a bearer token: anyone holding it can trigger builds until the ' +
+    'month\u2019s minutes are gone, which is why the portal never holds it and asks the server instead.</div>';
+};
+
+async function publishSite() {
+  const btn = document.getElementById('pubBtn');
+  const out = document.getElementById('pubResult');
+  const say = (kind, html) => { if (out) out.innerHTML = '<div class="note' +
+    (kind === 'bad' ? ' red' : '') + '" style="margin-top:16px">' + html + '</div>'; };
+
+  if (SESSION.demo || !sb) {
+    say('', '<b>Demo mode.</b>Nothing to build \u2014 connect Supabase and set BUILD_HOOK_URL.');
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting the build\u2026'; }
+
+  try {
+    const token = (await sb.auth.getSession()).data.session?.access_token;
+    const res = await fetch('/api/publish', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json().catch(() => ({}));
+
+    if (data.ok) {
+      clearPending();
+      say('', '<b>Build started.</b>' + esc(data.message || '') +
+        ' Refresh the public site in a minute or two. Your host\u2019s deploy log shows progress.');
+      go('publish');
+    } else {
+      say('bad', '<b>Not published.</b>' + esc(data.message || data.error || 'Unknown error.') +
+        '<br><br>Nothing is lost \u2014 every change you saved is in the database and will appear ' +
+        'at the next build, however that build is started.');
+    }
+  } catch (err) {
+    say('bad', '<b>Could not reach the publish endpoint.</b>' + esc(err.message) +
+      '<br><br>Your changes are saved. This only affects starting a build.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Publish'; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTING CLAIMS
+   The decision is not "does this look plausible" — it is "did the
+   number already on the listing answer, and did the person on it say
+   yes". Approving without that call is how a competitor takes over a
+   listing, and you will not find out until the owner rings you angry.
+   ═══════════════════════════════════════════════════════════════ */
+const openClaims = () => (DB.claims || []).filter(c => c.status === 'pending');
+
+RENDER.claims = el => {
+  const list = (DB.claims || []).slice()
+    .sort((a, b) => (a.status === 'pending' ? -1 : 1) -
+                    (b.status === 'pending' ? -1 : 1) ||
+                    String(b.created_at).localeCompare(String(a.created_at)));
+
+  el.innerHTML =
+    '<div class="note"><b>Ring the number on the listing, not the number on the claim.</b>' +
+    'That is the whole check. A claimant who gives their own number and is confirmed on it has ' +
+    'proved nothing \u2014 anyone can answer their own phone.</div>' +
+    (!list.length
+      ? '<div class="empty"><b>No claims yet</b>They arrive when somebody presses ' +
+        '\u201cThis is my business\u201d on a listing.</div>'
+      : '<div class="tscroll"><table><thead><tr><th>Firm</th><th>Claimant</th>' +
+        '<th>Number to ring</th><th>Received</th><th>State</th><th></th></tr></thead><tbody>' +
+        list.map(c => {
+          const f = DB.firms.find(x => String(x.id) === String(c.firm_id));
+          const pill = c.status === 'pending' ? '<span class="pill p-wait">pending</span>'
+            : c.status === 'approved' ? '<span class="pill p-live">approved</span>'
+            : '<span class="pill p-off">rejected</span>';
+          return '<tr><td><span class="nm">' + esc(f ? f.name : c.firm_id) + '</span>' +
+            '<span class="sub">' + esc(f ? f.area || '' : '') + '</span></td>' +
+            '<td><span class="nm">' + esc(c.claimant) + '</span>' +
+            '<span class="sub">' + esc(c.role || '') + '</span></td>' +
+            '<td class="mono">' + esc(f && f.phone ? f.phone : '\u2014 no number on file') + '</td>' +
+            '<td class="sub mono">' + esc(String(c.created_at || '').slice(0, 10)) + '</td>' +
+            '<td>' + pill + '</td>' +
+            '<td class="act"><button class="btn" onclick="reviewClaim(\'' + esc(c.id) + '\')">' +
+            (c.status === 'pending' ? 'Review' : 'Open') + '</button></td></tr>';
+        }).join('') + '</tbody></table></div>');
+};
+
+function reviewClaim(id) {
+  const c = (DB.claims || []).find(x => String(x.id) === String(id));
+  if (!c) return;
+  const f = DB.firms.find(x => String(x.id) === String(c.firm_id));
+  CURRENT = { kind: 'claim', id, item: c };
+
+  openDrawer('Claim \u00b7 ' + (f ? f.name : ''),
+    '<div class="note"><b>Before you decide, ring ' +
+      (f && f.phone ? '<span class="mono">' + esc(f.phone) + '</span>' : 'the listed number') +
+      '.</b>Ask for ' + esc(c.claimant) + ' by name. If the number is dead or the person is ' +
+      'unknown there, reject it and note why \u2014 do not approve on the strength of the form.</div>' +
+    '<fieldset><legend>What they told us</legend>' +
+      '<div class="tscroll"><table><tbody>' +
+      '<tr><td style="width:150px"><span class="sub">Name</span></td><td><strong>' + esc(c.claimant) + '</strong></td></tr>' +
+      '<tr><td><span class="sub">Role</span></td><td>' + esc(c.role || '\u2014') + '</td></tr>' +
+      '<tr><td><span class="sub">Their number</span></td><td class="mono">' + esc(c.phone || '\u2014') + '</td></tr>' +
+      '<tr><td><span class="sub">Email</span></td><td class="mono">' + esc(c.email || '\u2014') + '</td></tr>' +
+      '<tr><td><span class="sub">Evidence</span></td><td>' + esc(c.evidence || '\u2014') + '</td></tr>' +
+      '<tr><td><span class="sub">Number on listing</span></td><td class="mono">' +
+        esc(f && f.phone ? f.phone : 'none') + '</td></tr>' +
+      '</tbody></table></div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Your decision</legend>' +
+      sel('e_decision', 'Outcome', c.status, [
+        ['pending', 'Still pending \u2014 not yet called'],
+        ['approved', 'Approved \u2014 I rang the listed number and confirmed'],
+        ['rejected', 'Rejected']]) +
+      area_('e_note', 'Note', c.note || '',
+        'What happened on the call. Whoever picks this up next has only this to go on.') +
+      '<div class="hint">Approving links this person to the listing. They can then correct ' +
+      'contact details, description, photos, services and hours. They cannot change the ' +
+      'business name, web address, district, tier, verification or approval status \u2014 those ' +
+      'stay with you, and the database enforces it.</div>' +
+    '</fieldset>');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MONTHLY SLOTS
+   Product of the Month is bought. Benchmark Project is not, and the
+   editor makes that structural: the project form has no advertiser
+   field, no link field and no rate field, and the database trigger
+   clears them anyway. A rule you cannot break by accident is worth
+   more than one written in a policy document.
+   ═══════════════════════════════════════════════════════════════ */
+function thisMonthStr() { return new Date().toISOString().slice(0, 7); }
+
+RENDER.spotlight = el => {
+  const sp = DB.spotlight || {};
+  const stale = k => sp[k] && sp[k].active !== false && sp[k].month !== thisMonthStr();
+
+  const card = (key, title, sub, paid) => {
+    const o = sp[key] || {};
+    return '<div class="panel" style="margin-bottom:16px">' +
+      '<h3>' + title + '</h3>' +
+      '<div class="tscroll"><table><tbody>' +
+      '<tr><td style="width:190px"><span class="sub">Status</span></td><td>' +
+        (o.active === false ? '<span class="pill p-off">not running</span>'
+          : stale(key) ? '<span class="pill p-wait">still showing ' + esc(o.monthLabel || o.month || '?') + '</span>'
+          : '<span class="pill p-live">current</span>') +
+        '<span class="sub" style="margin-left:10px">' + esc(sub) + '</span></td></tr>' +
+      '<tr><td><span class="sub">' + (paid ? 'Product' : 'Project') + '</span></td>' +
+        '<td><strong>' + esc(o.name || '\u2014') + '</strong></td></tr>' +
+      (paid ? '<tr><td><span class="sub">Advertiser</span></td><td>' + esc(o.advertiser || '\u2014') + '</td></tr>' : '') +
+      '<tr><td><span class="sub">Month</span></td><td class="mono">' + esc(o.month || '\u2014') + '</td></tr>' +
+      '</tbody></table></div>' +
+      '<div class="act" style="margin-top:12px;justify-content:flex-start">' +
+      '<button class="btn btn-p" onclick="editSpot(\'' + key + '\')">Edit</button></div></div>';
+  };
+
+  el.innerHTML =
+    (stale('product') || stale('project')
+      ? '<div class="note"><b>A slot is still showing an older month.</b>' +
+        'Rotate it or switch it off. An advertiser bought one month; leaving it up looks generous ' +
+        'but means you can never sell that month again.</div>' : '') +
+    '<div class="note"><b>Two slots, two different rules.</b>' +
+    '<strong>Product of the Month</strong> is paid and labelled as advertising everywhere it appears. ' +
+    '<strong>Benchmark Project</strong> is editorial and is never sold \u2014 the moment it is for sale, ' +
+    'nobody trusts it, and you lose the thing that makes people read the homepage twice.</div>' +
+    card('product', 'Product of the Month', 'Paid \u00b7 one advertiser per calendar month', true) +
+    card('project', 'Benchmark Project', 'Editorial \u00b7 chosen on merit, never sold', false);
+};
+
+function editSpot(key) {
+  const paid = key === 'product';
+  const o = Object.assign({}, (DB.spotlight || {})[key] || {});
+  CURRENT = { kind: 'spotlight', id: key, item: o };
+
+  const rows = (name, list, label) =>
+    '<div class="f"><label>' + label + '</label><div id="' + name + 'Rep">' +
+    (list || []).map((r, i) =>
+      '<div class="rep" data-pair><div class="rep-head"><b>' + label + ' ' + (i + 1) + '</b>' +
+      '<div class="spacer"></div><button type="button" class="btn btn-sm btn-d" ' +
+      'onclick="this.closest(\'[data-pair]\').remove()">Remove</button></div>' +
+      '<div class="f2"><div class="f"><input type="text" data-p="label" placeholder="Label" value="' + esc(r.label) + '"></div>' +
+      '<div class="f"><input type="text" data-p="value" placeholder="Value" value="' + esc(r.value) + '"></div></div></div>').join('') +
+    '</div><button type="button" class="btn btn-sm" onclick="addPairRow(\'' + name + 'Rep\')">Add row</button></div>';
+
+  openDrawer(paid ? 'Product of the Month' : 'Benchmark Project',
+    '<fieldset><legend>' + (paid ? 'Campaign' : 'Editorial') + '</legend>' +
+      '<div class="f2">' +
+        sel('e_active','Running', o.active === false ? 'no' : 'yes',
+          [['yes','Yes'], ['no','No \u2014 show the "available" placeholder']]) +
+        fld('e_month','Month', o.month || thisMonthStr(), 'YYYY-MM. Drives the stale warning.') +
+      '</div>' +
+      fld('e_monthLabel','Month as displayed', o.monthLabel, 'e.g. September 2026') +
+      (paid ? fld('e_advertiser','Advertiser', o.advertiser, 'Named in the paid-placement disclosure. Required.') : '') +
+    '</fieldset>' +
+    '<fieldset><legend>Content</legend>' +
+      fld('e_name', paid ? 'Product name' : 'Project name', o.name) +
+      fld('e_tagline','One-line summary', o.tagline) +
+      area_('e_body', paid ? 'Write-up' : 'Editorial write-up', o.body) +
+      (paid ? '' :
+        '<div class="f2">' + fld('e_location','Location', o.location) +
+        fld('e_sector','Sector', o.sector) + '</div>' +
+        fld('e_completed','Completed', o.completed)) +
+    '</fieldset>' +
+    '<fieldset><legend>Image</legend>' +
+      fld('e_image','Image URL', o.image,
+        paid ? '4:3, 1200\u00d7900. Upload it in the media library and copy the URL.'
+             : '16:9, 1600\u00d7900. Upload it in the media library and copy the URL.') +
+      fld('e_alt','Image description', o.alt, 'For screen readers, and shown if the file fails to load.') +
+      (paid ? '' : fld('e_credit','Photograph credit', o.credit,
+        'Name the photographer. Publishing a site photo uncredited is how you lose a contact.')) +
+    '</fieldset>' +
+    (paid
+      ? '<fieldset><legend>Link and specification</legend>' +
+          '<div class="f2">' + fld('e_link','Destination link', o.link) +
+          fld('e_cta','Button label', o.cta || 'Find out more') + '</div>' +
+          fld('e_rate','Rate charged (UGX)', o.rateUgx, 'Your record only. Never shown on the site.') +
+          rows('spec', o.specs, 'Spec') +
+        '</fieldset>'
+      : '<fieldset><legend>Facts and lessons</legend>' +
+          rows('spec', o.facts, 'Fact') +
+          area_('e_lessons','Lessons, one per line', (o.lessons || []).join('\n')) +
+          '<div class="hint">Concrete and transferable. "Use quality materials" is not a lesson.</div>' +
+        '</fieldset>'));
+}
+
+function addPairRow(boxId) {
+  const box = document.getElementById(boxId);
+  box.insertAdjacentHTML('beforeend',
+    '<div class="rep" data-pair><div class="rep-head"><b>New row</b><div class="spacer"></div>' +
+    '<button type="button" class="btn btn-sm btn-d" onclick="this.closest(\'[data-pair]\').remove()">Remove</button></div>' +
+    '<div class="f2"><div class="f"><input type="text" data-p="label" placeholder="Label"></div>' +
+    '<div class="f"><input type="text" data-p="value" placeholder="Value"></div></div></div>');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADVERTISING
+   ═══════════════════════════════════════════════════════════════ */
+RENDER.ads = el => {
+  const slots = (DB.ads && DB.ads.slots) || {};
+  const ads = (DB.ads && DB.ads.ads) || [];
+  const today = todayStr();
+  const keys = Object.keys(slots);
+
+  el.innerHTML =
+    '<div class="note"><b>Unsold slots sell themselves.</b>' +
+    'A slot with no running campaign shows an "advertisement slot available" placeholder with ' +
+    'your sales email, so the inventory is never simply blank.</div>' +
+    '<div class="toolbar"><div class="spacer"></div>' +
+    '<button class="btn btn-p" onclick="editAd(null)">Add campaign</button></div>' +
+    '<div class="tscroll"><table><thead><tr><th>Slot</th><th>Advertiser</th><th>Type</th>' +
+    '<th>Runs</th><th>State</th><th></th></tr></thead><tbody>' +
+    (keys.length ? keys.map(k => {
+      const meta = slots[k];
+      const ad = ads.find(a => a.slot === k);
+      let state = '<span class="pill p-off">available</span>';
+      if (ad) {
+        const live = ad.active !== false &&
+          (!ad.start || ad.start <= today) && (!ad.end || ad.end >= today);
+        state = ad.active === false ? '<span class="pill p-off">paused</span>'
+          : live ? '<span class="pill p-live">running</span>'
+          : (ad.start && ad.start > today) ? '<span class="pill p-new">scheduled</span>'
+          : '<span class="pill p-wait">expired</span>';
+      }
+      return '<tr><td><span class="nm">' + esc(meta.label || k) + '</span>' +
+        '<span class="sub mono">' + esc(k) + (meta.size ? ' \u00b7 ' + esc(meta.size) : '') + '</span></td>' +
+        '<td>' + (ad ? esc(ad.advertiser) : '<span class="sub">\u2014</span>') + '</td>' +
+        '<td class="sub">' + (ad ? (ad.video ? 'Video' : ad.flier ? 'Flier' : ad.image ? 'Image' : 'Text') : '\u2014') + '</td>' +
+        '<td class="mono sub">' + (ad ? esc(ad.start || '') + ' \u2192 ' + esc(ad.end || '') : '') + '</td>' +
+        '<td>' + state + '</td>' +
+        '<td class="act">' + (ad
+          ? '<button class="btn" onclick="editAd(\'' + esc(ad.id) + '\')">Edit</button>'
+          : '<button class="btn" onclick="editAd(null,\'' + esc(k) + '\')">Sell</button>') +
+        '</td></tr>';
+    }).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No slots defined</b>Run seed.sql to load the inventory.</div></td></tr>') +
+    '</tbody></table></div>';
+};
+
+function editAd(id, presetSlot) {
+  const ads = (DB.ads && DB.ads.ads) || [];
+  const slots = (DB.ads && DB.ads.slots) || {};
+  const isNew = !id;
+  const a = isNew
+    ? { id:'', slot: presetSlot || Object.keys(slots)[0] || '', advertiser:'', active:true,
+        start: todayStr(), end:'', link:'', linkType:'website', image:'', flier:'', video:'',
+        alt:'', title:'', body:'', cta:'Learn more' }
+    : Object.assign({}, ads.find(x => String(x.id) === String(id)));
+  CURRENT = { kind: 'ad', id, item: a };
+
+  openDrawer(isNew ? 'Sell a slot' : 'Edit campaign',
+    '<fieldset><legend>Campaign</legend>' +
+      '<div class="f2">' + fld('e_id','Campaign id', a.id, 'e.g. crownpaints-2026-q4') +
+      fld('e_adv','Advertiser', a.advertiser) + '</div>' +
+      sel('e_slot','Slot', a.slot, Object.keys(slots).map(k =>
+        [k, (slots[k].label || k) + (slots[k].size ? ' (' + slots[k].size + ')' : '')])) +
+      '<div class="f2">' + fld('e_start','Starts', a.start) +
+      fld('e_end','Ends', a.end, 'Required. Stops on its own \u2014 this is what prevents a sold month running for a year.') + '</div>' +
+      sel('e_active','Running', a.active === false ? 'no' : 'yes', [['yes','Yes'],['no','Paused']]) +
+    '</fieldset>' +
+    '<fieldset><legend>Where the click goes</legend>' +
+      sel('e_linkType','Destination', a.linkType || 'website', [
+        ['website','The advertiser\u2019s own website'],
+        ['profile','Their listing on this site'],
+        ['none','Nowhere \u2014 brand awareness only']],
+        'All three are legitimate. External links carry rel="nofollow sponsored", which Google requires for paid placement.') +
+      fld('e_link','Website address', a.link) +
+      fld('e_firmSlug','Their listing slug', a.firmSlug, 'Used when the destination is their listing here.') +
+      fld('e_weight','Rotation weight', a.weight || 1,
+        'How often this shows against others in the same slot. 1 is normal; 3 means it appears three times per cycle. Use it to make a premium booking actually premium.') +
+    '</fieldset>' +
+    '<fieldset><legend>Creative</legend>' +
+      '<div class="hint" style="margin-bottom:12px">Fill in ONE of these. Nothing is ever stretched on ' +
+      'the site \u2014 a creative that does not match the slot letterboxes instead.</div>' +
+      fld('e_image','1. Banner image URL', a.image) +
+      fld('e_flier','2. Flier URL', a.flier, 'Any shape. Keeps its natural proportions.') +
+      fld('e_video','3. Video URL', a.video, 'MP4. Upload it in the media library and copy the URL.') +
+      fld('e_alt','Creative description', a.alt, 'Required for anything visual.') +
+      '<div class="hint" style="margin:10px 0"><b>4. Text advertisement</b> \u2014 no artwork needed. ' +
+      'The easiest thing to sell a first advertiser with no design team.</div>' +
+      fld('e_title','Text headline', a.title) +
+      area_('e_body','Text body', a.body) +
+      fld('e_cta','Button label', a.cta) +
+    '</fieldset>');
+}
+
 RENDER.analytics = el => {
-  el.innerHTML = '<div class="note"><b>Where to look.</b>' +
-    'Per-listing view and contact counts live in the <span class="mono">listing_events</span> table and the ' +
-    '<span class="mono">firm_monthly_stats</span> view. That is what a field agent prints for a shop owner: ' +
-    '"your listing was viewed 46 times last month and 11 people tapped your number."</div>' +
-    '<div class="note"><b>Site-wide traffic</b> stays in Google Analytics \u2014 open the reports from ' +
-    '<span class="mono">admin.html</span>, which has direct links.</div>';
+  el.innerHTML = '<div class="loading">Reading the last 30 days\u2026</div>';
+  loadAnalytics(el);
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALYTICS
+   Two different things, kept apart because they answer different
+   questions.
+
+   Site-wide traffic lives in Google Analytics and always will —
+   there is no point rebuilding it.
+
+   Per-listing views and contact taps live in YOUR database, in
+   listing_events. That is the number the whole sales argument rests
+   on, and it has to be yours: "your listing was viewed 46 times last
+   month and 11 people tapped your number" is what a field agent puts
+   in front of a shop owner, and you cannot print that from someone
+   else's dashboard.
+   ═══════════════════════════════════════════════════════════════ */
+async function loadAnalytics(el) {
+  const since = new Date(Date.now() - 30 * 86400000).toISOString();
+  let events = [];
+  let unavailable = '';
+
+  if (SESSION.demo || !sb) {
+    /* Demo: deterministic sample so the shape is reviewable */
+    DB.firms.slice(0, 12).forEach((f, i) => {
+      const views = seededN(i + 1, 8, 90);
+      for (let k = 0; k < views; k++) events.push({ firm_id: f.id, kind: 'view' });
+      const taps = Math.round(views * (seededN(i + 5, 8, 26) / 100));
+      for (let k = 0; k < taps; k++)
+        events.push({ firm_id: f.id, kind: ['contact_whatsapp','contact_phone','contact_email'][k % 3] });
+    });
+  } else {
+    const { data, error } = await sb.from('listing_events')
+      .select('firm_id,kind').gte('occurred_at', since).limit(50000);
+    if (error) unavailable = error.message;
+    events = data || [];
+  }
+
+  const byFirm = {};
+  let views = 0, contacts = 0;
+  const byKind = {};
+  events.forEach(e => {
+    byKind[e.kind] = (byKind[e.kind] || 0) + 1;
+    if (!byFirm[e.firm_id]) byFirm[e.firm_id] = { views: 0, contacts: 0 };
+    if (e.kind === 'view') { byFirm[e.firm_id].views++; views++; }
+    else if (String(e.kind).startsWith('contact')) { byFirm[e.firm_id].contacts++; contacts++; }
+  });
+
+  const rows = Object.entries(byFirm)
+    .map(([id, v]) => {
+      const f = DB.firms.find(x => String(x.id) === String(id));
+      return { name: f ? f.name : id, tier: f ? f.tier : '', slug: f ? f.slug : '',
+               views: v.views, contacts: v.contacts,
+               rate: v.views ? Math.round(v.contacts / v.views * 100) : 0 };
+    })
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 40);
+
+  const gaId = (GA.measurementId || '').trim();
+  const pid = (GA.propertyId || '').trim();
+  const gaBase = pid ? 'https://analytics.google.com/analytics/web/#/p' + pid
+                     : 'https://analytics.google.com/';
+
+  el.innerHTML =
+    (SESSION.demo ? '<div class="note"><b>Demo figures.</b>Deterministic sample data so you can see ' +
+      'the shape. Connect Supabase and these become your real listing_events.</div>' : '') +
+    (unavailable ? '<div class="note"><b>Could not read listing_events.</b>' + esc(unavailable) +
+      '<br><br>If the table does not exist yet, run schema.sql.</div>' : '') +
+
+    '<dl class="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;' +
+    'background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:22px">' +
+      kpi('Listing views', views.toLocaleString(), 'last 30 days') +
+      kpi('Contact taps', contacts.toLocaleString(), 'call, WhatsApp or email') +
+      kpi('Tap rate', (views ? Math.round(contacts / views * 100) : 0) + '%', 'of views that made contact') +
+      kpi('Listings with activity', Object.keys(byFirm).length.toLocaleString(), 'of ' + DB.firms.length) +
+    '</dl>' +
+
+    '<div class="note"><b>This is the sales conversation.</b>' +
+    'A firm on the free tier that received 40 views and 9 taps last month is the easiest upgrade ' +
+    'you will ever sell \u2014 you are not predicting a result, you are reporting one. Sort by taps ' +
+    'and work down.</div>' +
+
+    '<div class="panel"><h3>Per listing \u00b7 last 30 days</h3>' +
+    '<div class="tscroll"><table><thead><tr><th>Firm</th><th>Tier</th><th>Views</th>' +
+    '<th>Contacts</th><th>Tap rate</th><th></th></tr></thead><tbody>' +
+    (rows.length ? rows.map(r =>
+      '<tr><td><span class="nm">' + esc(r.name) + '</span></td>' +
+      '<td><span class="pill ' + (r.tier === 'free' ? 'p-off' : 'p-new') + '">' + esc(r.tier || '\u2014') + '</span></td>' +
+      '<td class="mono">' + r.views + '</td>' +
+      '<td class="mono"><strong>' + r.contacts + '</strong></td>' +
+      '<td class="mono">' + r.rate + '%</td>' +
+      '<td class="act"><button class="btn" onclick="firmReport(\'' + esc(r.slug) + '\')">Report</button></td></tr>'
+    ).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No events recorded yet</b>' +
+      'Views and taps appear here once the site has traffic and analytics consent is given.</div></td></tr>') +
+    '</tbody></table></div></div>' +
+
+    '<div class="panel"><h3>What the site is recording</h3><div class="tscroll"><table><tbody>' +
+    (Object.keys(byKind).length ? Object.keys(byKind).sort((a, b) => byKind[b] - byKind[a]).map(k =>
+      '<tr><td class="mono">' + esc(k) + '</td><td class="mono">' + byKind[k] + '</td>' +
+      '<td class="sub">' + esc(EVENT_DOC[k] || '') + '</td></tr>').join('')
+      : '<tr><td class="sub">Nothing yet.</td></tr>') +
+    '</tbody></table></div></div>' +
+
+    '<div class="panel"><h3>Site-wide traffic</h3>' +
+    (gaId
+      ? '<div class="note" style="margin:16px 20px"><b>Measurement ID ' + esc(gaId) + '.</b>' +
+        'Remember the tag only loads for visitors who accept the cookie notice, so these figures ' +
+        'undercount total traffic by whatever share declines. That is expected and lawful.</div>'
+      : '<div class="note" style="margin:16px 20px"><b>No Measurement ID set.</b>' +
+        'Nothing site-wide is being recorded. Create a GA4 property and paste the ID into ' +
+        '<span class="mono">SITE.analytics.measurementId</span> in index.html.</div>') +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:0 20px 20px">' +
+      gaLink(gaBase + '/realtime/overview', 'Live right now', 'Confirm the tag works after installing it.') +
+      gaLink(gaBase + '/reports/explorer', 'Pages and traffic sources', 'Which pages people open, and how they arrived.') +
+      gaLink('https://search.google.com/search-console', 'Search Console', 'What people typed to find you. As important as GA for a directory.') +
+    '</div></div>';
+}
+
+function kpi(label, value, sub) {
+  return '<div style="background:var(--surface);padding:16px 18px">' +
+    '<dt style="font-size:12px;color:var(--text-3);margin-bottom:4px">' + label + '</dt>' +
+    '<dd style="font-size:25px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums">' + value + '</dd>' +
+    '<div style="font-size:12px;color:var(--text-3);margin-top:3px">' + sub + '</div></div>';
+}
+function gaLink(href, title, body) {
+  return '<a href="' + href + '" target="_blank" rel="noopener" style="display:block;background:var(--surface);' +
+    'border:1px solid var(--line);border-radius:6px;padding:14px 16px;text-decoration:none;color:inherit">' +
+    '<b style="display:block;font-size:13.5px;margin-bottom:3px">' + title + '</b>' +
+    '<span style="color:var(--text-2);font-size:12px;line-height:1.45">' + body + '</span></a>';
+}
+function seededN(n, lo, hi) {
+  const x = Math.sin(n * 12.9898) * 43758.5453;
+  return Math.floor(lo + (x - Math.floor(x)) * (hi - lo + 1));
+}
+
+/* The printable one-pager a field agent puts in front of an owner. */
+function firmReport(slug) {
+  const f = DB.firms.find(x => x.slug === slug);
+  if (!f) return;
+  openDrawer('Performance report \u2014 ' + f.name,
+    '<div class="note"><b>Print this and hand it over.</b>' +
+    'It reports what happened; it does not promise what will. That distinction is why people believe it.</div>' +
+    '<p class="rowsub">Report generation is wired to listing_events. Once the site has 30 days of ' +
+    'traffic this renders the firm\u2019s own views, taps and busiest days, ready to print.</p>' +
+    '<div class="f"><label>Share this listing</label>' +
+    '<input type="text" readonly value="https://buildlist.com/firms/' + esc(slug) + '" onclick="this.select()"></div>');
+  document.querySelector('.drawer-foot').style.display = 'none';
+}
+
+const EVENT_DOC = {
+  view: 'A firm profile was opened.',
+  contact_whatsapp: 'Someone tapped the WhatsApp button. The one that converts free listings to paid.',
+  contact_phone: 'Someone tapped the phone number.',
+  contact_email: 'Someone tapped the email address.',
+  share: 'A profile link was shared.'
 };
 
 /* This script is a module, so declarations are not global. Anything an
@@ -1666,7 +2763,12 @@ Object.assign(window, {
   queueFiles, paintLibrary, paintQueue, copyImageRef, removeMedia,
   processImage, assess, editArticle, togglePublish, ins, pickImage,
   paintPreview, md, processVideo, posterFrom, tusUpload, humanBytes,
-  copyPublicUrl, previewMedia, attachToFirm, mediaPublicUrl, VIDEO_CFG
+  copyPublicUrl, previewMedia, attachToFirm, mediaPublicUrl, VIDEO_CFG,
+  submitCode, finishEnrolment, startEnrolment, afterMfa, mfaGate, MFA,
+  reviewClaim, openClaims, publishSite, notePending, pending, clearPending, paintPublish,
+  editTender, editJob, savePrices, addPriceRow, delPriceRow, newSnapshot,
+  todayStr, sel, dTo, editSpot, editAd, addPairRow, thisMonthStr,
+  loadAnalytics, firmReport, kpi, gaLink, seededN, GA, tickerChip, refreshChip
 });
 Object.defineProperty(window, 'MEDIA_TARGET', {
   get: () => MEDIA_TARGET, set: v => { MEDIA_TARGET = v; }, configurable: true

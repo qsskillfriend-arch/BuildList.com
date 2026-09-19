@@ -1,9 +1,9 @@
-# Deploying BuildList.com to Netlify
+# Deploying BuildList.com
 
 **A product of Sharplink Ventures (U) Limited**
 
-**This package is configured for Netlify.** A matching Vercel package exists
-separately; the only differences are the config file and the function wrapper.
+This repository deploys to **either Netlify or Vercel without changing a file.**
+Both configs ship; each host reads its own and ignores the other.
 
 | | Netlify | Vercel |
 |---|---|---|
@@ -78,6 +78,7 @@ useful until at least one delivery target is set.
 | `FORM_NOTIFY_EMAIL` | Where those go. Comma-separate for several. |
 | `FORM_FROM_EMAIL` | Sender, once your domain is verified with Resend |
 | `FORM_WEBHOOK_URL` | Optional: Slack, Make, Zapier |
+| `BUILD_HOOK_URL` | **Secret.** Lets the portal's Publish button start a build. Netlify: Build hooks. Vercel: Deploy Hooks. |
 
 Redeploy after adding them. Neither host applies new variables to an existing build.
 
@@ -138,20 +139,3 @@ goes stale while the other is in use.
 | Form succeeds but nothing arrives | No delivery target | Set Supabase, Resend or webhook variables and redeploy |
 | Supabase video will not play | CSP | `media-src` must allow `https://*.supabase.co` — already set in both configs |
 | `Error 525` on a custom domain | Cloudflare proxying | Grey cloud, SSL Full (strict) |
-
-
----
-
-## What is in this package that is not in the Vercel one
-
-```
-netlify.toml            build, headers, caching
-_redirects              clean URLs, /api/form mapping, generated shortcuts
-netlify/functions/      the form function
-.netlifyignore
-```
-
-`lib/form-core.js` is shared and identical in both. If you ever move to Vercel,
-take the Vercel package rather than adding `vercel.json` here — `build.js` writes
-its generated category shortcuts into whichever config it finds, and having both
-present means maintaining both.
