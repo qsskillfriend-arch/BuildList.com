@@ -52,3 +52,34 @@ select relname as table_name, relrowsecurity as rls_enabled
 from pg_class
 where relname in ('tenders','jobs','articles','price_snapshots','price_items','ad_events')
 order by relname;
+
+-- ═══════════════════════════════════════════════════════════════
+-- TWO-FACTOR: require it where it actually matters
+--
+-- The portal asks an administrator for a code, but a UI prompt is a
+-- courtesy. This makes it a control: the commercial columns can only
+-- be written by a session that proved a second factor (aal2).
+--
+-- Run this only AFTER at least one administrator has enrolled, or you
+-- will lock yourself out of your own tier and approval controls.
+-- ═══════════════════════════════════════════════════════════════
+
+create or replace function is_aal2()
+returns boolean as $$
+  select coalesce(
+    (auth.jwt() ->> 'aal') = 'aal2',
+    false);
+$$ language sql stable;
+
+-- Example: uncomment once you have enrolled, to require a second
+-- factor before anyone can change money or staff.
+--
+-- drop policy if exists "staff manage ads" on ads;
+-- create policy "staff manage ads" on ads
+--   for all using (is_admin() and is_aal2())
+--   with check (is_admin() and is_aal2());
+--
+-- drop policy if exists "admin manages staff" on staff;
+-- create policy "admin manages staff" on staff
+--   for all using (is_admin() and is_aal2())
+--   with check (is_admin() and is_aal2());

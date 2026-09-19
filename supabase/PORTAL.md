@@ -93,6 +93,97 @@ avoid, which is why this config talks to GitHub directly.
 Staff sign in at `buildlist.com/portal` with an email and password. What they see
 and what they may change depends on their role.
 
+## Saving and publishing are not the same thing
+
+This is the one thing to understand about the portal.
+
+**Saving** writes to Supabase immediately. Your work is safe the moment the
+toast appears; nothing can lose it.
+
+**Publishing** rebuilds the public site. Until that runs, a visitor still sees
+the previous version — because the 702 pages are generated at build time, not
+fetched live. That is deliberate: it is why the site stays up when the database
+is asleep, and why it loads fast on a Ugandan connection.
+
+The top bar tracks the gap. It reads **"Site is up to date"** or
+**"4 changes not on the site yet"**, and the Publish section lists exactly what
+is waiting.
+
+### Setting up the button
+
+Create a build hook in your host and add its URL as an environment variable
+named `BUILD_HOOK_URL`:
+
+- **Netlify** — Site configuration → Build & deploy → Build hooks → Add build hook
+- **Vercel** — Settings → Git → Deploy Hooks → Create Hook
+
+**Mark it secret.** A build hook URL is a bearer token: anyone holding it can
+trigger builds until the month's minutes are gone. That is exactly why the
+portal never holds it. The browser asks `/api/publish`, the function checks the
+caller holds a valid Supabase session belonging to a row in `staff`, and only
+then fires the hook.
+
+Without the variable the button still works and tells you plainly that nothing
+is configured — rather than appearing to succeed.
+
+### If you would rather not use it
+
+You do not have to. Every change appears at the next deploy however that deploy
+is started, including a normal commit. The button only saves you from waiting
+for one.
+
+## Two-factor authentication
+
+TOTP, via Supabase. Works with Google Authenticator, Microsoft Authenticator or
+Authy. The portal shows a QR code and a typed key for phones that cannot scan.
+
+**Administrators must enrol.** They can set tiers, approve listings and read
+every submission; a password alone is not enough for that, particularly one that
+might be reused elsewhere. Editors and agents are offered it but not forced.
+
+The check runs **before any data loads**. Fetching 618 listings and then hiding
+them would mean the records had already crossed the network to a session that had
+not finished proving itself.
+
+A prompt in the interface is a courtesy, not a control. `PATCH-01.sql` includes
+an `is_aal2()` function and commented-out policies so you can require a second
+factor at the database level for advertising and staff. **Run those only after
+you have enrolled**, or you will lock yourself out of your own controls.
+
+Lost a device? An administrator removes the factor in Supabase under
+Authentication → Users → the account → Factors, and the person enrols again.
+
+## Listing claims
+
+A firm presses "This is my business" on their listing. Nothing changes until
+somebody **telephones the number already on the listing** and confirms it.
+
+That call is the whole protection. Without it, claiming a competitor's listing
+would be a form you fill in. It is why the review screen shows you the listed
+number rather than the claimant's — a claimant confirmed on their own number has
+proved nothing, because anyone can answer their own phone.
+
+Claims appear on the Board as urgent. A decision cannot be saved without a note
+saying what happened on the call, because whoever picks it up next has only that
+to go on.
+
+**Approving hands over a limited set of fields.** The owner can then correct
+contact details, description, photos, services and hours. They cannot change:
+
+| Field | Why it stays with you |
+|---|---|
+| Business name | |
+| Web address (slug) | Changing it breaks every link the firm has shared |
+| District | Moves them into a search they do not belong in |
+| Tier, verification, approval | Commercial. Somebody paid, or somebody checked. |
+
+Enforced by two database triggers, not by hiding form fields — a hidden input
+stops an honest mistake, a trigger stops everything else.
+
+Claims are visible to administrators and content officers. **Field agents do not
+see them**: they collect listings, they do not adjudicate who owns one, and the
+records hold a named person's phone number.
+
 ## What you can edit in the portal
 
 | Section | What you can do |
@@ -105,6 +196,7 @@ and what they may change depends on their role.
 | **Prices** | Edit the weekly grid and save a dated snapshot |
 | **Monthly slots** | Product of the Month (paid) and Benchmark Project (editorial) |
 | **Advertising** | Campaigns and slots (admin only) |
+| **Claims** | Review and decide who controls a listing (not field agents) |
 | **Staff** | Who has access (admin only) |
 
 Every section is built. Nothing says "coming next".

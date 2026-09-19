@@ -722,6 +722,72 @@ begin
   end if;
 end $$;
 
+-- An advert can legitimately have no destination: a brand-awareness
+-- placement with link_type = 'none' is a real product. The column was
+-- NOT NULL from before that existed.
+alter table ads alter column link drop not null;
+alter table ads add column if not exists weight int not null default 1;
+alter table ads add column if not exists link_type text default 'website';
+alter table ads add column if not exists firm_slug text;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- LISTING CLAIMS
+-- A firm says "this is us". Nothing changes until somebody telephones
+-- the number already on the listing and confirms it — which is the
+-- same check the verified badge rests on, and the reason a claim
+-- cannot be self-approved. Without that call, claiming a competitor's
+-- listing would be a form you fill in.
+-- ═══════════════════════════════════════════════════════════════
+create table if not exists firm_claims (
+  id          uuid primary key default gen_random_uuid(),
+  firm_id     uuid not null references firms on delete cascade,
+  claimant    text not null,
+  role        text,
+  phone       text not null,
+  email       text,
+  evidence    text,
+  status      text not null default 'pending'
+              check (status in ('pending','approved','rejected')),
+  decided_by  uuid references auth.users,
+  decided_at  timestamptz,
+  note        text,
+  user_id     uuid references auth.users,
+  created_at  timestamptz not null default now()
+);
+create index if not exists firm_claims_open_idx on firm_claims(status, created_at desc);
+create index if not exists firm_claims_firm_idx on firm_claims(firm_id);
+
+alter table firm_claims enable row level security;
+-- Claims are never public: they contain a person's name and number.
+drop policy if exists "staff read claims" on firm_claims;
+create policy "staff read claims" on firm_claims
+  for select using (is_staff());
+drop policy if exists "staff decide claims" on firm_claims;
+create policy "staff decide claims" on firm_claims
+  for all using (is_staff()) with check (is_staff());
+
+-- An owner may correct their own listing, but not rename it, move it
+-- or change its web address. A slug change breaks every link the firm
+-- has already shared, and a district change moves them into a search
+-- they do not belong in — so those stay with staff.
+create or replace function guard_firm_identity_fields()
+returns trigger as $$
+begin
+  if is_staff() then
+    return new;
+  end if;
+  new.name     := old.name;
+  new.slug     := old.slug;
+  new.district := old.district;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists firm_identity_guard on firms;
+create trigger firm_identity_guard before update on firms
+  for each row execute function guard_firm_identity_fields();
+
 -- ── Make yourself an admin ────────────────────────────────────
 -- 1. Create your account: Authentication → Users → Add user
 -- 2. Copy its UUID, then run:
