@@ -2,99 +2,125 @@
   "categories": [
     {
       "slug": "architecture-design",
-      "name": "Architecture & Design",
-      "cluster": "Design"
+      "name": "Architects",
+      "cluster": "Design",
+      "onHome": true
     },
     {
       "slug": "quantity-surveying",
-      "name": "Quantity Surveying",
-      "cluster": "Professionals"
+      "name": "Quantity Surveyors",
+      "cluster": "Professionals",
+      "onHome": true
     },
     {
       "slug": "civil-structural",
-      "name": "Civil & Structural Engineering",
-      "cluster": "Professionals"
+      "name": "Civil & Structural Engineers",
+      "cluster": "Professionals",
+      "onHome": true
     },
     {
       "slug": "land-surveying",
-      "name": "Land Surveying",
-      "cluster": "Professionals"
+      "name": "Land Surveyors",
+      "cluster": "Professionals",
+      "onHome": true
     },
     {
       "slug": "property-valuers",
       "name": "Property Valuers",
-      "cluster": "Professionals"
+      "cluster": "Professionals",
+      "onHome": true
     },
     {
       "slug": "urban-planning",
-      "name": "Urban & Town Planning",
-      "cluster": "Professionals"
+      "name": "Urban & Town Planners",
+      "cluster": "Professionals",
+      "onHome": false
     },
     {
       "slug": "general-contracting",
-      "name": "General Contracting",
-      "cluster": "Contractors"
+      "name": "General Contractors",
+      "cluster": "Contractors",
+      "onHome": true
     },
     {
       "slug": "electrical-contracting",
-      "name": "Electrical Contracting",
-      "cluster": "Contractors"
+      "name": "Electrical Contractors",
+      "cluster": "Contractors",
+      "onHome": true
     },
     {
       "slug": "plumbing-fire",
-      "name": "Plumbing & Fire Fighting",
-      "cluster": "Contractors"
+      "name": "Plumbing & Fire Contractors",
+      "cluster": "Contractors",
+      "onHome": true
     },
     {
       "slug": "hvac",
-      "name": "Heating, Ventilation & Air Conditioning",
-      "cluster": "Contractors"
+      "name": "HVAC Contractors",
+      "cluster": "Contractors",
+      "onHome": true
     },
     {
       "slug": "structural-steel",
-      "name": "Structural Steel Design",
-      "cluster": "Contractors"
+      "name": "Steel Fabricators",
+      "cluster": "Contractors",
+      "onHome": true
     },
     {
       "slug": "landscaping",
-      "name": "Landscaping & External Works",
-      "cluster": "Contractors"
+      "name": "Landscapers",
+      "cluster": "Contractors",
+      "onHome": false
     },
     {
       "slug": "building-management",
-      "name": "Building Management Systems",
-      "cluster": "Services"
+      "name": "Building Systems Specialists",
+      "cluster": "Services",
+      "onHome": false
     },
     {
       "slug": "ict-network",
-      "name": "ICT & Network Infrastructure",
-      "cluster": "Services"
+      "name": "ICT & Network Contractors",
+      "cluster": "Services",
+      "onHome": false
     },
     {
       "slug": "facility-management",
-      "name": "Facility Management",
-      "cluster": "Services"
+      "name": "Facility Managers",
+      "cluster": "Services",
+      "onHome": false
     },
     {
       "slug": "health-safety",
-      "name": "Health & Safety Consulting",
-      "cluster": "Services"
+      "name": "Health & Safety Consultants",
+      "cluster": "Services",
+      "onHome": false
     },
     {
       "slug": "environmental",
-      "name": "Environmental & Sustainability",
-      "cluster": "Services"
+      "name": "Environmental Consultants",
+      "cluster": "Services",
+      "onHome": false
     },
     {
       "slug": "real-estate-development",
-      "name": "Real Estate Development",
-      "cluster": "Development"
+      "name": "Property Developers",
+      "cluster": "Development",
+      "onHome": false
+    },
+    {
+      "slug": "suppliers",
+      "name": "Suppliers",
+      "cluster": "Supply",
+      "note": "Merchants and distributors of materials, fittings, plant and equipment.",
+      "onHome": true
     },
     {
       "slug": "tradesmen",
       "name": "Tradesmen",
       "cluster": "Trades",
-      "note": "Individual artisans and small crews — masons, welders, carpenters, tilers, painters, plumbers, electricians. Listed by person or crew rather than by firm."
+      "note": "Individual artisans and small crews — masons, welders, carpenters, tilers, painters, plumbers, electricians. Listed by person or crew rather than by firm.",
+      "onHome": true
     }
   ],
   "districts": [

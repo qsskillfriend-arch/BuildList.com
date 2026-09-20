@@ -793,3 +793,20 @@ create trigger firm_identity_guard before update on firms
 -- 2. Copy its UUID, then run:
 --    insert into staff (user_id, role, name)
 --    values ('PASTE-UUID-HERE', 'admin', 'Your Name');
+
+-- ── Legal documents ───────────────────────────────────────────
+-- The privacy policy and terms, editable in the portal so they can be
+-- corrected the day something changes rather than the next time
+-- somebody opens the HTML.
+create table if not exists legal_docs (
+  key        text primary key check (key in ('privacy','terms')),
+  effective  date,
+  body       text not null,
+  updated_at timestamptz not null default now()
+);
+alter table legal_docs enable row level security;
+drop policy if exists "public reads legal" on legal_docs;
+create policy "public reads legal" on legal_docs for select using (true);
+drop policy if exists "staff writes legal" on legal_docs;
+create policy "staff writes legal" on legal_docs
+  for all using (is_staff()) with check (is_staff());
