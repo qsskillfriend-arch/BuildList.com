@@ -810,3 +810,12 @@ create policy "public reads legal" on legal_docs for select using (true);
 drop policy if exists "staff writes legal" on legal_docs;
 create policy "staff writes legal" on legal_docs
   for all using (is_staff()) with check (is_staff());
+
+-- ── Tier features, and the homepage featured strip ────────────
+-- What a tier includes must be editable, because the Add-your-firm
+-- page lists these as promises.
+alter table tiers add column if not exists features jsonb default '[]'::jsonb;
+alter table firms add column if not exists featured boolean not null default false;
+alter table firms add column if not exists featured_sort int not null default 0;
+alter table firms add column if not exists featured_until date;
+create index if not exists firms_featured_idx on firms(featured, featured_sort);

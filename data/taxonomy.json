@@ -2,7 +2,7 @@
   "categories": [
     {
       "slug": "architecture-design",
-      "name": "Architects",
+      "name": "Architects & Designers",
       "cluster": "Design",
       "onHome": true
     },
@@ -49,38 +49,59 @@
       "onHome": true
     },
     {
+      "slug": "suppliers",
+      "name": "Material Suppliers",
+      "cluster": "Supply",
+      "note": "Merchants and distributors of materials, fittings and equipment.",
+      "onHome": true
+    },
+    {
       "slug": "plumbing-fire",
-      "name": "Plumbing & Fire Contractors",
+      "name": "Plumbing & Fire Fighting",
       "cluster": "Contractors",
       "onHome": true
     },
     {
+      "slug": "plant-hire",
+      "cluster": "Trades",
+      "name": "Plant & Equipment Hire",
+      "note": "Excavators, cranes, concrete plant, scaffolding and formwork for hire.",
+      "onHome": false
+    },
+    {
       "slug": "hvac",
-      "name": "HVAC Contractors",
+      "name": "Heating, Ventilation & Air Conditioning",
       "cluster": "Contractors",
       "onHome": true
     },
     {
       "slug": "structural-steel",
-      "name": "Steel Fabricators",
+      "name": "Aluminium, Steel & Glass Works",
       "cluster": "Contractors",
       "onHome": true
     },
     {
+      "slug": "interior-design",
+      "cluster": "Trades",
+      "name": "Interior Designers",
+      "note": "Fit-out, joinery, furnishing and interior specification.",
+      "onHome": false
+    },
+    {
       "slug": "landscaping",
-      "name": "Landscapers",
+      "name": "Landscaping & External Works",
       "cluster": "Contractors",
       "onHome": false
     },
     {
       "slug": "building-management",
-      "name": "Building Systems Specialists",
+      "name": "Building Management Systems",
       "cluster": "Services",
       "onHome": false
     },
     {
       "slug": "ict-network",
-      "name": "ICT & Network Contractors",
+      "name": "ICT & Networks Specialists",
       "cluster": "Services",
       "onHome": false
     },
@@ -98,28 +119,21 @@
     },
     {
       "slug": "environmental",
-      "name": "Environmental Consultants",
+      "name": "Environmental & Sustainability",
       "cluster": "Services",
       "onHome": false
     },
     {
       "slug": "real-estate-development",
-      "name": "Property Developers",
+      "name": "Real Estate Developers",
       "cluster": "Development",
       "onHome": false
-    },
-    {
-      "slug": "suppliers",
-      "name": "Suppliers",
-      "cluster": "Supply",
-      "note": "Merchants and distributors of materials, fittings, plant and equipment.",
-      "onHome": true
     },
     {
       "slug": "tradesmen",
       "name": "Tradesmen",
       "cluster": "Trades",
-      "note": "Individual artisans and small crews — masons, welders, carpenters, tilers, painters, plumbers, electricians. Listed by person or crew rather than by firm.",
+      "note": "Individual artisans and small crews — masons, welders, carpenters, tilers, painters.",
       "onHome": true
     }
   ],
