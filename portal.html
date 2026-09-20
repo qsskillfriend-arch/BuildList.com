@@ -748,6 +748,11 @@ const SECTIONS = [
   { id:'media',     label:'Media library',group:'Content',   perm:'articles', count:()=>DB.media.length },
   { id:'prices',    label:'Prices',       group:'Content',   perm:'prices' },
   { id:'spotlight', label:'Monthly slots',group:'Content',   perm:'spotlight' },
+  /* The homepage strip is sold. A field agent collects listings;
+     they do not decide who appears on the front page. */
+  { id:'featured',  label:'Featured firms',group:'Content',  perm:'firms.verify',
+      count:()=>DB.firms.filter(f=>f.featured).length },
+  { id:'tiers',     label:'Tiers',        group:'Revenue',   perm:'ads' },
   { id:'ads',       label:'Advertising',  group:'Revenue',   perm:'ads' },
   { id:'analytics', label:'Analytics',    group:'Revenue',   perm:'analytics' },
   { id:'staff',     label:'Staff',        group:'Admin',     perm:'staff',    count:()=>DB.staff.length },
@@ -777,6 +782,8 @@ const TITLES = {
   media:['Media library','Every image, resized on upload and served at the right size'],
   prices:['Material prices','Update weekly from the same suppliers'],
   spotlight:['Monthly slots','One paid, one editorial'],
+  featured:['Featured firms','Who appears under Featured Industry Participants'],
+  tiers:['Tiers','What each listing tier actually includes'],
   ads:['Advertising','Slots, campaigns and rates'],
   analytics:['Analytics','Traffic and contact events'],
   staff:['Staff','Who has access, and to what'],
@@ -1008,6 +1015,51 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
 
 window.saveDrawer = async function () {
+  if (CURRENT && CURRENT.kind === 'tier') {
+    const t = CURRENT.item;
+    t.name = val('e_name');
+    t.price_ugx = parseInt(val('e_price'), 10) || 0;
+    t.features = val('e_features').split('\n').map(x => x.trim()).filter(Boolean);
+    if (!t.features.length) return toast('A tier with no features is not a product');
+    const list = (DB.taxonomy && DB.taxonomy.tiers) || [];
+    const i = list.findIndex(x => x.slug === CURRENT.id);
+    if (i >= 0) list[i] = t;
+    if (!SESSION.demo && sb) {
+      const { error } = await sb.from('tiers')
+        .update({ name: t.name, price_ugx: t.price_ugx, features: t.features })
+        .eq('slug', CURRENT.id);
+      if (error) return toast('Rejected by the database: ' + error.message);
+    }
+    notePending('Tier: ' + t.name);
+    closeDrawer(); go('tiers'); toast('Saved');
+    return;
+  }
+
+  if (CURRENT && CURRENT.kind === 'newsletter') {
+    const n = CURRENT.item;
+    n.active = val('e_active') === 'yes';
+    n.advertiser = val('e_advertiser');
+    if (n.active && !n.advertiser) return toast('Who is sponsoring it?');
+    n.from = val('e_from'); n.to = val('e_to');
+    if (n.active && !n.to) return toast('Give it an end date, or it sponsors every send for ever');
+    n.headline = val('e_headline'); n.body = val('e_body');
+    n.link = val('e_link'); n.cta = val('e_cta');
+    n.rateUgx = parseInt(val('e_rate'), 10) || null;
+    DB.spotlight = DB.spotlight || {};
+    DB.spotlight.newsletter = n;
+    if (!SESSION.demo && sb) {
+      const { error } = await sb.from('spotlight').upsert({
+        slot: 'newsletter', month: (n.from || todayStr()).slice(0, 7),
+        active: n.active, sponsored: true, advertiser: n.advertiser,
+        name: n.headline || n.advertiser, body: n.body, link: n.link, cta: n.cta,
+        rate_ugx: n.rateUgx }, { onConflict: 'slot,month' });
+      if (error) return toast('Rejected by the database: ' + error.message);
+    }
+    notePending('Digest sponsor: ' + (n.advertiser || 'none'));
+    closeDrawer(); go('spotlight'); toast('Saved');
+    return;
+  }
+
   if (CURRENT && CURRENT.kind === 'legal') {
     const key = CURRENT.id;
     const doc = { key, effective: val('e_effective'),
@@ -2542,7 +2594,20 @@ RENDER.spotlight = el => {
     '<strong>Benchmark Project</strong> is editorial and is never sold \u2014 the moment it is for sale, ' +
     'nobody trusts it, and you lose the thing that makes people read the homepage twice.</div>' +
     card('product', 'Product of the Month', 'Paid \u00b7 one advertiser per calendar month', true) +
-    card('project', 'Benchmark Project', 'Editorial \u00b7 chosen on merit, never sold', false);
+    card('project', 'Benchmark Project', 'Editorial \u00b7 chosen on merit, never sold', false) +
+    '<div class="panel"><h3>Weekly digest sponsor</h3>' +
+      '<div class="tscroll"><table><tbody>' +
+      '<tr><td style="width:190px"><span class="sub">Status</span></td><td>' +
+        (sp.newsletter && sp.newsletter.active !== false
+          ? '<span class="pill p-live">sponsored</span>'
+          : '<span class="pill p-off">unsponsored</span>') + '</td></tr>' +
+      '<tr><td><span class="sub">Sponsor</span></td><td><strong>' +
+        esc((sp.newsletter && sp.newsletter.advertiser) || '\u2014') + '</strong></td></tr>' +
+      '<tr><td><span class="sub">Until</span></td><td class="mono">' +
+        esc((sp.newsletter && sp.newsletter.to) || '\u2014') + '</td></tr>' +
+      '</tbody></table></div>' +
+      '<div class="act" style="margin-top:12px;justify-content:flex-start">' +
+      '<button class="btn btn-p" onclick="editNewsletter()">Edit</button></div></div>';
 };
 
 function editSpot(key) {
@@ -2608,6 +2673,154 @@ function addPairRow(boxId) {
     '<button type="button" class="btn btn-sm btn-d" onclick="this.closest(\'[data-pair]\').remove()">Remove</button></div>' +
     '<div class="f2"><div class="f"><input type="text" data-p="label" placeholder="Label"></div>' +
     '<div class="f"><input type="text" data-p="value" placeholder="Value"></div></div></div>');
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   FEATURED FIRMS
+   The homepage strip. Six is the practical limit — past that the row
+   wraps and the last ones are never seen, which means selling a slot
+   you cannot deliver.
+   ═══════════════════════════════════════════════════════════════ */
+/* go() replaces the page before the renderer runs, so the search box is
+   already gone by the time we would read it. Keep the query in state. */
+let FEAT_Q = '';
+
+RENDER.featured = el => {
+  const feat = DB.firms.filter(f => f.featured)
+    .sort((a, b) => (a.featured_sort || 0) - (b.featured_sort || 0));
+  const q = FEAT_Q;
+
+  el.innerHTML =
+    '<div class="note"><b>Six is the working limit.</b>' +
+    'The strip wraps past six and the last ones are never seen \u2014 selling a seventh slot ' +
+    'means selling something you cannot deliver.</div>' +
+    '<div class="toolbar"><input type="search" id="featQ" placeholder="Search a firm to add" ' +
+    'value="' + esc(q) + '" oninput="FEAT_Q=this.value;go(\'featured\')"><div class="spacer"></div>' +
+    '<span class="rowsub">' + feat.length + ' of 6 used</span></div>' +
+
+    (feat.length ? '<div class="tscroll"><table><thead><tr><th>Order</th><th>Firm</th><th>Tier</th>' +
+      '<th>Paid until</th><th></th></tr></thead><tbody>' +
+      feat.map((f, i) =>
+        '<tr><td class="mono">' + (i + 1) + '</td>' +
+        '<td><span class="nm">' + esc(f.name) + '</span><span class="sub">' + esc(f.area || '') + '</span></td>' +
+        '<td><span class="pill ' + (f.tier === 'free' ? 'p-off' : 'p-new') + '">' + esc(f.tier || '') + '</span></td>' +
+        '<td class="mono sub">' + esc(f.featured_until || '\u2014') + '</td>' +
+        '<td class="act">' +
+          (i > 0 ? '<button class="btn" onclick="moveFeatured(\'' + esc(f.id) + '\',-1)">\u2191</button>' : '') +
+          (i < feat.length - 1 ? '<button class="btn" onclick="moveFeatured(\'' + esc(f.id) + '\',1)">\u2193</button>' : '') +
+          '<button class="btn btn-d" onclick="setFeatured(\'' + esc(f.id) + '\',false)">Remove</button>' +
+        '</td></tr>').join('') + '</tbody></table></div>'
+      : '<div class="empty"><b>Nothing featured</b>Search above and add up to six.</div>') +
+
+    (q ? '<h3 style="font-size:15px;margin:22px 0 10px">Matches</h3><div class="tscroll"><table><tbody>' +
+      DB.firms.filter(f => !f.featured && f.name.toLowerCase().includes(q.toLowerCase()))
+        .slice(0, 12).map(f =>
+        '<tr><td><span class="nm">' + esc(f.name) + '</span><span class="sub">' + esc(f.area || '') + '</span></td>' +
+        '<td><span class="pill ' + (f.tier === 'free' ? 'p-off' : 'p-new') + '">' + esc(f.tier || '') + '</span></td>' +
+        '<td class="act"><button class="btn btn-p"' + (feat.length >= 6 ? ' disabled title="Six already"' : '') +
+        ' onclick="setFeatured(\'' + esc(f.id) + '\',true)">Feature</button></td></tr>').join('') +
+      '</tbody></table></div>' : '');
+};
+
+async function setFeatured(id, on) {
+  const f = DB.firms.find(x => String(x.id) === String(id));
+  if (!f) return;
+  if (on && DB.firms.filter(x => x.featured).length >= 6)
+    return toast('Six already featured. Remove one first.');
+  f.featured = on;
+  f.featured_sort = on ? DB.firms.filter(x => x.featured).length : 0;
+  if (!SESSION.demo && sb) {
+    const { error } = await sb.from('firms')
+      .update({ featured: on, featured_sort: f.featured_sort }).eq('id', id);
+    if (error) return toast('Rejected by the database: ' + error.message);
+  }
+  notePending('Featured firms');
+  go('featured'); buildNav();
+  toast(on ? 'Featured' : 'Removed from the strip');
+}
+
+async function moveFeatured(id, dir) {
+  const feat = DB.firms.filter(f => f.featured)
+    .sort((a, b) => (a.featured_sort || 0) - (b.featured_sort || 0));
+  const i = feat.findIndex(f => String(f.id) === String(id));
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= feat.length) return;
+  [feat[i], feat[j]] = [feat[j], feat[i]];
+  feat.forEach((f, k) => { f.featured_sort = k + 1; });
+  if (!SESSION.demo && sb) {
+    for (const f of feat)
+      await sb.from('firms').update({ featured_sort: f.featured_sort }).eq('id', f.id);
+  }
+  notePending('Featured firm order');
+  go('featured');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TIERS
+   What a tier includes has to be true. The advertise page lists these
+   features, so editing them here is the only way to keep the promise
+   and the product in step.
+   ═══════════════════════════════════════════════════════════════ */
+RENDER.tiers = el => {
+  const tiers = (DB.taxonomy && DB.taxonomy.tiers) || [];
+  el.innerHTML =
+    '<div class="note"><b>These are the promises the Add-your-firm page makes.</b>' +
+    'If a feature is listed here it must actually work, or you are selling something that ' +
+    'does not exist. Take a line out rather than leave it aspirational.</div>' +
+    (tiers.length ? tiers.map(t =>
+      '<div class="filecard" style="align-items:flex-start"><div style="flex:1">' +
+      '<b style="display:block;font-size:14px">' + esc(t.name || t.slug) + '</b>' +
+      '<span class="rowsub">' + (t.price_ugx ? 'UGX ' + Number(t.price_ugx).toLocaleString() + ' / year'
+                                              : 'Free') + '</span>' +
+      '<ul style="margin:8px 0 0 18px;font-size:12.5px;color:var(--text-2)">' +
+        ((t.features || []).map(x => '<li>' + esc(x) + '</li>').join('') ||
+         '<li class="sub">No features listed</li>') + '</ul></div>' +
+      '<button class="btn btn-p" onclick="editTier(\'' + esc(t.slug) + '\')">Edit</button></div>').join('')
+      : '<div class="empty"><b>No tiers loaded</b>Run seed.sql.</div>');
+};
+
+function editTier(slug) {
+  const t = ((DB.taxonomy && DB.taxonomy.tiers) || []).find(x => x.slug === slug);
+  if (!t) return;
+  CURRENT = { kind: 'tier', id: slug, item: Object.assign({}, t) };
+  openDrawer('Tier \u00b7 ' + (t.name || slug),
+    '<fieldset><legend>Commercial</legend>' +
+      fld('e_name', 'Name shown', t.name) +
+      fld('e_price', 'Price per year (UGX)', t.price_ugx || 0, '0 for the free tier.') +
+    '</fieldset>' +
+    '<fieldset><legend>What it includes</legend>' +
+      area_('e_features', 'One feature per line', (t.features || []).join('\n')) +
+      '<div class="hint">Written exactly as it appears on the Add-your-firm page. ' +
+      'If you cannot deliver a line today, take it out \u2014 an unmet promise costs more than ' +
+      'a shorter list.</div>' +
+    '</fieldset>');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEWSLETTER SPONSOR
+   ═══════════════════════════════════════════════════════════════ */
+function editNewsletter() {
+  const n = (DB.spotlight && DB.spotlight.newsletter) || {};
+  CURRENT = { kind: 'newsletter', id: 'newsletter', item: Object.assign({}, n) };
+  openDrawer('Weekly digest sponsor',
+    '<div class="note"><b>One sponsor per send.</b>' +
+    'Named in the digest and labelled as a sponsor. It is an advertisement, and saying so is ' +
+    'what keeps people opening it.</div>' +
+    '<fieldset><legend>Sponsor</legend>' +
+      sel('e_active', 'Running', n.active === false ? 'no' : 'yes',
+        [['yes','Yes'],['no','No \u2014 send unsponsored']]) +
+      fld('e_advertiser', 'Sponsor', n.advertiser) +
+      fld('e_from', 'From (YYYY-MM-DD)', n.from || todayStr()) +
+      fld('e_to', 'Until', n.to, 'After this date the digest goes out unsponsored.') +
+    '</fieldset>' +
+    '<fieldset><legend>What appears</legend>' +
+      fld('e_headline', 'Headline', n.headline) +
+      area_('e_body', 'One or two sentences', n.body) +
+      '<div class="f2">' + fld('e_link', 'Link', n.link) +
+      fld('e_cta', 'Button label', n.cta || 'Find out more') + '</div>' +
+      fld('e_rate', 'Rate charged (UGX)', n.rateUgx, 'Your record only.') +
+    '</fieldset>');
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2751,15 +2964,15 @@ async function loadAnalytics(el) {
     else if (String(e.kind).startsWith('contact')) { byFirm[e.firm_id].contacts++; contacts++; }
   });
 
-  const rows = Object.entries(byFirm)
+  let rows = Object.entries(byFirm)
     .map(([id, v]) => {
       const f = DB.firms.find(x => String(x.id) === String(id));
       return { name: f ? f.name : id, tier: f ? f.tier : '', slug: f ? f.slug : '',
                views: v.views, contacts: v.contacts,
                rate: v.views ? Math.round(v.contacts / v.views * 100) : 0 };
     })
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 40);
+    .sort((a, b) => b.views - a.views);
+  ANALYTICS_ROWS = rows;
 
   const gaId = (GA.measurementId || '').trim();
   const pid = (GA.propertyId || '').trim();
@@ -2785,10 +2998,14 @@ async function loadAnalytics(el) {
     'you will ever sell \u2014 you are not predicting a result, you are reporting one. Sort by taps ' +
     'and work down.</div>' +
 
-    '<div class="panel"><h3>Per listing \u00b7 last 30 days</h3>' +
+    '<div class="panel"><h3>Per listing \u00b7 last 30 days' +
+      '<span style="float:right;display:flex;gap:6px">' +
+      '<button class="btn" style="padding:4px 10px;font-size:12px" onclick="downloadAnalytics()">Download CSV</button>' +
+      '<button class="btn" style="padding:4px 10px;font-size:12px" onclick="window.print()">Print</button>' +
+      '</span></h3>' +
     '<div class="tscroll"><table><thead><tr><th>Firm</th><th>Tier</th><th>Views</th>' +
     '<th>Contacts</th><th>Tap rate</th><th></th></tr></thead><tbody>' +
-    (rows.length ? rows.map(r =>
+    (rows.length ? rows.slice(0, 60).map(r =>
       '<tr><td><span class="nm">' + esc(r.name) + '</span></td>' +
       '<td><span class="pill ' + (r.tier === 'free' ? 'p-off' : 'p-new') + '">' + esc(r.tier || '\u2014') + '</span></td>' +
       '<td class="mono">' + r.views + '</td>' +
@@ -2819,6 +3036,24 @@ async function loadAnalytics(el) {
       gaLink(gaBase + '/reports/explorer', 'Pages and traffic sources', 'Which pages people open, and how they arrived.') +
       gaLink('https://search.google.com/search-console', 'Search Console', 'What people typed to find you. As important as GA for a directory.') +
     '</div></div>';
+}
+
+/* The table as a file. A field agent going out for the day wants it on
+   a phone or printed, not behind a login on a laptop back at the office. */
+let ANALYTICS_ROWS = [];
+function downloadAnalytics() {
+  if (!ANALYTICS_ROWS.length) { toast('Nothing to export yet'); return; }
+  const head = ['Firm', 'Tier', 'Views', 'Contacts', 'Tap rate %', 'Listing'];
+  const csv = [head.join(',')].concat(ANALYTICS_ROWS.map(r =>
+    [r.name, r.tier, r.views, r.contacts, r.rate, 'https://buildlist.com/firms/' + r.slug]
+      .map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')
+  )).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'buildlist-listing-activity-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Downloaded ' + ANALYTICS_ROWS.length + ' rows');
 }
 
 function kpi(label, value, sub) {
@@ -2869,10 +3104,21 @@ Object.assign(window, {
   paintPreview, md, processVideo, posterFrom, tusUpload, humanBytes,
   copyPublicUrl, previewMedia, attachToFirm, mediaPublicUrl, VIDEO_CFG,
   submitCode, finishEnrolment, startEnrolment, afterMfa, mfaGate, MFA,
-  reviewClaim, openClaims, publishSite, editLegal, insLegal, paintLegalPreview, notePending, pending, clearPending, paintPublish,
+  reviewClaim, openClaims, publishSite, editLegal, insLegal, paintLegalPreview,
+  setFeatured, moveFeatured, editTier, editNewsletter,
+  notePending, pending, clearPending, paintPublish,
   editTender, editJob, savePrices, addPriceRow, delPriceRow, newSnapshot,
   todayStr, sel, dTo, editSpot, editAd, addPairRow, thisMonthStr,
-  loadAnalytics, firmReport, kpi, gaLink, seededN, GA, tickerChip, refreshChip
+  loadAnalytics, firmReport, kpi, gaLink, seededN, GA, downloadAnalytics,
+  get ANALYTICS_ROWS() { return ANALYTICS_ROWS; }, tickerChip, refreshChip
+});
+/* A live view, not a snapshot: Object.assign would have invoked the
+   getter once and copied an empty array. */
+Object.defineProperty(window, 'FEAT_Q', {
+  get: () => FEAT_Q, set: v => { FEAT_Q = v; }, configurable: true
+});
+Object.defineProperty(window, 'ANALYTICS_ROWS', {
+  get: () => ANALYTICS_ROWS, configurable: true
 });
 Object.defineProperty(window, 'MEDIA_TARGET', {
   get: () => MEDIA_TARGET, set: v => { MEDIA_TARGET = v; }, configurable: true
