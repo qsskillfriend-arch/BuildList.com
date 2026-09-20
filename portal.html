@@ -397,6 +397,7 @@ window.demoAs = async function (role) {
     fetch('data/' + f + '.json').then(r => r.json()).catch(() => null)));
   files.forEach((f, i) => { if (res[i]) DB[f] = res[i]; });
   DB.media = [];
+  DB.legal = {};
   DB.claims = DB.firms.slice(0, 3).map((f, i) => ({
     id: 'demo-claim-' + i, firm_id: f.id, claimant: ['Moses Kigozi','Sarah Nabukenya','David Okot'][i],
     role: ['Director','Operations manager','Owner'][i],
@@ -627,7 +628,7 @@ window.signOut = async function () {
 async function loadAll() {
   setSync('Loading\u2026');
   const [firms, tenders, jobs, articles, cats, dists, accs, tiers, staff,
-         media, claims, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
+         media, claims, legal, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
     sb.from('firms').select('*').order('name'),
     sb.from('tenders').select('*').order('deadline'),
     sb.from('jobs').select('*').order('posted_at', { ascending: false }),
@@ -639,6 +640,7 @@ async function loadAll() {
     can('staff') ? sb.from('staff').select('*') : Promise.resolve({ data: [] }),
     sb.from('media').select('*').order('created_at', { ascending: false }).limit(300),
     sb.from('firm_claims').select('*').order('created_at', { ascending: false }).limit(200),
+    sb.from('legal_docs').select('*'),
     sb.from('spotlight').select('*').eq('active', true),
     can('ads') ? sb.from('ads').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
     can('ads') ? sb.from('ad_slots').select('*') : Promise.resolve({ data: [] }),
@@ -655,6 +657,8 @@ async function loadAll() {
   };
   DB.staff = staff.data || [];
   DB.claims = claims.data || [];
+  DB.legal = Object.fromEntries((legal.data || []).map(d => [d.key,
+    { key: d.key, effective: d.effective, body: d.body, updated: d.updated_at }]));
 
   /* Media: the database stores columns, the portal works in records.
      Map once here so nothing downstream has to know the difference. */
@@ -747,6 +751,7 @@ const SECTIONS = [
   { id:'ads',       label:'Advertising',  group:'Revenue',   perm:'ads' },
   { id:'analytics', label:'Analytics',    group:'Revenue',   perm:'analytics' },
   { id:'staff',     label:'Staff',        group:'Admin',     perm:'staff',    count:()=>DB.staff.length },
+  { id:'legal',     label:'Legal pages',  group:'Admin',     perm:'staff' },
   { id:'publish',   label:'Publish',      group:'Daily',     perm:'board',
       flag:()=>pending().length }
 ];
@@ -775,7 +780,8 @@ const TITLES = {
   ads:['Advertising','Slots, campaigns and rates'],
   analytics:['Analytics','Traffic and contact events'],
   staff:['Staff','Who has access, and to what'],
-  publish:['Publish','Push what you have saved out to the public site']
+  publish:['Publish','Push what you have saved out to the public site'],
+  legal:['Legal pages','Privacy policy and terms of service']
 };
 
 window.go = function (id) {
@@ -821,6 +827,11 @@ RENDER.board = el => {
     '<span class="d">' + d + '</span></span></button>';
 
   let jobs = [];
+  /* A removal request has a 48-hour promise and a statutory basis
+     behind it. It goes first, above everything, always. */
+  if (SESSION.demo)
+    jobs.push(task('urgent', 0, 'Removal requests',
+      'They arrive through /api/form. Check your inbox or the submissions table daily \u2014 the privacy policy promises 48 hours', 'board'));
   if (openClaims().length)
     jobs.push(task('urgent', openClaims().length, 'Listing claims awaiting a call',
       'Ring the number on the listing before approving \u2014 that call is the whole check', 'claims'));
@@ -997,6 +1008,25 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
 
 window.saveDrawer = async function () {
+  if (CURRENT && CURRENT.kind === 'legal') {
+    const key = CURRENT.id;
+    const doc = { key, effective: val('e_effective'),
+                  body: document.getElementById('edBody').value,
+                  updated: new Date().toISOString() };
+    if (!doc.body.trim()) return toast('An empty policy is worse than the shipped one');
+    DB.legal = DB.legal || {};
+    DB.legal[key] = doc;
+    if (!SESSION.demo && sb) {
+      const { error } = await sb.from('legal_docs')
+        .upsert({ key, effective: doc.effective, body: doc.body, updated_at: doc.updated },
+                { onConflict: 'key' });
+      if (error) return toast('Rejected by the database: ' + error.message);
+    }
+    notePending('Legal page: ' + key);
+    closeDrawer(); go('legal'); toast('Saved. Publish to put it on the site.');
+    return;
+  }
+
   if (CURRENT && CURRENT.kind === 'claim') {
     const c = CURRENT.item;
     const decision = val('e_decision');
@@ -2211,6 +2241,80 @@ async function savePrices() {
 
 
 
+
+/* ═══════════════════════════════════════════════════════════════
+   LEGAL PAGES
+   The privacy policy and terms are the two documents most likely to
+   be out of date and least likely to be noticed. Editing them here
+   means they can be corrected the day something changes rather than
+   the next time somebody opens the HTML.
+
+   These are markdown, rendered on the public page the same way an
+   article is — so nobody has to touch markup to fix a clause.
+   ═══════════════════════════════════════════════════════════════ */
+const LEGAL_DOCS = [
+  { key: 'privacy', title: 'Privacy policy',
+    why: 'Required under the Data Protection and Privacy Act, 2019. It must say what you collect, why, and how somebody gets their listing removed.' },
+  { key: 'terms', title: 'Terms of service',
+    why: 'What a visitor and a listed firm can expect from you, and what you do not promise.' }
+];
+
+RENDER.legal = el => {
+  el.innerHTML =
+    '<div class="note"><b>Have these read by a Ugandan advocate before launch.</b>' +
+    'What is published now is a careful draft, not legal advice, and it has not been reviewed. ' +
+    'Editing here changes the live pages at the next publish.</div>' +
+    LEGAL_DOCS.map(d => {
+      const doc = (DB.legal || {})[d.key];
+      return '<div class="filecard">' +
+        '<div style="flex:1"><b style="display:block;font-size:14px">' + esc(d.title) + '</b>' +
+        '<span class="rowsub">' + esc(d.why) + '</span>' +
+        '<div style="margin-top:8px;font-size:13px">' +
+          (doc && doc.updated
+            ? '<span class="pill p-live">updated ' + esc(String(doc.updated).slice(0, 10)) + '</span>'
+            : '<span class="pill p-off">as shipped</span>') +
+          '<a class="rowsub" style="margin-left:10px" href="index.html#/' + d.key +
+          '" target="_blank" rel="noopener">View the live page \u2192</a>' +
+        '</div></div>' +
+        '<button class="btn btn-p" onclick="editLegal(\'' + d.key + '\')">Edit</button></div>';
+    }).join('');
+};
+
+function editLegal(key) {
+  const meta = LEGAL_DOCS.find(d => d.key === key);
+  const doc = (DB.legal || {})[key] || {};
+  CURRENT = { kind: 'legal', id: key, item: Object.assign({}, doc) };
+
+  openDrawer(meta.title,
+    '<div class="note"><b>' + esc(meta.why) + '</b>' +
+    'Write in plain sentences. Somebody reading this is usually worried about something ' +
+    'specific \u2014 how to get removed, or what you do with their number.</div>' +
+    '<fieldset><legend>Document</legend>' +
+      fld('e_effective', 'Effective from', doc.effective || todayStr()) +
+      '<div class="edtools">' +
+        ['## Heading', '**bold**', '- list'].map(t =>
+          `<button type="button" onclick="insLegal('${t.replace(/'/g, "\\'")}')">${esc(t)}</button>`).join('') +
+      '</div>' +
+      '<textarea id="edBody" oninput="paintLegalPreview()" ' +
+      'style="min-height:420px">' + esc(doc.body || '') + '</textarea>' +
+      '<div class="wc" id="wc"></div>' +
+      '<div style="margin-top:14px"><label style="font-size:12.5px;font-weight:500">Preview</label>' +
+      '<div class="preview" id="edPrev"></div></div>' +
+    '</fieldset>');
+  paintLegalPreview();
+}
+
+function insLegal(t) { ins(t); paintLegalPreview(); }
+
+function paintLegalPreview() {
+  const t = document.getElementById('edBody');
+  const p = document.getElementById('edPrev');
+  if (!t || !p) return;
+  p.innerHTML = md(t.value);
+  const words = t.value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wc').textContent = words + ' words';
+}
+
 /* ═══════════════════════════════════════════════════════════════
    PUBLISHING
    Saving writes to the database. The public site is generated at
@@ -2765,7 +2869,7 @@ Object.assign(window, {
   paintPreview, md, processVideo, posterFrom, tusUpload, humanBytes,
   copyPublicUrl, previewMedia, attachToFirm, mediaPublicUrl, VIDEO_CFG,
   submitCode, finishEnrolment, startEnrolment, afterMfa, mfaGate, MFA,
-  reviewClaim, openClaims, publishSite, notePending, pending, clearPending, paintPublish,
+  reviewClaim, openClaims, publishSite, editLegal, insLegal, paintLegalPreview, notePending, pending, clearPending, paintPublish,
   editTender, editJob, savePrices, addPriceRow, delPriceRow, newSnapshot,
   todayStr, sel, dTo, editSpot, editAd, addPairRow, thisMonthStr,
   loadAnalytics, firmReport, kpi, gaLink, seededN, GA, tickerChip, refreshChip
