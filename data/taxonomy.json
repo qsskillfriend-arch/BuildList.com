@@ -246,31 +246,139 @@
       "slug": "platinum",
       "name": "Platinum",
       "rank": 0,
-      "price": 1500000
+      "price": 1500000,
+      "caps": {
+        "photos": 100,
+        "logo": true,
+        "whatsapp": true,
+        "website": true,
+        "descriptionChars": 5000,
+        "services": 50,
+        "projects": 30,
+        "video": true,
+        "preciseMap": true,
+        "badge": true,
+        "sortBoost": 4,
+        "homepageFeature": true,
+        "leadAlerts": true,
+        "monthlyReport": true,
+        "catalogue": true,
+        "categories": 6
+      }
     },
     {
       "slug": "premium",
       "name": "Premium",
       "rank": 1,
-      "price": 400000
+      "price": 400000,
+      "caps": {
+        "photos": 25,
+        "logo": true,
+        "whatsapp": true,
+        "website": true,
+        "descriptionChars": 2500,
+        "services": 25,
+        "projects": 12,
+        "video": true,
+        "preciseMap": true,
+        "badge": true,
+        "sortBoost": 3,
+        "homepageFeature": false,
+        "leadAlerts": true,
+        "monthlyReport": true,
+        "catalogue": true,
+        "categories": 4
+      }
     },
     {
       "slug": "verified",
       "name": "Verified",
       "rank": 2,
-      "price": 150000
+      "price": 150000,
+      "caps": {
+        "photos": 10,
+        "logo": true,
+        "whatsapp": true,
+        "website": true,
+        "descriptionChars": 1200,
+        "services": 12,
+        "projects": 4,
+        "video": false,
+        "preciseMap": true,
+        "badge": true,
+        "sortBoost": 2,
+        "homepageFeature": false,
+        "leadAlerts": true,
+        "monthlyReport": false,
+        "catalogue": true,
+        "categories": 3
+      }
     },
     {
       "slug": "starter",
       "name": "Starter",
       "rank": 3,
-      "price": 50000
+      "price": 50000,
+      "caps": {
+        "photos": 4,
+        "logo": true,
+        "whatsapp": true,
+        "website": true,
+        "descriptionChars": 600,
+        "services": 6,
+        "projects": 0,
+        "video": false,
+        "preciseMap": true,
+        "badge": false,
+        "sortBoost": 1,
+        "homepageFeature": false,
+        "leadAlerts": false,
+        "monthlyReport": false,
+        "catalogue": false,
+        "categories": 2
+      }
     },
     {
       "slug": "free",
       "name": "Free",
       "rank": 4,
-      "price": 0
+      "price": 0,
+      "caps": {
+        "photos": 0,
+        "logo": false,
+        "whatsapp": false,
+        "website": false,
+        "descriptionChars": 160,
+        "services": 0,
+        "projects": 0,
+        "video": false,
+        "preciseMap": false,
+        "badge": false,
+        "sortBoost": 0,
+        "homepageFeature": false,
+        "leadAlerts": false,
+        "monthlyReport": false,
+        "catalogue": false,
+        "categories": 1
+      }
     }
-  ]
+  ],
+  "capLabels": {
+    "photos": "Photographs",
+    "logo": "Show logo",
+    "whatsapp": "WhatsApp button",
+    "website": "Website link",
+    "descriptionChars": "Description length",
+    "services": "Services listed",
+    "projects": "Projects listed",
+    "video": "Video on profile",
+    "preciseMap": "Exact map pin",
+    "badge": "Tier badge",
+    "sortBoost": "Search ranking boost",
+    "homepageFeature": "Eligible for homepage strip",
+    "leadAlerts": "Lead alerts",
+    "monthlyReport": "Monthly performance report",
+    "catalogue": "Catalogue download",
+    "categories": "Categories allowed"
+  }
 }

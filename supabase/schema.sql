@@ -819,3 +819,7 @@ alter table firms add column if not exists featured boolean not null default fal
 alter table firms add column if not exists featured_sort int not null default 0;
 alter table firms add column if not exists featured_until date;
 create index if not exists firms_featured_idx on firms(featured, featured_sort);
+
+-- Tier capabilities. Read at render time, so changing one here changes
+-- every listing on that tier at the next build.
+alter table tiers add column if not exists caps jsonb default '{}'::jsonb;

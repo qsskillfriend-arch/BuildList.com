@@ -42,7 +42,13 @@ insert into ad_slots (key, label, size) values
   ('submit-sidebar', 'Add your firm sidebar', '300x250'),
   ('submit-sidebar-2', 'Add your firm sidebar, 2', '300x250'),
   ('submit-sidebar-3', 'Add your firm sidebar, 3', '300x250'),
-  ('submit-sidebar-4', 'Add your firm sidebar, 4', '300x250')
+  ('submit-sidebar-4', 'Add your firm sidebar, 4', '300x250'),
+  ('directory-rail-1', 'Directory rail 1', '300x250'),
+  ('directory-rail-2', 'Directory rail 2', '300x250'),
+  ('directory-rail-3', 'Directory rail 3', '300x250'),
+  ('directory-rail-4', 'Directory rail 4', '300x250'),
+  ('directory-rail-5', 'Directory rail 5', '300x250'),
+  ('directory-rail-6', 'Directory rail 6', '300x250')
 on conflict (key) do update set label = excluded.label, size = excluded.size;
 
 insert into ads (campaign_id, slot, advertiser, image_url, alt, link, link_type,
@@ -191,14 +197,49 @@ values
   ('submit-sidebar-4-sample-3', 'submit-sidebar-4', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Add your firm sidebar, 4 slot', '', 'none', true, current_date, current_date + 90, 1),
   ('submit-sidebar-4-sample-4', 'submit-sidebar-4', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Add your firm sidebar, 4 slot', '', 'none', true, current_date, current_date + 90, 1),
   ('submit-sidebar-4-sample-5', 'submit-sidebar-4', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Add your firm sidebar, 4 slot', '', 'none', true, current_date, current_date + 90, 1),
-  ('submit-sidebar-4-sample-6', 'submit-sidebar-4', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Add your firm sidebar, 4 slot', '', 'none', true, current_date, current_date + 90, 1)
+  ('submit-sidebar-4-sample-6', 'submit-sidebar-4', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Add your firm sidebar, 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-1-sample-1', 'directory-rail-1', 'Sample Advertiser 1', 'images/ads/rectangle-1.png', 'Placeholder creative 1 for the Directory rail 1 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-1-sample-2', 'directory-rail-1', 'Sample Advertiser 2', 'images/ads/rectangle-2.png', 'Placeholder creative 2 for the Directory rail 1 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-1-sample-3', 'directory-rail-1', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Directory rail 1 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-1-sample-4', 'directory-rail-1', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Directory rail 1 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-1-sample-5', 'directory-rail-1', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Directory rail 1 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-1-sample-6', 'directory-rail-1', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Directory rail 1 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-2-sample-1', 'directory-rail-2', 'Sample Advertiser 1', 'images/ads/rectangle-1.png', 'Placeholder creative 1 for the Directory rail 2 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-2-sample-2', 'directory-rail-2', 'Sample Advertiser 2', 'images/ads/rectangle-2.png', 'Placeholder creative 2 for the Directory rail 2 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-2-sample-3', 'directory-rail-2', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Directory rail 2 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-2-sample-4', 'directory-rail-2', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Directory rail 2 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-2-sample-5', 'directory-rail-2', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Directory rail 2 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-2-sample-6', 'directory-rail-2', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Directory rail 2 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-3-sample-1', 'directory-rail-3', 'Sample Advertiser 1', 'images/ads/rectangle-1.png', 'Placeholder creative 1 for the Directory rail 3 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-3-sample-2', 'directory-rail-3', 'Sample Advertiser 2', 'images/ads/rectangle-2.png', 'Placeholder creative 2 for the Directory rail 3 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-3-sample-3', 'directory-rail-3', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Directory rail 3 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-3-sample-4', 'directory-rail-3', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Directory rail 3 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-3-sample-5', 'directory-rail-3', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Directory rail 3 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-3-sample-6', 'directory-rail-3', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Directory rail 3 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-4-sample-1', 'directory-rail-4', 'Sample Advertiser 1', 'images/ads/rectangle-1.png', 'Placeholder creative 1 for the Directory rail 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-4-sample-2', 'directory-rail-4', 'Sample Advertiser 2', 'images/ads/rectangle-2.png', 'Placeholder creative 2 for the Directory rail 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-4-sample-3', 'directory-rail-4', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Directory rail 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-4-sample-4', 'directory-rail-4', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Directory rail 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-4-sample-5', 'directory-rail-4', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Directory rail 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-4-sample-6', 'directory-rail-4', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Directory rail 4 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-5-sample-1', 'directory-rail-5', 'Sample Advertiser 1', 'images/ads/rectangle-1.png', 'Placeholder creative 1 for the Directory rail 5 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-5-sample-2', 'directory-rail-5', 'Sample Advertiser 2', 'images/ads/rectangle-2.png', 'Placeholder creative 2 for the Directory rail 5 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-5-sample-3', 'directory-rail-5', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Directory rail 5 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-5-sample-4', 'directory-rail-5', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Directory rail 5 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-5-sample-5', 'directory-rail-5', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Directory rail 5 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-5-sample-6', 'directory-rail-5', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Directory rail 5 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-6-sample-1', 'directory-rail-6', 'Sample Advertiser 1', 'images/ads/rectangle-1.png', 'Placeholder creative 1 for the Directory rail 6 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-6-sample-2', 'directory-rail-6', 'Sample Advertiser 2', 'images/ads/rectangle-2.png', 'Placeholder creative 2 for the Directory rail 6 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-6-sample-3', 'directory-rail-6', 'Sample Advertiser 3', 'images/ads/rectangle-3.png', 'Placeholder creative 3 for the Directory rail 6 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-6-sample-4', 'directory-rail-6', 'Sample Advertiser 4', 'images/ads/rectangle-4.png', 'Placeholder creative 4 for the Directory rail 6 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-6-sample-5', 'directory-rail-6', 'Sample Advertiser 5', 'images/ads/rectangle-5.png', 'Placeholder creative 5 for the Directory rail 6 slot', '', 'none', true, current_date, current_date + 90, 1),
+  ('directory-rail-6-sample-6', 'directory-rail-6', 'Sample Advertiser 6', 'images/ads/rectangle-6.png', 'Placeholder creative 6 for the Directory rail 6 slot', '', 'none', true, current_date, current_date + 90, 1)
 on conflict (campaign_id) do update set
   slot = excluded.slot, advertiser = excluded.advertiser,
   image_url = excluded.image_url, alt = excluded.alt, link = excluded.link,
   link_type = excluded.link_type, active = excluded.active,
   starts_on = excluded.starts_on, ends_on = excluded.ends_on, weight = excluded.weight;
 
--- Check: every slot should show 6.
 select slot, count(*) as campaigns
 from ads where active and ends_on >= current_date
 group by slot order by slot;
