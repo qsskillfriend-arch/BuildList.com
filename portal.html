@@ -350,8 +350,8 @@ tr.on td { background: #FBF6E6; }
    in schema.sql are for. NEVER put the service_role key here; it
    bypasses every policy.
    ═══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL = '';          // e.g. 'https://abcdefgh.supabase.co'
-const SUPABASE_ANON_KEY = '';     // e.g. 'eyJhbGciOi...'
+const SUPABASE_URL = 'https://tzsivlfykbfkdpjgjjpr.supabase.co';          // e.g. 'https://abcdefgh.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6c2l2bGZ5a2Jma2RwamdqanByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzEyMjAsImV4cCI6MjEwNTI0NzIyMH0.qXikMMhwmQzIJ2hLz3ypkyC4Qm3zZXiPAbdp7WObH8c';     // e.g. 'eyJhbGciOi...'
 
 /* ═══════════════════════════════════════════════════════════════
    ROLES
@@ -383,7 +383,7 @@ const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
 /* Google Analytics identifiers, so the links below go straight to your
    own property rather than a generic sign-in page. Paste the same
    Measurement ID you put in index.html. */
-const GA = { measurementId: '', propertyId: '' };
+const GA = { measurementId: 'G-ZZQ8B65052', propertyId: '' };
 
 const SESSION = { user: null, role: null, name: null, demo: false };
 let sb = null;
