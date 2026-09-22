@@ -42,12 +42,12 @@
     "date": "2026-08-22",
     "readTime": "4 min read",
     "main": false,
-    "sponsored": true,
+    "sponsored": false,
     "body": "Structural steel prices in Kampala have climbed by approximately eight per cent over the past sixty days, driven by currency pressure and regional demand.\n\n## What the movement looks like\n\nOur weekly price index has recorded steady increases across rebar and sections, with the sharpest movement in 16mm rebar. The rise has been gradual rather than a single jump, which is why several firms have told us they only noticed when re-ordering.\n\n## Why it is happening\n\nTwo things are pushing at once. Shilling weakness raises the landed cost of imported billet and finished sections. Regional infrastructure demand is competing for the same supply.\n\n## What it means for a live job\n\n- A quotation more than sixty days old is now materially under-priced on steel\n- Fixed-price contracts without an escalation clause absorb this entirely\n- Ordering early is only worth it if you have somewhere dry to store it\n\n> If you are pricing now, quote steel separately with a validity period rather than folding it into a lump sum. Clients dislike it less than a variation later.\n\n## Watch the index\n\nWe update material prices every Wednesday from the same three Kampala suppliers, so the series is comparable week to week. The underlying dataset is available if you need it for a claim or a forecast.",
     "published": true,
     "author": "BuildList.com",
-    "sponsor": "Sample Cement Ltd",
-    "sponsorUrl": "https://example.com",
+    "sponsor": "",
+    "sponsorUrl": "",
     "sponsorSlug": ""
   },
   {

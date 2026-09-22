@@ -263,7 +263,8 @@
         "leadAlerts": true,
         "monthlyReport": true,
         "catalogue": true,
-        "categories": 6
+        "categories": 6,
+        "reviewReply": true
       }
     },
     {
@@ -287,7 +288,8 @@
         "leadAlerts": true,
         "monthlyReport": true,
         "catalogue": true,
-        "categories": 4
+        "categories": 4,
+        "reviewReply": true
       }
     },
     {
@@ -311,7 +313,8 @@
         "leadAlerts": true,
         "monthlyReport": false,
         "catalogue": true,
-        "categories": 3
+        "categories": 3,
+        "reviewReply": true
       }
     },
     {
@@ -335,7 +338,8 @@
         "leadAlerts": false,
         "monthlyReport": false,
         "catalogue": false,
-        "categories": 2
+        "categories": 2,
+        "reviewReply": false
       }
     },
     {
@@ -359,7 +363,8 @@
         "leadAlerts": false,
         "monthlyReport": false,
         "catalogue": false,
-        "categories": 1
+        "categories": 1,
+        "reviewReply": false
       }
     }
   ],
@@ -379,6 +384,7 @@
     "leadAlerts": "Lead alerts",
     "monthlyReport": "Monthly performance report",
     "catalogue": "Catalogue download",
-    "categories": "Categories allowed"
+    "categories": "Categories allowed",
+    "reviewReply": "Reply publicly to reviews"
   }
 }

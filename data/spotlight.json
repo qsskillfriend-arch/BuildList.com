@@ -1,8 +1,7 @@
 {
   "_readme": "Two monthly slots. 'product' is PAID — a manufacturer or distributor buys the month, and it is labelled as advertising everywhere it appears. 'project' is EDITORIAL — chosen by us on merit and never sold, because the moment it is for sale nobody trusts it. Keep that line. Past entries move into the archives so each month's work keeps earning.",
-
   "product": {
-    "active": true,
+    "active": false,
     "month": "2026-09",
     "monthLabel": "September 2026",
     "sponsored": true,
@@ -11,21 +10,33 @@
     "tagline": "One line on what it is and who it is for.",
     "body": "Two or three sentences on what makes it worth a builder's attention: what problem it solves, where it is used, and what it costs. Written by us from information the advertiser supplies, in the same plain language as the rest of the site.",
     "specs": [
-      { "label": "Category", "value": "Roofing" },
-      { "label": "Typical price", "value": "UGX 42,000 per sheet" },
-      { "label": "Available at", "value": "Kampala, Wakiso, Mukono" },
-      { "label": "Warranty", "value": "10 years" }
+      {
+        "label": "Category",
+        "value": "Roofing"
+      },
+      {
+        "label": "Typical price",
+        "value": "UGX 42,000 per sheet"
+      },
+      {
+        "label": "Available at",
+        "value": "Kampala, Wakiso, Mukono"
+      },
+      {
+        "label": "Warranty",
+        "value": "10 years"
+      }
     ],
     "image": "images/spotlight/sample-product.png",
     "alt": "Sample product image — replace with the advertiser's own photograph",
     "link": "https://example.com",
     "cta": "See stockists",
     "supplierSlug": "",
-    "rateUgx": 800000
+    "rateUgx": 800000,
+    "sample": true
   },
-
   "project": {
-    "active": true,
+    "active": false,
     "month": "2026-09",
     "monthLabel": "September 2026",
     "sponsored": false,
@@ -36,11 +47,26 @@
     "sector": "Commercial",
     "completed": "2026",
     "facts": [
-      { "label": "Client", "value": "[insert]" },
-      { "label": "Contractor", "value": "[insert]" },
-      { "label": "Consultant", "value": "[insert]" },
-      { "label": "Floor area", "value": "[insert]" },
-      { "label": "Duration", "value": "[insert]" }
+      {
+        "label": "Client",
+        "value": "[insert]"
+      },
+      {
+        "label": "Contractor",
+        "value": "[insert]"
+      },
+      {
+        "label": "Consultant",
+        "value": "[insert]"
+      },
+      {
+        "label": "Floor area",
+        "value": "[insert]"
+      },
+      {
+        "label": "Duration",
+        "value": "[insert]"
+      }
     ],
     "lessons": [
       "One concrete, transferable lesson.",
@@ -50,9 +76,9 @@
     "image": "images/spotlight/sample-project.png",
     "alt": "Sample project photograph — replace with a real one, with permission",
     "credit": "Photograph: [who took it]",
-    "firmSlugs": []
+    "firmSlugs": [],
+    "sample": true
   },
-
   "productArchive": [],
   "projectArchive": []
 }
