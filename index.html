@@ -920,6 +920,14 @@ a { text-decoration: none; color: inherit; }
 .filter-group.scrolls .filter-body::-webkit-scrollbar-thumb:hover { background:var(--muted); }
 .filter-scroll-hint { font-size:.7rem; color:var(--muted); margin-top:6px; }
 
+/* A short highlight so it is obvious which panel the button meant */
+.flash-target { animation: flashTarget 1.6s ease; }
+@keyframes flashTarget {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196,154,22,0); }
+  15%, 60% { box-shadow: 0 0 0 4px rgba(196,154,22,.35); }
+}
+@media (prefers-reduced-motion: reduce) { .flash-target { animation: none; } }
+
 .dir-active-filters { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .chip { display:inline-flex; align-items:center; gap:6px; background:var(--green-soft); color:var(--forest);
         border:1px solid rgba(26,60,42,.18); border-radius:20px; padding:3px 10px; font-size:.74rem; font-weight:600; }
@@ -1070,7 +1078,33 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 /* ════════════════════════════════════════════
    DIRECTORY PAGE
 ════════════════════════════════════════════ */
-.dir-layout { display: grid; grid-template-columns: 260px 1fr; gap: 28px; padding: 36px 0; }
+.dir-layout { display: grid; grid-template-columns: 232px minmax(0,1fr) 258px; gap: 20px; padding: 36px 0; }
+
+/* A continuous partitioned rail down the right of the directory. It
+   runs the full height of the results, so on a long page it is always
+   in view without anything following the reader down the screen — a
+   sticky block that tracks you is the fastest way to make a site feel
+   like it is chasing you. */
+.ad-rail { display:flex; flex-direction:column; gap:8px; background:transparent;
+  position:sticky; top:90px; align-self:start; max-height:calc(100vh - 110px); }
+.ad-rail-head { font-size:.62rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); padding:8px 10px; background:var(--white); border:1px solid var(--border);
+  border-radius:8px; text-align:center; }
+.ad-rail .ad-unit { border:1px solid var(--border); border-radius:10px; margin:0; padding:8px;
+  background:var(--white); overflow:hidden; box-shadow:0 4px 16px rgba(26,60,42,.04); }
+.ad-rail .ad-unit:nth-of-type(2) { min-height:150px; }
+.ad-rail .ad-unit:nth-of-type(3) { min-height:190px; }
+.ad-rail .ad-unit:nth-of-type(4) { min-height:230px; }
+.ad-rail .ad-unit:nth-of-type(5) { min-height:180px; }
+.ad-rail .ad-unit:nth-of-type(6) { min-height:250px; }
+.ad-rail .ad-unit:nth-of-type(7) { min-height:200px; }
+.ad-rail .ad-unit img, .ad-rail .ad-unit video { width:100%; height:auto; max-height:100%; object-fit:contain; display:block; }
+.ad-rail .ad-label { font-size:.58rem; padding:4px 0 0; }
+.ad-rail .ad-unit { transition:opacity .35s ease, transform .35s ease, box-shadow .35s ease; }
+.ad-rail .ad-unit:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(26,60,42,.08); }
+.ad-rail-fill { flex:1; min-height:0; }
+@media (max-width: 1240px) { .dir-layout { grid-template-columns: 240px minmax(0,1fr); }
+  .ad-rail { display: none; } }
 .dir-filters { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 22px; height: fit-content; position: sticky; top: 90px; }
 .filter-group { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
 .filter-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -1198,6 +1232,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 .news-article-body { padding: 20px; flex: 1; }
 .news-sidebar-widget { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); padding: 18px; margin-bottom: 16px; }
 .news-sidebar-widget h4 { font-size: .82rem; font-weight: 700; color: var(--charcoal); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.news-sidebar-item:hover .news-sidebar-title { color: var(--forest); text-decoration: underline; }
 .news-sidebar-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
 .news-sidebar-item:last-child { border-bottom: none; }
 .news-sidebar-thumb { width: 54px; height: 40px; background: var(--parchment-d); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
@@ -1211,20 +1246,20 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
 /* ════════════════════════════════════════════
    ADVERTISE PAGE
 ════════════════════════════════════════════ */
-.ad-packages-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 1080px) { .ad-packages-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.ad-packages-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; align-items: stretch; }
+@media (max-width: 1180px) { .ad-packages-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
 @media (max-width: 720px)  { .ad-packages-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 460px)  { .ad-packages-grid { grid-template-columns: 1fr; } }
-.pkg-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
-.pkg-actions .btn { width: 100%; justify-content: center; padding: 7px 10px; font-size: .76rem; }
-.ad-package-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--r-lg); padding: 18px 14px; text-align: center; transition: all .2s; display: flex; flex-direction: column; }
+.pkg-actions { margin-top: 14px; }
+.pkg-actions .btn { width: 100%; justify-content: center; padding: 7px 8px; font-size: .72rem; }
+.ad-package-card { background: var(--white); border: 2px solid var(--border); border-radius: var(--r-lg); padding: 15px 10px; text-align: center; transition: all .2s; display: flex; flex-direction: column; min-width: 0; }
 .ad-package-card:hover { border-color: var(--forest); box-shadow: var(--shadow-md); }
 .ad-package-card.featured { border-color: var(--gold); background: var(--gold-pale); }
 .ad-package-name { font-family: var(--font-display); font-size: .95rem; font-weight: 700; margin-bottom: 6px; line-height: 1.25; }
 .ad-package-price { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; color: var(--forest); margin: 12px 0; }
 .ad-package-price span { font-size: .8rem; color: var(--muted); font-family: var(--font-body); }
 .ad-package-features { list-style: none; text-align: left; margin: 12px 0; font-size: .76rem; flex: 1; }
-.ad-package-features li { font-size: .82rem; color: var(--slate); padding: 5px 0; display: flex; align-items: center; gap: 7px; }
+.ad-package-features li { font-size: .74rem; color: var(--slate); padding: 5px 0; display: flex; align-items: center; gap: 7px; }
 .ad-package-features li::before { content: '✓'; color: var(--forest); font-weight: 700; font-size: .75rem; }
 .stats-grid-adv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 48px; }
 .stat-card-adv { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; text-align: center; }
@@ -1511,7 +1546,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       </nav>
       <div class="header-actions">
         <a class="btn btn-outline btn-sm" href="#/submit"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-plus"></use></svg> Add Listing</a>
-        <a class="btn btn-primary btn-sm" href="#/tenders#post" onclick="focusAlerts('postTenderForm')">Post Tender / Job</a>
+        <button type="button" class="btn btn-primary btn-sm" onclick="goAlerts('tenders','postTenderForm')">Post Tender / Job</button>
         <button class="nav-toggle" onclick="toggleMobileNav()" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg></button>
       </div>
     </div>
@@ -1718,7 +1753,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       <div class="jobs-grid" id="homeJobs"></div>
       <div style="margin-top:18px;display:flex;gap:12px">
         <button class="btn btn-forest" onclick="showPage('jobs')">Browse All Jobs</button>
-        <button class="btn btn-outline" onclick="location.hash='#/tenders#post'">Post a Job</button>
+        <button class="btn btn-outline" onclick="location.hash='#/tenders'; focusAlerts('postTenderForm')">Post a Job</button>
       </div>
     </div>
   </section>
@@ -1751,7 +1786,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <p hidden><label>Leave blank: <input name="company-website"></label></p>
           <label class="sr-only" for="nlEmail">Email address</label>
           <input class="newsletter-input" id="nlEmail" name="email" type="email" required placeholder="Enter your professional email address">
-          <button class="btn btn-primary">Subscribe Free</button>
+          <button type="submit" class="btn btn-primary">Subscribe Free</button>
         </form>
         <p style="font-size:.75rem;color:rgba(255,255,255,.4);margin-top:10px">Free weekly digest. Unsubscribe anytime. No spam — ever.</p>
       </div>
@@ -1894,7 +1929,19 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           area, not a surveyed address. Call the firm before travelling.</p>
         </div>
       </div>
-    </div>
+    
+      <!-- Vertical ad rail: six partitions, continuous to the foot of the results -->
+      <aside class="ad-rail" aria-label="Advertisements">
+        <div class="ad-rail-head">Advertisement</div>
+        <div class="ad-unit ad-rectangle ad-sponsored rail-ad-small" data-ad="directory-rail-1"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored rail-ad-standard" data-ad="directory-rail-2"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored rail-ad-tall" data-ad="directory-rail-3"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored rail-ad-standard" data-ad="directory-rail-4"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored rail-ad-feature" data-ad="directory-rail-5"></div>
+        <div class="ad-unit ad-rectangle ad-sponsored rail-ad-tall" data-ad="directory-rail-6"></div>
+        <div class="ad-rail-fill"></div>
+      </aside>
+</div>
   </div>
 </div><!-- /page-directory -->
 
@@ -1941,8 +1988,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <label class="sr-only" for="tenderCategory">Tender category</label><select class="form-input" id="tenderCategory" style="width:auto;min-width:160px" onchange="setTenderFilter()"></select>
           <label class="sr-only" for="tenderStatus">Closing</label><select class="form-input" id="tenderStatus" style="width:auto;min-width:140px" onchange="setTenderFilter()"><option value="">Any closing date</option><option value="urgent">Closing within 14 days</option><option value="open">Open</option></select>
           <label class="sr-only" for="tenderSort">Sort tenders</label><select class="form-input" id="tenderSort" style="width:auto;min-width:140px" onchange="setTenderFilter()"><option value="deadline">Closing soonest</option><option value="value">Highest value</option><option value="newest">Most recent</option></select>
-          <button class="btn btn-forest btn-sm">Apply Filters</button>
-          <a class="btn btn-outline btn-sm" href="#/tenders#alerts" onclick="focusAlerts('alertForm')"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg> Set Alert</a>
+          <button type="button" class="btn btn-forest btn-sm" onclick="setTenderFilter()">Apply Filters</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="goAlerts('tenders','alertForm')"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg> Set Alert</button>
         </div>
 
         <div class="dir-count" id="tenderCount" role="status" style="margin-bottom:12px">&mdash;</div>
@@ -1968,7 +2015,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div class="tender-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-megaphone"></use></svg> Post a Tender Notice</h4>
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Reach registered contractors and consultants across Uganda. Posted within 2 hours.</p>
-          <a class="btn btn-primary btn-sm" style="width:100%;justify-content:center" href="#/tenders#post">Submit Tender Notice</a>
+          <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="composeTenderEmail()">${ico('mail')} Email us the notice</button>
+          <button type="button" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="goAlerts('tenders','postTenderForm')">Or fill in the form</button>
           <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5">Contact the team at <a href="mailto:advertising@buildlist.com" style="color:var(--forest)">advertising@buildlist.com</a> for rates</div>
         </div>
         <div class="tender-sidebar-card">
@@ -1976,7 +2024,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Get new tenders in your sector sent directly to your email every morning.</p>
           <input class="form-input" type="email" placeholder="your@email.com" style="margin-bottom:8px">
           <select class="form-input" style="margin-bottom:10px"><option>All Categories</option><option>Building Works</option><option>Roads</option><option>Consultancy</option></select>
-          <a class="btn btn-forest btn-sm" style="width:100%;justify-content:center" href="#/tenders#alerts" onclick="focusAlerts('alertForm')">Activate Free Alert</a>
+          <button type="button" class="btn btn-forest btn-sm" style="width:100%;justify-content:center" onclick="goAlerts('tenders','alertForm')">Activate Free Alert</button>
         </div>
         <div class="ad-unit ad-rectangle ad-sponsored" style="margin-bottom:16px" data-ad="tenders-sidebar"></div>
         <div class="ad-unit ad-rectangle ad-sponsored" style="margin-bottom:16px" data-ad="tenders-sidebar-2"></div>
@@ -2019,7 +2067,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <label class="sr-only" for="jobDiscipline">Discipline</label><select class="form-input" id="jobDiscipline" style="width:auto;min-width:150px" onchange="setJobFilter()"></select>
           <label class="sr-only" for="jobDistrict">District</label><select class="form-input" id="jobDistrict" style="width:auto;min-width:120px" onchange="setJobFilter()"></select>
           <label class="sr-only" for="jobLevel">Experience level</label><select class="form-input" id="jobLevel" style="width:auto;min-width:130px" onchange="setJobFilter()"><option value="">Any experience</option><option value="entry">Entry (0–2yr)</option><option value="mid">Mid (3–5yr)</option><option value="senior">Senior (6–10yr)</option><option value="principal">Principal (10yr+)</option></select>
-          <button class="btn btn-forest">Find Jobs</button>
+          <button type="button" class="btn btn-forest" onclick="setJobFilter()">Find Jobs</button>
         </div>
         <div class="dir-count" id="jobCount" role="status" style="margin-bottom:12px">&mdash;</div>
         <div id="jobsFull"></div>
@@ -2031,7 +2079,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div class="submit-sidebar-card">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-briefcase"></use></svg> Post a Job Vacancy</h4>
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Reach 8,000+ construction professionals actively looking for work in Uganda.</p>
-          <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="location.hash='#/tenders#post'">Post a Job</button>
+          <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="location.hash='#/tenders'; focusAlerts('postTenderForm')">Post a Job</button>
           <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5">Contact the team at <a href="mailto:advertising@buildlist.com" style="color:var(--forest)">advertising@buildlist.com</a> for rates</div>
         </div>
         <div class="submit-sidebar-card">
@@ -2074,19 +2122,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
     <div class="news-page-layout">
       <div>
         <div class="tab-bar" id="newsTabs"></div>
-        <!-- Sponsored article clearly labelled -->
-        <div class="news-article-card" style="background:var(--gold-pale);border-color:rgba(196,154,22,.3)">
-          <div style="background:rgba(196,154,22,.15);padding:4px 14px;font-size:.65rem;font-weight:700;color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em">★ Sponsored Article</div>
-          <div class="news-article-card-inner">
-            <div class="news-article-img" style="background:linear-gradient(135deg,var(--forest-deep),var(--forest))"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-crane"></use></svg></span></div>
-            <div class="news-article-body">
-              <div class="news-category">Sponsored</div>
-              <div class="news-title" style="font-size:1.1rem">Why Grade 42.5 Cement Delivers Better Long-Term Value for Commercial Builds</div>
-              <p class="news-excerpt">A deep dive into the structural and economic case for premium-grade cement in Uganda's commercial construction sector — with data from five major Kampala projects completed 2022–2024.</p>
-              <div class="news-meta"><span class="news-date">15 June 2025</span><span class="news-read-time">6 min read</span></div>
-            </div>
-          </div>
-        </div>
+        <div id="sponsoredArticle"></div>
         <div id="newsArticles"></div>
 
         <!-- Industry events -->
@@ -2098,7 +2134,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
               association meetings and bidder clinics. Past events disappear on their own, so what
               you see below has not happened yet.</p>
             </div>
-            <a class="btn btn-outline btn-sm" style="margin-left:auto" href="#/news#event-submit" onclick="focusAlerts('eventForm')">Tell us about an event</a>
+            <button type="button" class="btn btn-outline btn-sm" style="margin-left:auto" onclick="goAlerts('news','eventForm')">Tell us about an event</button>
           </div>
           <p class="disclosure" style="margin-bottom:16px">Listed for information. Confirm dates,
           venue and fees with the organiser before travelling.</p>
@@ -2153,34 +2189,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <!-- Recent articles -->
         <div class="news-sidebar-widget">
           <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-newspaper"></use></svg> Recent Articles</h4>
-          <div class="news-sidebar-item">
-            <div class="news-sidebar-thumb"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-clipboard"></use></svg></div>
-            <div>
-              <div class="news-sidebar-title">PPDA Publishes New Procurement Threshold Regulations</div>
-              <div class="news-sidebar-date">12 Jun 2025</div>
-            </div>
-          </div>
-          <div class="news-sidebar-item">
-            <div class="news-sidebar-thumb"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-crane"></use></svg></div>
-            <div>
-              <div class="news-sidebar-title">Kampala Flyover Phase 2 Tender Released — UGX 340B Works</div>
-              <div class="news-sidebar-date">10 Jun 2025</div>
-            </div>
-          </div>
-          <div class="news-sidebar-item">
-            <div class="news-sidebar-thumb"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-scale"></use></svg></div>
-            <div>
-              <div class="news-sidebar-title">ARB Releases Updated Mandatory CPD Requirements for 2025</div>
-              <div class="news-sidebar-date">8 Jun 2025</div>
-            </div>
-          </div>
-          <div class="news-sidebar-item">
-            <div class="news-sidebar-thumb"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-bulb"></use></svg></div>
-            <div>
-              <div class="news-sidebar-title">Solar Integration in Commercial Buildings: Uganda Building Code Update</div>
-              <div class="news-sidebar-date">5 Jun 2025</div>
-            </div>
-          </div>
+          <div id="recentArticles"></div>
         </div>
 
         <div class="ad-unit ad-rectangle ad-sponsored" data-ad="news-sidebar"></div>
@@ -2292,103 +2301,48 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <div class="ad-packages-grid">
           <div class="ad-package-card">
             <div class="ad-package-name">Leaderboard Banner</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">728×90px — Homepage & key pages</div>
-            <ul class="ad-package-features">
-              <li>Homepage top placement</li>
-              <li>Category page rotation</li>
-              <li>Monthly impression report</li>
-              <li>Direct link to your site</li>
-            </ul>
-            <div class="pkg-actions">
-              <button class="btn btn-primary btn-sm" onclick="openAdEnquiry('Leaderboard Banner','book')">Book now</button>
-              <button class="btn btn-outline btn-sm" onclick="openAdEnquiry('Leaderboard Banner','enquire')">Enquire</button>
-            </div>
-            <button class="btn btn-forest btn-sm" style="width:100%;justify-content:center">Book Now</button>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">728×90px · Homepage & key pages</div>
+            <ul class="ad-package-features"><li>Homepage top placement</li><li>Category rotation</li><li>Monthly impression report</li><li>Direct website link</li></ul>
+            <div class="pkg-actions"><button type="button" class="btn btn-primary btn-sm" onclick="openAdEnquiry('Leaderboard Banner','book')">Book</button></div>
           </div>
           <div class="ad-package-card featured">
-            <div style="font-size:.65rem;font-weight:800;color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">★ Most Popular</div>
+            <div style="font-size:.6rem;font-weight:800;color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">★ Most Popular</div>
             <div class="ad-package-name">Sponsored Listing</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Featured in search results</div>
-            <ul class="ad-package-features">
-              <li>Top of relevant searches</li>
-              <li>Gold border highlight</li>
-              <li>Logo + extended description</li>
-              <li>Click-to-call button</li>
-            </ul>
-            <div class="pkg-actions">
-              <button class="btn btn-primary btn-sm" onclick="openAdEnquiry('Sponsored Listing','book')">Book now</button>
-              <button class="btn btn-outline btn-sm" onclick="openAdEnquiry('Sponsored Listing','enquire')">Enquire</button>
-            </div>
-            <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center">Book Now</button>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Featured in relevant searches</div>
+            <ul class="ad-package-features"><li>Top of relevant searches</li><li>Gold highlight</li><li>Logo + extended description</li><li>Click-to-call</li></ul>
+            <div class="pkg-actions"><button type="button" class="btn btn-primary btn-sm" onclick="openAdEnquiry('Sponsored Listing','book')">Book</button></div>
           </div>
           <div class="ad-package-card">
             <div class="ad-package-name">Newsletter Sponsor</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Dedicated slot in weekly email</div>
-            <ul class="ad-package-features">
-              <li>Full-width slot in the weekly digest</li>
-              <li>Logo + 3-line message</li>
-              <li>Direct response tracking</li>
-              <li>Sent every Tuesday morning</li>
-            </ul>
-            <div class="pkg-actions">
-              <button class="btn btn-primary btn-sm" onclick="openAdEnquiry('Newsletter Sponsor','book')">Book now</button>
-              <button class="btn btn-outline btn-sm" onclick="openAdEnquiry('Newsletter Sponsor','enquire')">Enquire</button>
-            </div>
-            <button class="btn btn-forest btn-sm" style="width:100%;justify-content:center">Book Now</button>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Dedicated weekly email slot</div>
+            <ul class="ad-package-features"><li>Full-width digest slot</li><li>Logo + 3-line message</li><li>Response tracking</li><li>Tuesday distribution</li></ul>
+            <div class="pkg-actions"><button type="button" class="btn btn-primary btn-sm" onclick="openAdEnquiry('Newsletter Sponsor','book')">Book</button></div>
           </div>
           <div class="ad-package-card">
             <div class="ad-package-name">Sponsored Article</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Long-form branded content</div>
-            <ul class="ad-package-features">
-              <li>Written by our editors</li>
-              <li>Permanent on-site placement</li>
-              <li>Social media promotion</li>
-              <li>Newsletter feature included</li>
-            </ul>
-            <div class="pkg-actions">
-              <button class="btn btn-primary btn-sm" onclick="openAdEnquiry('Sponsored Article','book')">Book now</button>
-              <button class="btn btn-outline btn-sm" onclick="openAdEnquiry('Sponsored Article','enquire')">Enquire</button>
-            </div>
-            <button class="btn btn-forest btn-sm" style="width:100%;justify-content:center">Enquire</button>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Long-form branded content</div>
+            <ul class="ad-package-features"><li>Editorial production</li><li>Permanent article page</li><li>Social promotion</li><li>Newsletter feature</li></ul>
+            <div class="pkg-actions"><button type="button" class="btn btn-outline btn-sm" onclick="openAdEnquiry('Sponsored Article','enquire')">Enquire</button></div>
           </div>
           <div class="ad-package-card">
             <div class="ad-package-name">Tender Sponsorship</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Featured on Tenders Board</div>
-            <ul class="ad-package-features">
-              <li>Brand beside all tender notices</li>
-              <li>Sidebar rectangle ad</li>
-              <li>Tender alert email inclusion</li>
-              <li>High commercial intent audience</li>
-            </ul>
-            <div class="pkg-actions">
-              <button class="btn btn-primary btn-sm" onclick="openAdEnquiry('Tender Sponsorship','book')">Book now</button>
-              <button class="btn btn-outline btn-sm" onclick="openAdEnquiry('Tender Sponsorship','enquire')">Enquire</button>
-            </div>
-            <button class="btn btn-forest btn-sm" style="width:100%;justify-content:center">Book Now</button>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Featured on Tenders Board</div>
+            <ul class="ad-package-features"><li>Brand beside notices</li><li>Sidebar rectangle</li><li>Alert email inclusion</li><li>Commercial-intent audience</li></ul>
+            <div class="pkg-actions"><button type="button" class="btn btn-primary btn-sm" onclick="openAdEnquiry('Tender Sponsorship','book')">Book</button></div>
           </div>
           <div class="ad-package-card">
             <div class="ad-package-name">Platinum Bundle</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Maximum visibility across all channels</div>
-            <ul class="ad-package-features">
-              <li>Homepage leaderboard</li>
-              <li>Category sponsor badge</li>
-              <li>Newsletter sponsor slot (×4)</li>
-              <li>Sponsored article (×1)</li>
-              <li>Dedicated account manager</li>
-            </ul>
-            <div class="pkg-actions">
-              <button class="btn btn-primary btn-sm" onclick="openAdEnquiry('Platinum Bundle','book')">Book now</button>
-              <button class="btn btn-outline btn-sm" onclick="openAdEnquiry('Platinum Bundle','enquire')">Enquire</button>
-            </div>
-            <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center">Book Now</button>
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Maximum cross-channel visibility</div>
+            <ul class="ad-package-features"><li>Homepage leaderboard</li><li>Category sponsor badge</li><li>4 newsletter slots</li><li>Sponsored article</li><li>Account manager</li></ul>
+            <div class="pkg-actions"><button type="button" class="btn btn-outline btn-sm" onclick="openAdEnquiry('Platinum Bundle','enquire')">Enquire</button></div>
           </div>
-        </div>
+        </div></div>
       </div>
 
       <div style="background:var(--forest);border-radius:var(--r-lg);padding:40px;text-align:center">
         <h2 style="color:#fff;margin-bottom:12px">Download Our Media Kit</h2>
         <p style="color:rgba(255,255,255,.7);max-width:500px;margin:0 auto 24px">Every advertising position, who reads the site, creative specifications and booking terms in one PDF. Rates are quoted to suit the campaign — email advertising@buildlist.com and we reply the same working day.</p>
-        <button class="btn btn-primary btn-lg"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"></use></svg> Download Media Kit (PDF)</button>
+        <a class="btn btn-primary btn-lg" href="downloads/BuildList-Media-Kit.pdf" download onclick="track('media_kit_download',{location:'advertise'})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"></use></svg> Download Media Kit (PDF)</a>
         <p style="color:rgba(255,255,255,.5);font-size:.78rem;margin-top:14px">Or email us: <strong style="color:rgba(255,255,255,.8)">advertising@buildlist.com</strong></p>
       </div>
     </div>
@@ -2578,8 +2532,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="submit-sidebar-card" style="background:var(--gold-pale);border-color:rgba(196,154,22,.3)">
             <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chat"></use></svg> Need Help?</h4>
             <p style="font-size:.82rem;color:var(--slate);margin-bottom:12px">Our team will help you set up your listing for maximum visibility.</p>
-            <button class="btn btn-forest btn-sm" style="width:100%;justify-content:center"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-phone"></use></svg> Call: +256 700 000 000</button>
-            <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chat"></use></svg> WhatsApp Us</button>
+            <a class="btn btn-forest btn-sm" style="width:100%;justify-content:center" href="#/about" onclick="setTimeout(()=>document.getElementById('contact')?.scrollIntoView({behavior:'smooth',block:'center'}),120); track('help_contact',{})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-phone"></use></svg> Contact our team</a>
+            <a class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px" href="#/about" onclick="setTimeout(()=>document.getElementById('contact')?.scrollIntoView({behavior:'smooth',block:'center'}),120); track('help_contact_whatsapp',{})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chat"></use></svg> Message our team</a>
           </div>
         <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:18px" data-ad="submit-sidebar"></div>
         <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:16px" data-ad="submit-sidebar-2"></div>
@@ -3053,11 +3007,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <p style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.45)">A product of
           <strong style="color:var(--gold);font-weight:700">Sharplink Ventures (U) Limited</strong>,
           registered in Uganda.</p>
-          <div style="display:flex;gap:9px;margin-top:14px">
-            <a href="#/about" style="width:30px;height:30px;background:rgba(255,255,255,.08);border-radius:6px;display:flex;align-items:center;justify-content:center" aria-label="X (Twitter)"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x-social"></use></svg></a>
-            <a href="#/about" style="width:30px;height:30px;background:rgba(255,255,255,.08);border-radius:6px;display:flex;align-items:center;justify-content:center" aria-label="LinkedIn"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-linkedin"></use></svg></a>
-            <a href="#/about" style="width:30px;height:30px;background:rgba(255,255,255,.08);border-radius:6px;display:flex;align-items:center;justify-content:center" aria-label="Facebook"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-facebook"></use></svg></a>
-          </div>
         </div>
 
         <div class="footer-col">
@@ -3073,7 +3022,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <a href="#/submit">Add your firm</a>
           <a href="#/advertise">Advertise</a>
           <a href="downloads/BuildList-Media-Kit.pdf" download>Media kit</a>
-          <a href="portal.html">Staff portal</a>
         </div>
 
         <div class="footer-col">
@@ -3275,7 +3223,7 @@ function filterFirms(items, f) {
   });
 
   const sorters = {
-    relevance: (a, b) => tierRank(a.tier) - tierRank(b.tier)
+    relevance: (a, b) => capN(b, 'sortBoost') - capN(a, 'sortBoost')
                       || completeness(b) - completeness(a)
                       || a.name.localeCompare(b.name),
     rating:    (a, b) => (b.reviews > 0) - (a.reviews > 0) || b.rating - a.rating || a.name.localeCompare(b.name),
@@ -3458,7 +3406,46 @@ const esc = str => String(str == null ? '' : str)
 const ico = (name, cls) =>
   '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + name + '"></use></svg>';
 
+
+/* ═══════════════════════════════════════════════════════════════
+   TIER CAPABILITIES
+   What a tier costs is a marketing question. What it DOES is this.
+
+   Every limit below is applied at render time, so changing a firm's
+   tier in the portal visibly changes their listing on the next build —
+   photographs appear, the WhatsApp button appears, the description
+   stops being truncated. Without this the tiers were decoration, and
+   selling one would have been selling nothing.
+   ═══════════════════════════════════════════════════════════════ */
+function tierCaps(tier) {
+  const t = ((DATA.taxonomy || {}).tiers || []).find(x => x.slug === (tier || 'free'));
+  return (t && t.caps) || {
+    photos: 0, logo: false, whatsapp: false, website: false, descriptionChars: 160,
+    services: 0, projects: 0, video: false, preciseMap: false, badge: false,
+    sortBoost: 0, homepageFeature: false, leadAlerts: false, monthlyReport: false,
+    catalogue: false, categories: 1
+  };
+}
+const can = (firm, cap) => !!tierCaps(firm && firm.tier)[cap];
+const capN = (firm, cap) => Number(tierCaps(firm && firm.tier)[cap] || 0);
+
+/* Trim to the tier's allowance, on a word boundary so it does not cut
+   somebody off mid-word and look like a bug. */
+function capDescription(firm) {
+  const text = String(firm.description || firm.desc || '');
+  const max = capN(firm, 'descriptionChars');
+  if (!max || text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return cut.slice(0, cut.lastIndexOf(' ')) + '\u2026';
+}
+const capPhotos   = firm => (firm.photos   || []).slice(0, capN(firm, 'photos'));
+const capServices = firm => (firm.services || []).slice(0, capN(firm, 'services'));
+const capProjects = firm => (firm.projects || []).slice(0, capN(firm, 'projects'));
+const capCats     = firm => (firm.categories || []).slice(0, capN(firm, 'categories'));
+
 function tierBadge(tier) {
+  const caps = ((DATA.taxonomy || {}).tiers || []).find(x => x.slug === tier);
+  if (caps && caps.caps && !caps.caps.badge) return '';
   const label = NAMES.tier[tier] || tier;
   if (tier === 'platinum') return '<span class="badge badge-platinum">\u2605 ' + label + '</span>';
   if (tier === 'premium')  return '<span class="badge badge-premium">' + ico('shield-check') + ' ' + label + '</span>';
@@ -3876,6 +3863,7 @@ function closeClaim() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeClaim(); closeRemoval(); closeAdEnquiry(); } });
 
 function firmVideos(firm) {
+  if (!can(firm, 'video')) return '';
   const list = firm.videos && firm.videos.length ? firm.videos
              : (firm.video ? [{ src: firm.video, poster: firm.videoPoster || '' }] : []);
   if (!list.length) return '';
@@ -3893,6 +3881,10 @@ function firmVideos(firm) {
 }
 
 function photoGallery(firm) {
+  /* The tier decides how many photographs show. A free listing shows
+     none, which is the single most visible difference between free and
+     paid — and the reason Starter sells. */
+  firm = Object.assign({}, firm, { photos: capPhotos(firm) });
   if (!firm.photos || !firm.photos.length) return '';
   return '<div class="profile-section"><h3>Photographs</h3><div class="photo-grid">' +
     firm.photos.map((ph, i) =>
@@ -4226,7 +4218,13 @@ function renderFeatured() {
   /* Featured placement is sold. Until someone buys it, show the most
      complete listings instead of an empty shelf — and say so, rather
      than implying these firms paid for the position. */
-  const paid = DATA.firms.filter(f => f.tier === 'platinum');
+  /* Featured firms are chosen in the portal, but only tiers that
+     include the homepage strip are eligible. */
+  const paid = DATA.firms.filter(f => f.featured && can(f, 'homepageFeature'));
+  if (!paid.length) {
+    const fallback = DATA.firms.filter(f => can(f, 'homepageFeature'));
+    paid.push(...fallback.slice(0, 6));
+  }
   const featured = paid.length
     ? paid.slice(0, 3)
     : DATA.firms.slice().sort((a, b) => completeness(b) - completeness(a)).slice(0, 3);
@@ -4248,11 +4246,11 @@ function renderFeatured() {
       <div class="fcard-head">
         ${logoMarkup(l, 'fcard-logo')}
         <div class="fcard-id">
-          <a class="fcard-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>
+          <a class="fcard-name" href="/firms/${esc(l.slug)}/">${esc(l.name)}</a>
           <span class="fcard-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</span>
         </div>
       </div>
-      <p class="fcard-desc">${esc(l.desc)}</p>
+      <p class="fcard-desc">${esc(capDescription(l))}</p>
       ${(l.accreditations || []).length
         ? `<div class="fcard-tags">${l.accreditations.slice(0, 3).map(a =>
             `<span class="fcard-tag">${esc(NAMES.accreditation[a] || a)}</span>`).join('')}</div>`
@@ -4262,7 +4260,7 @@ function renderFeatured() {
         ${l.reviews > 0 ? `<span class="fcard-rating">${stars(l.rating)} ${l.rating}</span>` : ''}
       </div>
       <div class="fcard-actions">
-        <a class="btn btn-primary btn-sm" href="#/firms/${esc(l.slug)}">View profile</a>
+        <a class="btn btn-primary btn-sm" href="/firms/${esc(l.slug)}/">View profile</a>
         <button class="btn btn-outline btn-sm" onclick="contactFirm('${esc(l.slug)}','whatsapp','${esc(l.whatsapp)}')">${ico('whatsapp')} WhatsApp</button>
       </div>
     </div>`).join('');
@@ -4277,7 +4275,7 @@ function renderHomeTenders() {
     <div class="tender-card ${t.urgent ? 'urgent' : ''}">
       <div class="tender-num">${esc(t.ref)}</div>
       <div class="tender-body">
-        <a class="tender-title" href="#/tenders/${esc(tenderSlug(t))}">${esc(t.title)}</a>
+        <a class="tender-title" href="/tenders/${esc(tenderSlug(t))}/">${esc(t.title)}</a>
         <div class="tender-org">${t.featured ? sponsorLink(t.org, t.orgWebsite, t.orgSlug) : esc(t.org)}</div>
       </div>
       <div class="tender-meta">
@@ -4296,7 +4294,7 @@ function renderHomeJobs() {
     <div class="job-card ${j.featured ? 'featured' : ''}">
       <div class="job-card-header">
         <div>
-          <a class="job-title" href="#/jobs/${esc(j.slug)}">${esc(j.title)}</a>
+          <a class="job-title" href="/jobs/${esc(j.slug)}/">${esc(j.title)}</a>
           <div class="job-company">${esc(j.company)}</div>
         </div>
         ${j.featured ? '<span class="badge badge-platinum">\u2605 Featured</span>' : ''}
@@ -4317,7 +4315,7 @@ function renderHomeNews() {
   const el = document.getElementById('homeNews');
   if (!el) return;
   el.innerHTML = DATA.articles.filter(a => a.published !== false).slice(0, 3).map(n => `
-    <a class="news-card" href="#/news/${esc(n.slug)}" style="text-decoration:none;color:inherit;display:block">
+    <a class="news-card" href="/news/${esc(n.slug)}/" style="text-decoration:none;color:inherit;display:block">
       <div class="news-img"><div class="news-img-bg">${ico(n.icon)}</div></div>
       <div class="news-body">
         <span class="news-cat">${esc(n.category)}</span>
@@ -4339,7 +4337,7 @@ function renderNewsArticles() {
   el.innerHTML = livePosts()
     .filter(a => !NEWS_CAT || a.category === NEWS_CAT)
     .map(n => `
-    <a class="news-article" href="#/news/${esc(n.slug)}" style="text-decoration:none;color:inherit;display:flex">
+    <a class="news-article" href="/news/${esc(n.slug)}/" style="text-decoration:none;color:inherit;display:flex">
       <div class="news-article-img">${ico(n.icon, 'ic-lg')}</div>
       <div class="news-article-body">
         <span class="news-cat">${esc(n.category)}</span>
@@ -4400,7 +4398,7 @@ function renderProductOfMonth() {
             'rel="nofollow sponsored noopener" ' +
             'onclick="track(\'spotlight_click\',{kind:\'product\',advertiser:\'' + esc(p.advertiser) + '\'})">' +
             esc(p.cta || 'Find out more') + '</a>' : '') +
-          (supplier ? '<a class="btn btn-outline btn-sm" href="#/firms/' + esc(supplier.slug) + '">' +
+          (supplier ? '<a class="btn btn-outline btn-sm" href="/firms/' + esc(supplier.slug) + '/">' +
             esc(supplier.name) + '</a>' : '') +
         '</div>' +
         '<p class="disclosure">Paid placement by ' + esc(p.advertiser) +
@@ -4456,7 +4454,7 @@ function renderProjectOfMonth() {
         (linked.length
           ? '<div style="display:flex;gap:8px;flex-wrap:wrap">' + linked.map(f =>
               '<a class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)" ' +
-              'href="#/firms/' + esc(f.slug) + '">' + esc(f.name) + '</a>').join('') + '</div>' : '') +
+              'href="/firms/' + esc(f.slug) + '/">' + esc(f.name) + '</a>').join('') + '</div>' : '') +
         (p.credit ? '<p class="spot-credit">' + esc(p.credit) + '</p>' : '') +
         '<p class="spot-editorial-note">Editorial. Chosen on merit by our team. ' +
         'This slot is not for sale and no firm named here has paid to appear.</p>' +
@@ -4555,6 +4553,56 @@ let NEWS_CAT = '';
 
 function livePosts() { return DATA.articles.filter(a => a.published !== false); }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   SPONSORED AND RECENT ARTICLES
+   Both were hardcoded blocks with invented headlines and no links —
+   so the one piece of paid editorial on the site could not be read,
+   which is the whole thing the advertiser bought.
+   ═══════════════════════════════════════════════════════════════ */
+function renderSponsoredArticle() {
+  const el = document.getElementById('sponsoredArticle');
+  if (!el) return;
+  const a = livePosts().find(x => x.sponsored);
+  if (!a) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <a class="news-article-card" href="/news/${esc(a.slug)}/"
+       style="background:var(--gold-pale);border-color:rgba(196,154,22,.3);display:block;text-decoration:none;color:inherit">
+      <div style="background:rgba(196,154,22,.15);padding:4px 14px;font-size:.65rem;font-weight:700;
+        color:var(--gold-muted);text-transform:uppercase;letter-spacing:.08em">\u2605 Sponsored Article</div>
+      <div class="news-article-card-inner">
+        <div class="news-article-img" style="background:linear-gradient(135deg,var(--forest-deep),var(--forest))">
+          <span>${ico(a.icon || 'newspaper', 'ic-lg')}</span></div>
+        <div class="news-article-body">
+          <div class="news-category">Sponsored${a.sponsor ? ' \u00b7 ' + esc(a.sponsor) : ''}</div>
+          <div class="news-title" style="font-size:1.1rem">${esc(a.title)}</div>
+          <p class="news-excerpt">${esc(a.excerpt || '')}</p>
+          <div class="news-meta"><span class="news-date">${dateLabel(a.date)}</span>
+            ${a.readTime ? `<span class="news-read-time">${esc(a.readTime)}</span>` : ''}</div>
+        </div>
+      </div>
+    </a>`;
+}
+
+function renderRecentArticles() {
+  const el = document.getElementById('recentArticles');
+  if (!el) return;
+  const list = livePosts()
+    .slice()
+    .sort((x, y) => String(y.date || '').localeCompare(String(x.date || '')))
+    .slice(0, 5);
+  el.innerHTML = list.length ? list.map(a => `
+    <a class="news-sidebar-item" href="/news/${esc(a.slug)}/"
+       style="text-decoration:none;color:inherit">
+      <div class="news-sidebar-thumb">${ico(a.icon || 'newspaper')}</div>
+      <div>
+        <div class="news-sidebar-title">${esc(a.title)}</div>
+        <div class="news-sidebar-date">${dateLabel(a.date)}${a.sponsored ? ' \u00b7 Sponsored' : ''}</div>
+      </div>
+    </a>`).join('')
+    : '<p class="rowsub" style="padding:8px 0">Nothing published yet.</p>';
+}
+
 function renderNewsTabs() {
   const el = document.getElementById('newsTabs');
   if (!el) return;
@@ -4571,6 +4619,8 @@ function renderNewsTabs() {
 function setNewsCat(c) {
   NEWS_CAT = c;
   renderNewsTabs();
+  renderSponsoredArticle();
+  renderRecentArticles();
   renderNewsArticles();
   track('news_category', { category: c || 'all' });
 }
@@ -4604,15 +4654,90 @@ function setSub(kind, record) {
   try { localStorage.setItem(SUBS_KEY, JSON.stringify(all)); } catch (e) {}
 }
 
+/* Take somebody to the thing they pressed for, and make sure it is
+   actually showing. If they are already subscribed the sign-up form
+   is replaced by a status panel, so scrolling to a form that is not
+   there would look like the button did nothing. */
+
+/* A tender notice is a document, not a form field. Most people have
+   the PDF in their inbox already, so opening a pre-addressed email
+   they can attach it to is fewer steps than retyping it here — and
+   we still offer the form for anyone who would rather fill it in. */
+function composeTenderEmail() {
+  const subject = 'Tender notice for BuildList.com';
+  const body = [
+    'Please publish the following notice on BuildList.com.',
+    '',
+    'Procuring entity:',
+    'Reference number:',
+    'Title of the notice:',
+    'Closing date:',
+    'Estimated value:',
+    '',
+    'Contact name:',
+    'Phone or WhatsApp:',
+    '',
+    'Attach the notice or bid document if you have it \u2014 we take the',
+    'details from the source rather than retyping them.',
+    '',
+    'We verify every notice against the procuring entity before it goes up.'
+  ].join('\n');
+  const to = 'tenders@buildlist.com';
+  const href = 'mailto:' + to +
+    '?subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+  track('tender_submit_email', {});
+  window.location.href = href;
+}
+
+
+/* One entry point for every "take me to that form" button. If we are
+   already on the right page nothing re-renders, so the focus we set
+   actually survives; if we are not, we route first and wait. */
+function goAlerts(page, formId) {
+  const already = !document.getElementById('page-' + page).classList.contains('hidden');
+  if (!already) {
+    location.hash = '#/' + page;
+    setTimeout(() => focusAlerts(formId), 360);
+  } else {
+    focusAlerts(formId);
+  }
+}
+
 function focusAlerts(id) {
-  setTimeout(() => {
-    const el = document.getElementById(id) || document.getElementById('alerts');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = el.querySelector('input, select');
-      if (input) setTimeout(() => input.focus({ preventScroll: true }), 420);
+  const open = () => {
+    let el = document.getElementById(id);
+
+    if (!el) {
+      /* Already subscribed: reopen the form rather than leaving them
+         looking at a panel they did not ask for. */
+      if (id === 'alertForm' && getSubs().tenders) editSub('tenders');
+      if (id === 'jobAlertForm' && getSubs().jobs) editSub('jobs');
+      el = document.getElementById(id) ||
+           document.getElementById(id === 'jobAlertForm' ? 'alerts' : 'alerts');
     }
-  }, 240);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('flash-target');
+    setTimeout(() => el.classList.remove('flash-target'), 1600);
+    /* Re-query at focus time: the panel can re-render between the
+       scroll starting and finishing, and focusing a node that is no
+       longer in the document silently does nothing. */
+    setTimeout(() => {
+      const live = document.getElementById(id) || el;
+      /* Skip the honeypot. It is a visible-type input hidden with CSS,
+         so it matches every ordinary selector and focusing it does
+         nothing at all — which is why this looked broken. */
+      const input = live && [...live.querySelectorAll('input, select, textarea')]
+        .find(i => i.type !== 'hidden' &&
+                   !/company-website|bot-field/.test(i.name || '') &&
+                   i.offsetParent !== null);
+      if (input && document.contains(input)) input.focus({ preventScroll: true });
+    }, 620);
+  };
+  /* Give the router time to draw the page if we are arriving from elsewhere */
+  setTimeout(open, document.getElementById(id) ? 60 : 320);
 }
 
 /* ── Tender alerts ── */
@@ -4653,6 +4778,8 @@ function editSub(kind) { setSub(kind, null); renderAlertPanel(); renderJobAlertP
 function cancelSub(kind) {
   setSub(kind, null);
   renderNewsTabs();
+  renderSponsoredArticle();
+  renderRecentArticles();
   renderAlertPanel(); renderJobAlertPanel();
   track('alert_cancelled', { kind });
 }
@@ -4814,7 +4941,7 @@ function sponsorLink(name, site, slug) {
   if (site) return `<a href="${esc(site)}" target="_blank" rel="nofollow sponsored noopener"
     onclick="track('sponsor_click',{name:'${esc(name)}'})">${esc(name)}</a>`;
   const f = slug && DATA.firms.find(x => x.slug === slug);
-  if (f) return `<a href="#/firms/${esc(f.slug)}">${esc(f.name)}</a>`;
+  if (f) return `<a href="/firms/${esc(f.slug)}/">${esc(f.name)}</a>`;
   return esc(name);
 }
 
@@ -4872,7 +4999,7 @@ function renderTenderDetail(t) {
           <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
           <h3>Never miss one</h3>
           <p>We message matching notices as they appear.</p>
-          <a class="btn btn-forest" href="#/tenders#alerts">Set a tender alert</a>
+          <button type="button" class="btn btn-forest" onclick="goAlerts('tenders','alertForm')">Set a tender alert</button>
         </aside>
       </div>
     </div>
@@ -4900,7 +5027,7 @@ function renderJobDetail(j) {
           ${j.featured ? '<span class="badge badge-platinum">\u2605 Featured</span>' : ''}
         </div>
         <h1>${esc(j.title)}</h1>
-        <p class="detail-org">${firm ? `<a href="#/firms/${esc(firm.slug)}">${esc(j.company)}</a>` : esc(j.company)}
+        <p class="detail-org">${firm ? `<a href="/firms/${esc(firm.slug)}/">${esc(j.company)}</a>` : esc(j.company)}
           \u00b7 ${esc(j.location || '')}</p>
       </div>
       <div class="detail-grid">
@@ -4930,12 +5057,12 @@ function renderJobDetail(j) {
           ${j.applyEmail
             ? `<a class="btn btn-primary" href="mailto:${esc(j.applyEmail)}?subject=${encodeURIComponent('Application: ' + j.title)}"
                  onclick="track('job_apply',{slug:'${esc(j.slug)}'})">Apply by email</a>` : ''}
-          ${firm ? `<a class="btn btn-outline" href="#/firms/${esc(firm.slug)}">About ${esc(firm.name)}</a>` : ''}
+          ${firm ? `<a class="btn btn-outline" href="/firms/${esc(firm.slug)}/">About ${esc(firm.name)}</a>` : ''}
           <button class="btn btn-outline" onclick="shareThis('${esc(j.title)}')">Share this vacancy</button>
           <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
           <h3>Job alerts</h3>
           <p>New vacancies in your discipline, as they are posted.</p>
-          <a class="btn btn-forest" href="#/jobs#alerts">Set a job alert</a>
+          <button type="button" class="btn btn-forest" onclick="goAlerts('jobs','jobAlertForm')">Set a job alert</button>
         </aside>
       </div>
     </div>
@@ -5062,7 +5189,7 @@ function renderArticle(a) {
         <a href="mailto:${esc(SITE.email)}">${esc(SITE.email)}</a> and we will correct it.</p>
         ${others.length ? `<h3 style="font-size:1.1rem;margin-top:28px">More from BuildList.com</h3>
         <div class="art-more">${others.map(o => `
-          <a href="#/news/${esc(o.slug)}">
+          <a href="/news/${esc(o.slug)}/">
             <span class="t">${esc(o.title)}</span>
             <span class="d">${esc(o.category || '')} \u00b7 ${esc(o.readTime || '')}</span>
           </a>`).join('')}</div>` : ''}
@@ -5171,11 +5298,11 @@ function renderDirListings() {
       ${logoMarkup(l, 'dir-row-logo')}
       <div class="dir-row-info">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <a class="dir-row-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>${tierBadge(l.tier)}
+          <a class="dir-row-name" href="/firms/${esc(l.slug)}/">${esc(l.name)}</a>${tierBadge(l.tier)}
         </div>
         <div class="dir-row-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
         <div class="dir-row-tags">${(l.accreditations || []).map(a => `<span class="dir-row-tag">${esc(NAMES.accreditation[a] || a)}</span>`).join('')}</div>
-        <div style="margin-top:6px">${verifiedLine(l)}${l.website ? ` &middot; <a href="${esc(l.website)}" target="_blank" rel="nofollow noopener" onclick="event.stopPropagation();track('listing_website',{firm_slug:'${esc(l.slug)}'})">${esc(domainOf(l.website))}</a>` : ''}</div>
+        <div style="margin-top:6px">${verifiedLine(l)}${l.website && can(l, 'website') ? ` &middot; <a href="${esc(l.website)}" target="_blank" rel="nofollow noopener" onclick="event.stopPropagation();track('listing_website',{firm_slug:'${esc(l.slug)}'})">${esc(domainOf(l.website))}</a>` : ''}</div>
       </div>
       <div class="dir-row-meta">
         <div class="dir-row-location">${ico('pin')} ${esc(l.area)}</div>
@@ -5184,7 +5311,7 @@ function renderDirListings() {
           : `<div class="dir-row-rating"><span class="rating-count">No reviews yet</span></div>`}
       </div>
       <div class="dir-row-actions">
-        <a class="btn btn-primary btn-sm" href="#/firms/${esc(l.slug)}">View</a>
+        <a class="btn btn-primary btn-sm" href="/firms/${esc(l.slug)}/">View</a>
         <button class="btn btn-outline btn-sm" onclick="contactFirm('${esc(l.slug)}','whatsapp','${esc(l.whatsapp)}')">${ico('whatsapp')} Chat</button>
       </div>
     </div>`;
@@ -5518,7 +5645,7 @@ function rfqMatch() {
 
   const matches = DATA.firms
     .filter(f => f.categories.includes(cat) && f.verified && (!dist || f.district === dist))
-    .sort((a, b) => tierRank(a.tier) - tierRank(b.tier) || b.rating - a.rating)
+    .sort((a, b) => capN(b, 'sortBoost') - capN(a, 'sortBoost') || b.rating - a.rating)
     .slice(0, 5);
 
   hidden.value = matches.map(f => f.slug).join(',');
@@ -5576,19 +5703,19 @@ function renderDirGrid() {
       <div class="gcard-top">
         ${logoMarkup(l, 'listing-logo')}
         <div style="flex:1;min-width:0">
-          <a class="gcard-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>
+          <a class="gcard-name" href="/firms/${esc(l.slug)}/">${esc(l.name)}</a>
           <div class="gcard-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
         </div>
       </div>
       ${tierBadge(l.tier) ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${tierBadge(l.tier)}</div>` : ''}
-      <p class="gcard-desc">${esc(l.desc)}</p>
+      <p class="gcard-desc">${esc(capDescription(l))}</p>
       <div class="gcard-foot">
         <span>${ico('pin')} ${esc(l.area)}</span>
         ${l.reviews > 0 ? `<span style="margin-left:auto">${stars(l.rating)} ${l.rating}</span>`
                          : `<span style="margin-left:auto">No reviews yet</span>`}
       </div>
       <div class="gcard-actions">
-        <a class="btn btn-primary btn-sm" href="#/firms/${esc(l.slug)}">View</a>
+        <a class="btn btn-primary btn-sm" href="/firms/${esc(l.slug)}/">View</a>
         <button class="btn btn-outline btn-sm" onclick="contactFirm('${esc(l.slug)}','whatsapp','${esc(l.whatsapp)}')">${ico('whatsapp')} Chat</button>
       </div>
     </div>`).join('');
@@ -5656,15 +5783,15 @@ async function renderDirMap() {
   results.forEach(f => {
     const icon = L.divIcon({
       className: '',
-      html: '<div class="map-pin ' + (f.tier === 'platinum' ? 'platinum' : '') + '"><span>' + esc(f.initials) + '</span></div>',
+      html: '<div class="map-pin ' + (can(f, 'badge') ? 'platinum' : '') + '"><span>' + esc(f.initials) + '</span></div>',
       iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30]
     });
     const m = L.marker([f.lat, f.lng], { icon: icon, title: f.name }).addTo(MAP_LAYER);
     m.bindPopup(
-      '<a class="mp-name" href="#/firms/' + esc(f.slug) + '">' + esc(f.name) + '</a>' +
+      '<a class="mp-name" href="/firms/' + esc(f.slug) + '/">' + esc(f.name) + '</a>' +
       '<div class="mp-meta">' + f.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ') +
       '<br>' + esc(f.area) + '</div>' +
-      '<a class="btn btn-primary btn-sm" href="#/firms/' + esc(f.slug) + '">View profile</a>' +
+      '<a class="btn btn-primary btn-sm" href="/firms/' + esc(f.slug) + '/">View profile</a>' +
       (f.geoPrecision !== 'area' ? '<div class="mp-approx">Approximate location</div>' : '')
     );
     m.on('click', () => track('map_pin_click', { firm_slug: f.slug }));
@@ -5684,7 +5811,7 @@ function renderMapFallback(results) {
     '<div style="text-align:left;max-width:520px;margin:0 auto">' +
     results.map(f =>
       '<div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">' +
-      '<div style="flex:1"><a href="#/firms/' + esc(f.slug) + '" style="font-weight:700;color:var(--forest)">' +
+      '<div style="flex:1"><a href="/firms/' + esc(f.slug) + '/" style="font-weight:700;color:var(--forest)">' +
       esc(f.name) + '</a><div style="font-size:.78rem;color:var(--muted)">' + esc(f.area) + '</div></div>' +
       '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" ' +
       'href="https://www.openstreetmap.org/?mlat=' + f.lat + '&mlon=' + f.lng + '#map=16/' + f.lat + '/' + f.lng + '">Directions</a></div>'
@@ -5757,7 +5884,9 @@ function renderProfile(firm) {
             ${firm.established ? `<div class="profile-hero-meta-item">${ico('calendar')} Established ${firm.established}</div>` : ''}
           </div>
           <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="contactFirm('${esc(firm.slug)}','whatsapp','${esc(firm.whatsapp)}')">${ico('whatsapp')} WhatsApp</button>
+            ${can(firm, 'whatsapp') && firm.whatsapp
+              ? `<button class="btn btn-primary" onclick="contactFirm('${esc(firm.slug)}','whatsapp','${esc(firm.whatsapp)}')">${ico('whatsapp')} WhatsApp</button>`
+              : `<button class="btn btn-primary" onclick="contactFirm('${esc(firm.slug)}','phone','${esc(firm.phone)}')">${ico('phone')} Call</button>`}
             <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="contactFirm('${esc(firm.slug)}','phone','${esc(firm.phone)}')">${ico('phone')} Call</button>
             <button class="btn btn-ghost" style="color:rgba(255,255,255,.7)" onclick="shareFirm('${esc(firm.slug)}')">${ico('external')} Share</button>
           </div>
@@ -5771,7 +5900,7 @@ function renderProfile(firm) {
       <div>
         <div class="profile-section">
           <h3>About</h3>
-          <p>${esc(firm.desc)}</p>
+          <p>${esc(capDescription(firm))}</p>
           <div style="margin-top:14px">${verifiedLine(firm)}</div>
           <p class="disclosure" style="margin-top:8px">${esc(PROVENANCE[provenanceOf(firm)].detail)}${
             provenanceOf(firm) === 'compiled'
@@ -5820,8 +5949,10 @@ function renderProfile(firm) {
           <div class="profile-contact-item">${ico('pin')} ${esc(firm.area)}</div>
           <div class="profile-contact-item">${ico('phone')} <a href="tel:${esc(firm.phone)}" onclick="contactFirm('${esc(firm.slug)}','phone','${esc(firm.phone)}');return false;">${esc(firm.phone)}</a></div>
           ${firm.email ? `<div class="profile-contact-item">${ico('mail')} <a href="mailto:${esc(firm.email)}">${esc(firm.email)}</a></div>` : ''}
-          ${firm.website ? `<div class="profile-contact-item">${ico('globe')} <a href="${esc(firm.website)}" rel="nofollow noopener" target="_blank">Website</a></div>` : ''}
-          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="contactFirm('${esc(firm.slug)}','whatsapp','${esc(firm.whatsapp)}')">${ico('whatsapp')} Message on WhatsApp</button>
+          ${firm.website && can(firm, 'website') ? `<div class="profile-contact-item">${ico('globe')} <a href="${esc(firm.website)}" rel="nofollow noopener" target="_blank">${esc(domainOf(firm.website))}</a></div>` : ''}
+          ${can(firm, 'whatsapp') && firm.whatsapp
+            ? `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="contactFirm('${esc(firm.slug)}','whatsapp','${esc(firm.whatsapp)}')">${ico('whatsapp')} Message on WhatsApp</button>`
+            : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="contactFirm('${esc(firm.slug)}','phone','${esc(firm.phone)}')">${ico('phone')} Call this firm</button>`}
         </div>
 
         ${(firm.accreditations || []).length ? `
@@ -5987,7 +6118,7 @@ function renderTendersFull() {
             <span class="badge badge-verified">${esc(t.category.replace(/-/g, ' '))}</span>
             ${t.clientType ? `<span class="badge badge-client">${esc(CLIENT_TYPES[t.clientType] || t.clientType)}</span>` : ''}
           </div>
-          <a class="tender-title tender-full-title" href="#/tenders/${esc(tenderSlug(t))}">${esc(t.title)}</a>
+          <a class="tender-title tender-full-title" href="/tenders/${esc(tenderSlug(t))}/">${esc(t.title)}</a>
           <div class="tender-full-org">${t.featured
             ? sponsorLink(t.org, t.orgWebsite, t.orgSlug) : esc(t.org)}</div>
         </div>
@@ -6045,9 +6176,9 @@ function renderJobsFull() {
        onclick="openCard(event,'#/jobs/${esc(j.slug)}')">
       <div class="job-card-header">
         <div>
-          <a class="job-title" href="#/jobs/${esc(j.slug)}">${esc(j.title)}</a>
+          <a class="job-title" href="/jobs/${esc(j.slug)}/">${esc(j.title)}</a>
           <div class="job-company">
-            ${j.companySlug ? `<a href="#/firms/${esc(j.companySlug)}">${esc(j.company)}</a>` : esc(j.company)}
+            ${j.companySlug ? `<a href="/firms/${esc(j.companySlug)}/">${esc(j.company)}</a>` : esc(j.company)}
           </div>
         </div>
         ${j.featured ? '<span class="badge badge-platinum">\u2605 Featured</span>' : ''}
@@ -6086,6 +6217,8 @@ function renderAll() {
   renderSectorGrid();
   startShine();
   renderNewsTabs();
+  renderSponsoredArticle();
+  renderRecentArticles();
   renderAlertPanel();
   renderJobAlertPanel();
   renderPostTenderForm();

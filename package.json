@@ -1,0 +1,7 @@
+{
+  "name": "buildlist-uganda",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "engines": { "node": ">=20" }
+}

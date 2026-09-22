@@ -314,6 +314,7 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
 </div>
 <div id="toast" role="status"></div>
 
+<script src="/portal-config.js"></script>
 <script type="module">
 /* ═══════════════════════════════════════════════════════════════
    CONFIG
@@ -322,8 +323,8 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
    in schema.sql are for. NEVER put the service_role key here; it
    bypasses every policy.
    ═══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL = 'https://tzsivlfykbfkdpjgjjpr.supabase.co';          // e.g. 'https://abcdefgh.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6c2l2bGZ5a2Jma2RwamdqanByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzEyMjAsImV4cCI6MjEwNTI0NzIyMH0.qXikMMhwmQzIJ2hLz3ypkyC4Qm3zZXiPAbdp7WObH8c';     // e.g. 'eyJhbGciOi...'
+const SUPABASE_URL = String(window.BUILDLIST_PORTAL_CONFIG?.supabaseUrl || 'https://tzsivlfykbfkdpjgjjpr.supabase.co');
+const SUPABASE_ANON_KEY = String(window.BUILDLIST_PORTAL_CONFIG?.supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6c2l2bGZ5a2Jma2RwamdqanByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzEyMjAsImV4cCI6MjEwNTI0NzIyMH0.qXikMMhwmQzIJ2hLz3ypkyC4Qm3zZXiPAbdp7WObH8c');
 
 /* ═══════════════════════════════════════════════════════════════
    ROLES
@@ -355,7 +356,7 @@ const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
 /* Google Analytics identifiers, so the links below go straight to your
    own property rather than a generic sign-in page. Paste the same
    Measurement ID you put in index.html. */
-const GA = { measurementId: '', propertyId: '' };
+const GA = { measurementId: 'G-ZZQ8B65052', propertyId: '' };
 
 const SESSION = { user: null, role: null, name: null, demo: false };
 let sb = null;
@@ -1018,20 +1019,25 @@ window.saveDrawer = async function () {
   if (CURRENT && CURRENT.kind === 'tier') {
     const t = CURRENT.item;
     t.name = val('e_name');
-    t.price_ugx = parseInt(val('e_price'), 10) || 0;
-    t.features = val('e_features').split('\n').map(x => x.trim()).filter(Boolean);
-    if (!t.features.length) return toast('A tier with no features is not a product');
+    t.price = parseInt(val('e_price'), 10) || 0;
+    t.price_ugx = t.price;
+    t.caps = t.caps || {};
+    CAP_FIELDS.forEach(([k, , kind]) => {
+      t.caps[k] = kind === 'bool' ? val('c_' + k) === 'yes'
+                                  : Math.max(0, parseInt(val('c_' + k), 10) || 0);
+    });
     const list = (DB.taxonomy && DB.taxonomy.tiers) || [];
     const i = list.findIndex(x => x.slug === CURRENT.id);
     if (i >= 0) list[i] = t;
     if (!SESSION.demo && sb) {
       const { error } = await sb.from('tiers')
-        .update({ name: t.name, price_ugx: t.price_ugx, features: t.features })
+        .update({ name: t.name, price_ugx: t.price, caps: t.caps })
         .eq('slug', CURRENT.id);
       if (error) return toast('Rejected by the database: ' + error.message);
     }
     notePending('Tier: ' + t.name);
-    closeDrawer(); go('tiers'); toast('Saved');
+    closeDrawer(); go('tiers');
+    toast('Saved. Publish to apply it to every firm on this tier.');
     return;
   }
 
@@ -2762,38 +2768,79 @@ async function moveFeatured(id, dir) {
    features, so editing them here is the only way to keep the promise
    and the product in step.
    ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   TIERS
+   Not a list of marketing lines — the actual switches. Every field
+   below is read at render time on the public site, so changing a tier
+   here changes what a listing on that tier can do at the next build.
+
+   That matters commercially: without it the tiers were decoration and
+   selling one would have been selling nothing.
+   ═══════════════════════════════════════════════════════════════ */
+const CAP_FIELDS = [
+  ['photos',           'Photographs',                 'number',  'How many show on the profile. 0 means none, which is the single most visible difference between free and paid.'],
+  ['descriptionChars', 'Description length',          'number',  'Characters before it is trimmed on a word boundary.'],
+  ['services',         'Services listed',             'number',  ''],
+  ['projects',         'Projects listed',             'number',  ''],
+  ['categories',       'Categories allowed',          'number',  'How many of the 22 they may appear under.'],
+  ['sortBoost',        'Search ranking boost',        'number',  '0 to 4. Higher sorts above lower on Relevance.'],
+  ['logo',             'Show their logo',             'bool',    ''],
+  ['whatsapp',         'WhatsApp button',             'bool',    'Without it the listing shows Call instead. This is the one most firms buy for.'],
+  ['website',          'Website link',                'bool',    ''],
+  ['video',            'Video on the profile',        'bool',    ''],
+  ['preciseMap',       'Exact map pin',               'bool',    'Off means the district centre.'],
+  ['badge',            'Tier badge on the listing',   'bool',    ''],
+  ['homepageFeature',  'Eligible for homepage strip', 'bool',    'Only tiers with this on can be featured.'],
+  ['leadAlerts',       'Lead alerts',                 'bool',    'Operational \u2014 you must actually send them.'],
+  ['monthlyReport',    'Monthly performance report',  'bool',    'Operational \u2014 generated from Analytics.'],
+  ['catalogue',        'Catalogue download',          'bool',    ''],
+];
+
 RENDER.tiers = el => {
-  const tiers = (DB.taxonomy && DB.taxonomy.tiers) || [];
+  const tiers = ((DB.taxonomy && DB.taxonomy.tiers) || []).slice()
+    .sort((a, b) => (a.rank || 0) - (b.rank || 0));
   el.innerHTML =
-    '<div class="note"><b>These are the promises the Add-your-firm page makes.</b>' +
-    'If a feature is listed here it must actually work, or you are selling something that ' +
-    'does not exist. Take a line out rather than leave it aspirational.</div>' +
-    (tiers.length ? tiers.map(t =>
-      '<div class="filecard" style="align-items:flex-start"><div style="flex:1">' +
-      '<b style="display:block;font-size:14px">' + esc(t.name || t.slug) + '</b>' +
-      '<span class="rowsub">' + (t.price_ugx ? 'UGX ' + Number(t.price_ugx).toLocaleString() + ' / year'
-                                              : 'Free') + '</span>' +
-      '<ul style="margin:8px 0 0 18px;font-size:12.5px;color:var(--text-2)">' +
-        ((t.features || []).map(x => '<li>' + esc(x) + '</li>').join('') ||
-         '<li class="sub">No features listed</li>') + '</ul></div>' +
-      '<button class="btn btn-p" onclick="editTier(\'' + esc(t.slug) + '\')">Edit</button></div>').join('')
-      : '<div class="empty"><b>No tiers loaded</b>Run seed.sql.</div>');
+    '<div class="note"><b>These switches are live on the site.</b>' +
+    'Change a firm\u2019s tier and their listing changes at the next build \u2014 photographs appear, ' +
+    'the WhatsApp button appears, the description stops being trimmed. Two of them ' +
+    '(lead alerts, monthly report) are promises you keep by hand; the rest the site enforces.</div>' +
+    '<div class="tscroll"><table><thead><tr><th>Capability</th>' +
+    tiers.map(t => '<th style="text-align:center">' + esc(t.name || t.slug) + '</th>').join('') +
+    '</tr></thead><tbody>' +
+    '<tr><td><span class="sub">Price per year</span></td>' +
+    tiers.map(t => '<td style="text-align:center" class="mono">' +
+      (Number(t.price || t.price_ugx) ? Number(t.price || t.price_ugx).toLocaleString() : 'Free') + '</td>').join('') + '</tr>' +
+    CAP_FIELDS.map(([k, label, kind]) =>
+      '<tr><td><span class="nm" style="font-size:13px">' + esc(label) + '</span></td>' +
+      tiers.map(t => {
+        const v = (t.caps || {})[k];
+        return '<td style="text-align:center">' + (kind === 'bool'
+          ? (v ? '<span class="pill p-live">yes</span>' : '<span class="pill p-off">no</span>')
+          : '<span class="mono">' + (v == null ? '\u2014' : v) + '</span>') + '</td>';
+      }).join('') + '</tr>').join('') +
+    '<tr><td></td>' + tiers.map(t =>
+      '<td style="text-align:center"><button class="btn" onclick="editTier(\'' + esc(t.slug) +
+      '\')">Edit</button></td>').join('') + '</tr>' +
+    '</tbody></table></div>';
 };
 
 function editTier(slug) {
   const t = ((DB.taxonomy && DB.taxonomy.tiers) || []).find(x => x.slug === slug);
   if (!t) return;
-  CURRENT = { kind: 'tier', id: slug, item: Object.assign({}, t) };
+  const caps = Object.assign({}, t.caps || {});
+  CURRENT = { kind: 'tier', id: slug, item: Object.assign({}, t, { caps }) };
+
   openDrawer('Tier \u00b7 ' + (t.name || slug),
     '<fieldset><legend>Commercial</legend>' +
-      fld('e_name', 'Name shown', t.name) +
-      fld('e_price', 'Price per year (UGX)', t.price_ugx || 0, '0 for the free tier.') +
+      '<div class="f2">' + fld('e_name', 'Name shown', t.name) +
+      fld('e_price', 'Price per year (UGX)', t.price || t.price_ugx || 0, '0 for the free tier.') + '</div>' +
     '</fieldset>' +
-    '<fieldset><legend>What it includes</legend>' +
-      area_('e_features', 'One feature per line', (t.features || []).join('\n')) +
-      '<div class="hint">Written exactly as it appears on the Add-your-firm page. ' +
-      'If you cannot deliver a line today, take it out \u2014 an unmet promise costs more than ' +
-      'a shorter list.</div>' +
+    '<fieldset><legend>What this tier can do</legend>' +
+      '<div class="hint" style="margin-bottom:14px">Each of these is read when a listing is ' +
+      'drawn. Turning one off removes it from every firm on this tier.</div>' +
+      CAP_FIELDS.map(([k, label, kind, hint]) => kind === 'bool'
+        ? sel('c_' + k, label, caps[k] ? 'yes' : 'no', [['yes','Yes'],['no','No']], hint)
+        : fld('c_' + k, label, caps[k] == null ? 0 : caps[k], hint)).join('') +
     '</fieldset>');
 }
 
@@ -2914,7 +2961,7 @@ function editAd(id, presetSlot) {
 }
 
 RENDER.analytics = el => {
-  el.innerHTML = '<div class="loading">Reading the last 30 days\u2026</div>';
+  el.innerHTML = '<div class="loading">Reading listing activity…</div>';
   loadAnalytics(el);
 };
 
@@ -2934,7 +2981,8 @@ RENDER.analytics = el => {
    else's dashboard.
    ═══════════════════════════════════════════════════════════════ */
 async function loadAnalytics(el) {
-  const since = new Date(Date.now() - 30 * 86400000).toISOString();
+  const days = Number(ANALYTICS_STATE.days) || 30;
+  const since = new Date(Date.now() - days * 86400000).toISOString();
   let events = [];
   let unavailable = '';
 
@@ -2972,6 +3020,15 @@ async function loadAnalytics(el) {
                rate: v.views ? Math.round(v.contacts / v.views * 100) : 0 };
     })
     .sort((a, b) => b.views - a.views);
+  const query = String(ANALYTICS_STATE.q || '').trim().toLowerCase();
+  rows = rows.filter(r => !query || r.name.toLowerCase().includes(query));
+  const sorters = {
+    views: (a,b) => b.views - a.views,
+    contacts: (a,b) => b.contacts - a.contacts,
+    rate: (a,b) => b.rate - a.rate,
+    name: (a,b) => a.name.localeCompare(b.name)
+  };
+  rows.sort(sorters[ANALYTICS_STATE.sort] || sorters.views);
   ANALYTICS_ROWS = rows;
 
   const gaId = (GA.measurementId || '').trim();
@@ -2979,7 +3036,29 @@ async function loadAnalytics(el) {
   const gaBase = pid ? 'https://analytics.google.com/analytics/web/#/p' + pid
                      : 'https://analytics.google.com/';
 
+  const contentHealth = [
+    ['Firms', DB.firms.length, 'firms'],
+    ['Open tenders', DB.tenders.filter(t => daysTo(t.deadline) >= 0).length, 'tenders'],
+    ['Open jobs', DB.jobs.filter(j => daysTo(j.deadline) >= 0).length, 'jobs'],
+    ['Published articles', DB.articles.filter(a => a.published !== false).length, 'articles'],
+    ['Live ads', (DB.ads && DB.ads.ads || []).filter(a => a.active !== false).length, 'ads']
+  ];
   el.innerHTML =
+    '<div class="panel" style="margin-bottom:18px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+      '<strong style="font-size:13px">Activity window</strong>' +
+      '<select class="btn" style="padding:5px 9px" onchange="analyticsSet(\'days\',this.value)">' +
+        [7,30,90].map(n => '<option value="'+n+'"'+(days===n?' selected':'')+'>'+n+' days</option>').join('') +
+      '</select>' +
+      '<select class="btn" style="padding:5px 9px" onchange="analyticsSet(\'sort\',this.value)">' +
+        [['views','Most views'],['contacts','Most contacts'],['rate','Highest tap rate'],['name','Firm name']].map(o => '<option value="'+o[0]+'"'+(ANALYTICS_STATE.sort===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') +
+      '</select>' +
+      '<input class="btn" style="padding:6px 9px;min-width:190px" placeholder="Filter firms…" value="'+esc(ANALYTICS_STATE.q)+'" oninput="analyticsSet(\'q\',this.value)">' +
+      '<button class="btn" type="button" onclick="refreshAnalytics()">Refresh</button>' +
+    '</div></div>' +
+    '<div class="panel" style="margin-bottom:18px"><h3>Live content connected to this dashboard</h3>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px">' +
+      contentHealth.map(c => '<button type="button" class="btn" style="display:block;text-align:left;padding:12px" onclick="go(\''+c[2]+'\')"><b style="display:block;font-size:18px">'+c[1]+'</b><span style="font-size:11px;color:var(--text-3)">'+c[0]+'</span></button>').join('') +
+      '</div></div>' +
     (SESSION.demo ? '<div class="note"><b>Demo figures.</b>Deterministic sample data so you can see ' +
       'the shape. Connect Supabase and these become your real listing_events.</div>' : '') +
     (unavailable ? '<div class="note"><b>Could not read listing_events.</b>' + esc(unavailable) +
@@ -2987,14 +3066,14 @@ async function loadAnalytics(el) {
 
     '<dl class="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;' +
     'background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:22px">' +
-      kpi('Listing views', views.toLocaleString(), 'last 30 days') +
+      kpi('Listing views', views.toLocaleString(), ('last ' + days + ' days')) +
       kpi('Contact taps', contacts.toLocaleString(), 'call, WhatsApp or email') +
       kpi('Tap rate', (views ? Math.round(contacts / views * 100) : 0) + '%', 'of views that made contact') +
       kpi('Listings with activity', Object.keys(byFirm).length.toLocaleString(), 'of ' + DB.firms.length) +
     '</dl>' +
 
     '<div class="note"><b>This is the sales conversation.</b>' +
-    'A firm on the free tier that received 40 views and 9 taps last month is the easiest upgrade ' +
+    'Use these observed views and contact taps to discuss listing performance with firms; the dashboard reports activity rather than predicting results. ' +
     'you will ever sell \u2014 you are not predicting a result, you are reporting one. Sort by taps ' +
     'and work down.</div>' +
 
@@ -3015,6 +3094,10 @@ async function loadAnalytics(el) {
     ).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No events recorded yet</b>' +
       'Views and taps appear here once the site has traffic and analytics consent is given.</div></td></tr>') +
     '</tbody></table></div></div>' +
+
+    '<div class="panel"><h3>Top listing activity</h3><p class="sub" style="margin-bottom:12px">The bars below are relative to the busiest listing in the selected window.</p>' +
+      (rows.length ? rows.slice(0,8).map(r => '<div style="display:grid;grid-template-columns:minmax(150px,2fr) 4fr 70px;gap:10px;align-items:center;margin:8px 0"><span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.name)+'</span><span style="height:8px;background:var(--line);border-radius:20px;overflow:hidden"><span style="display:block;height:100%;width:'+Math.max(4,Math.round(r.views/(rows[0].views||1)*100))+'%;background:var(--forest)"></span></span><span class="mono" style="text-align:right">'+r.views+' views</span></div>').join('') : '<div class="empty"><b>No listing activity yet</b></div>') +
+    '</div>' +
 
     '<div class="panel"><h3>What the site is recording</h3><div class="tscroll"><table><tbody>' +
     (Object.keys(byKind).length ? Object.keys(byKind).sort((a, b) => byKind[b] - byKind[a]).map(k =>
@@ -3105,7 +3188,7 @@ Object.assign(window, {
   copyPublicUrl, previewMedia, attachToFirm, mediaPublicUrl, VIDEO_CFG,
   submitCode, finishEnrolment, startEnrolment, afterMfa, mfaGate, MFA,
   reviewClaim, openClaims, publishSite, editLegal, insLegal, paintLegalPreview,
-  setFeatured, moveFeatured, editTier, editNewsletter,
+  setFeatured, moveFeatured, editTier, editNewsletter, CAP_FIELDS,
   notePending, pending, clearPending, paintPublish,
   editTender, editJob, savePrices, addPriceRow, delPriceRow, newSnapshot,
   todayStr, sel, dTo, editSpot, editAd, addPairRow, thisMonthStr,
