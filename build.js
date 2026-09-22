@@ -25,9 +25,7 @@ const path = require('path');
 
 const ROOT = __dirname;
 const SITE_URL = (process.env.SITE_URL || 'https://buildlist.com').replace(/\/$/, '');
-const portalConfig = `window.BUILDLIST_PORTAL_CONFIG = ${JSON.stringify({supabaseUrl:process.env.SUPABASE_URL||'',supabaseAnonKey:process.env.SUPABASE_ANON_KEY||''})};\n`;
-fs.writeFileSync(path.join(ROOT,'portal-config.js'), portalConfig);
-const OUT_DIRS = ['firms', 'tenders', 'news', 'jobs', 'browse'];
+const OUT_DIRS = ['firms', 'tenders', 'news', 'browse'];
 
 const read = f => JSON.parse(fs.readFileSync(path.join(ROOT, 'data', f + '.json'), 'utf8'));
 const D = {
@@ -38,16 +36,6 @@ const D = {
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-function mdRender(src) {
-  let t = esc(src || '');
-  t = t.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>')
-    .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>')
-    .replace(/^>\s?(.+)$/gm, '<blockquote>$1</blockquote>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
-  t = t.replace(/(?:^-\s+.+\n?)+/gm, b => '<ul>' + b.trim().split('\n').map(l => '<li>' + l.replace(/^-\s+/, '') + '</li>').join('') + '</ul>');
-  return t.split(/\n{2,}/).map(b => /^<(h[1-3]|ul|blockquote)/.test(b.trim()) ? b : '<p>' + b.replace(/\n/g,'<br>') + '</p>').join('\n');
-}
 
 const catName  = s => (D.taxonomy.categories.find(c => c.slug === s) || {}).name || s;
 const distName = s => (D.taxonomy.districts.find(d => d.slug === s) || {}).name || s;
@@ -124,7 +112,7 @@ main{padding:30px 0 60px}
  padding:2px 8px;border-radius:12px;margin:0 4px 4px 0}
 .sec{background:var(--white);border:1px solid var(--border);border-radius:var(--r);
  padding:22px;margin-bottom:16px}
-.sec h2{font-size:1.05rem;margin:22px 0 10px}.article-body h2:first-child{margin-top:0}.article-body p{margin:0 0 12px}.article-body ul{padding-left:22px;margin:8px 0 14px}.article-body blockquote{border-left:3px solid var(--gold);padding:8px 14px;margin:14px 0;background:var(--parchment);color:var(--slate)}
+.sec h2{font-size:1.05rem;margin-bottom:12px}
 .two{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;align-items:start}
 .btn{display:inline-block;background:var(--gold);color:var(--forest-d);padding:9px 17px;
  border-radius:8px;text-decoration:none;font-weight:600;font-size:.88rem}
@@ -369,21 +357,6 @@ openTenders.forEach(t => {
   }));
 });
 
-/* ═══════════════ 5. JOB PAGES ═══════════════════════════════ */
-D.jobs.filter(j => new Date(j.closesAt || j.deadline) >= new Date()).forEach(j => {
-  const slug = j.slug || String(j.title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70);
-  const url = `${SITE_URL}/jobs/${slug}/`;
-  write(`jobs/${slug}/index.html`, page({
-    title: `${j.title} — ${j.company} | BuildList.com`,
-    desc: `${j.title} at ${j.company} in ${j.location || 'Uganda'}. Apply before ${j.closesAt || j.deadline || ''}.`.slice(0,180),
-    canonical:url,
-    crumbs:`<a href="/">Home</a> / <a href="/#/jobs">Jobs</a> / ${esc(j.company)}`,
-    hero:`<h1>${esc(j.title)}</h1><p>${esc(j.company)} · ${esc(j.location || 'Uganda')}</p>`,
-    body:`<div class="sec"><p><b>Company</b><br>${esc(j.company)}</p><p style="margin-top:11px"><b>Location</b><br>${esc(j.location || '')}</p><p style="margin-top:11px"><b>Type</b><br>${esc(j.type || '')}</p><p style="margin-top:11px"><b>Closing date</b><br>${esc(j.closesAt || j.deadline || '')}</p>${j.salary ? `<p style="margin-top:11px"><b>Salary</b><br>${esc(j.salary)}</p>` : ''}<p style="margin-top:18px"><a class="btn" href="mailto:${esc(j.applyEmail || '')}">Apply by email</a></p></div>`,
-    jsonld:{'@context':'https://schema.org','@type':'JobPosting',title:j.title,datePosted:j.postedAt,validThrough:j.closesAt || j.deadline,hiringOrganization:{'@type':'Organization',name:j.company},url}
-  }));
-});
-
 /* ═══════════════ 5. ARTICLE PAGES ═══════════════ */
 D.articles.forEach(a => {
   const url = `${SITE_URL}/news/${a.slug}/`;
@@ -394,7 +367,7 @@ D.articles.forEach(a => {
     crumbs: `<a href="/">Home</a> / <a href="/#/news">News</a> / ${esc(a.category)}`,
     hero: `<h1>${esc(a.title)}</h1><p>${esc(a.category)} &middot; ${esc(a.date)}</p>`,
     body: `<div class="sec"><p>${esc(a.excerpt)}</p>
-      ${a.body ? `<div class="article-body" style="margin-top:14px">${mdRender(a.body)}</div>` : ''}
+      ${a.body ? `<div style="margin-top:14px">${a.body}</div>` : ''}
       ${a.sponsored ? '<p class="note" style="margin-top:14px"><b>This is sponsored content, paid for by an advertiser.</b></p>' : ''}
       <p style="margin-top:16px"><a class="btn o" href="/#/news">More industry news</a></p></div>`,
     jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: a.title,
@@ -412,7 +385,6 @@ const urls = [
   ...comboLinks.map(l => ({ loc: SITE_URL + l.href, pri: '0.9', freq: 'weekly' })),
   ...liveFirms.map(f => ({ loc: `${SITE_URL}/firms/${f.slug}/`, pri: '0.8', freq: 'weekly' })),
   ...openTenders.map(t => ({ loc: `${SITE_URL}/tenders/${String(t.ref || t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70)}/`, pri: '0.7', freq: 'daily' })),
-  ...D.jobs.filter(j => new Date(j.closesAt || j.deadline) >= new Date()).map(j => ({ loc: `${SITE_URL}/jobs/${j.slug}/`, pri: '0.6', freq: 'weekly' })),
   ...D.articles.map(a => ({ loc: `${SITE_URL}/news/${a.slug}/`, pri: '0.6', freq: 'monthly' }))
 ];
 const stamp = new Date().toISOString().slice(0, 10);

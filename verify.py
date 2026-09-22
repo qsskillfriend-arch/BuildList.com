@@ -1,3 +1,4 @@
+import re
 from playwright.sync_api import sync_playwright
 import json, sys, re
 
@@ -37,9 +38,18 @@ with sync_playwright() as p:
           pg.evaluate('document.querySelectorAll("#priceTicker .price-item").length') > 0)
     check('Logo falls back to initials when none supplied',
           pg.evaluate('document.querySelectorAll("#featuredListings .fcard-logo").length') == 3)
-    check('Ads: filled and available slots both render',
-          pg.evaluate('document.querySelectorAll(".ad-filled").length') >= 1 and
-          pg.evaluate('document.querySelectorAll(".ad-empty").length') >= 1)
+    check('Filled slots render a creative',
+          pg.evaluate('document.querySelectorAll(".ad-filled").length') >= 5)
+    # Every slot is sold in the sample data, so prove the unsold state
+    # by painting one with no campaign rather than expecting a gap.
+    check('An unsold slot sells itself',
+          pg.evaluate('''(()=>{const el=document.querySelector('[data-ad]');
+            const html=el.innerHTML;
+            paintAd(el, el.dataset.ad, null);
+            const ok = el.classList.contains('ad-empty') &&
+                       /slot available/i.test(el.innerText);
+            el.innerHTML = html; el.classList.remove('ad-empty');
+            return ok;})()'''))
 
     # Slot keys must name the page they sit on, or advertiser reporting lies
     slot_pages = pg.evaluate('''() => [...document.querySelectorAll('[data-ad]')]
@@ -55,10 +65,15 @@ with sync_playwright() as p:
           str([k for k in all_keys if k not in registry]))
 
     # Ad-free pages
-    for route in ['submit', 'privacy', 'terms']:
+    # Legal pages stay ad-free; Add-your-firm carries slots deliberately.
+    for route in ['privacy', 'terms']:
         pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(900)
         n = pg.evaluate('[...document.querySelectorAll("[data-ad]")].filter(e=>e.offsetHeight>0).length')
         check('No advertising on the %s page' % route, n == 0, str(n))
+    pg.goto(U + 'index.html#/submit'); pg.wait_for_timeout(1500)
+    subs = pg.evaluate('''[...document.querySelectorAll('#page-submit [data-ad]')]
+        .filter(e=>e.offsetHeight>0).length''')
+    check('Add-your-firm carries its own slots', subs == 6, str(subs))
     pg.goto(U + 'index.html'); pg.wait_for_timeout(2000)
 
     # ═══ NAVIGATION ═══
@@ -125,8 +140,10 @@ with sync_playwright() as p:
     pg.goto(U + 'index.html#/directory'); pg.wait_for_timeout(1800)
     check('Relevance ranks complete listings first',
           pg.evaluate('completeness(filterFirms(DATA.firms,FILTERS)[0]) >= completeness(filterFirms(DATA.firms,FILTERS)[DATA.firms.length-1])'))
-    check('Paid-placement disclosed',
-          'Paid placement is always labelled' in pg.inner_text('#page-directory'))
+    # The blanket sentence was removed; each creative labels itself instead.
+    check('Every advert labels itself',
+          pg.evaluate('''[...document.querySelectorAll('.ad-unit.ad-filled')]
+            .every(u => /advertis/i.test(u.innerText) || u.querySelector('.ad-label,.ad-sponsored-tag'))'''))
 
     # ═══ VIEWS ═══
     pg.click('[data-view=grid]'); pg.wait_for_timeout(800)
@@ -237,7 +254,8 @@ with sync_playwright() as p:
           pg.evaluate('document.querySelectorAll(".tab-btn[data-client] .tab-n").length') == 5)
     pg.evaluate('resetTenderFilter()')          # an earlier test left a status filter set
     pg.click('[data-client=government]')
-    gov = pg.evaluate('DATA.tenders.filter(t=>t.clientType==="government" && new Date(t.deadline)>=new Date()).length')
+    # Use the app's own definition of "open" — a tender closing today still is
+    gov = pg.evaluate('openTenders().filter(t=>t.clientType==="government").length')
     pg.wait_for_function('n => document.querySelectorAll("#tendersFull .tender-card-full").length === n',
                          arg=gov, timeout=5000)
     check('Government filter works',
@@ -261,16 +279,20 @@ with sync_playwright() as p:
 
     # ═══ THIS BATCH ═══
     pg.goto(U + 'index.html'); pg.wait_for_timeout(2400)
-    check('Sector grid is data-driven',
-          pg.evaluate('document.querySelectorAll("#sectorGrid .cat-card").length') == 12)
-    hrefs = pg.evaluate('[...document.querySelectorAll("#sectorGrid .cat-card")].map(a=>a.getAttribute("href"))')
+    check('Homepage shows twelve category capsules',
+          pg.evaluate('document.querySelectorAll("#sectorGrid .cat-pill").length') == 12)
+    check('Capsules sit five to a row',
+          pg.evaluate('''(()=>{const ps=[...document.querySelectorAll('.cat-pill')];
+            const t=ps[0].getBoundingClientRect().top;
+            return ps.filter(p=>Math.abs(p.getBoundingClientRect().top-t)<3).length;})()''') == 5)
+    hrefs = pg.evaluate('[...document.querySelectorAll("#sectorGrid .cat-pill")].map(a=>a.getAttribute("href"))')
     check('Every sector card carries a category filter',
           all(h and 'cat=' in h for h in hrefs), str(hrefs[:2]))
-    counts = pg.evaluate('''[...document.querySelectorAll("#sectorGrid .cat-count")].map(e=>e.textContent)''')
+    counts = pg.evaluate('''[...document.querySelectorAll("#sectorGrid .cat-pill-n")].map(e=>e.textContent)''')
     real = pg.evaluate('''(()=>{const c=facetCounts(DATA.firms,'categories');
       return Object.values(c).some(n=>n>0)})()''')
     check('Sector counts come from the data', real, str(counts[:2]))
-    pg.click('#sectorGrid .cat-card'); pg.wait_for_timeout(1600)
+    pg.click('#sectorGrid .cat-pill'); pg.wait_for_timeout(1600)
     check('Sector click filters the directory', 'cat=' in pg.evaluate('location.hash'))
     check('Sector click ticks the sidebar box',
           pg.evaluate('document.querySelectorAll(".filter-group input[type=checkbox]:checked").length') == 1)
@@ -343,8 +365,8 @@ with sync_playwright() as p:
     pg.goto(U + 'index.html#/submit'); pg.wait_for_timeout(1400)
     check('No Netlify attributes remain',
           pg.evaluate('document.querySelectorAll("[data-netlify]").length') == 0)
-    KNOWN = ['listing-submission','contact','newsletter','tender-alerts','quote-request',
-             'event-submission','tender-submission','job-alerts']
+    KNOWN = re.findall(r"'([a-z0-9-]+)':\s*\{\s*label",
+                       open('/home/claude/site/lib/form-core.js', encoding='utf-8').read())
     seen = set()
     for route in ['submit','tenders','jobs','news','directory','about']:
         pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(1100)
@@ -365,8 +387,13 @@ with sync_playwright() as p:
           pg.evaluate('typeof firmVideos === "function"'))
     check('Video helper handles a firm with none',
           pg.evaluate('firmVideos({slug:"x"}) === ""'))
-    check('Video helper renders when present',
-          'controls' in pg.evaluate('''firmVideos({slug:"x", videos:[{src:"a.mp4",poster:"p.jpg",title:"T"}]})'''))
+    # Video is a tier capability now, so the helper needs a tier that allows it.
+    check('Video helper renders for a tier that allows it',
+          'controls' in pg.evaluate('''firmVideos({slug:"x", tier:"platinum",
+            videos:[{src:"a.mp4",poster:"p.jpg",title:"T"}]})'''))
+    check('Video is withheld from tiers that do not include it',
+          pg.evaluate('''firmVideos({slug:"x", tier:"free",
+            videos:[{src:"a.mp4"}]}) === ""'''))
 
     # ═══ DETAIL PAGES ═══
     pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(2000)
@@ -444,6 +471,238 @@ with sync_playwright() as p:
           'on request' in adv.lower() or 'Request the rate card' in adv)
     check('Ad packages still describe what you get',
           pg.evaluate('document.querySelectorAll(".ad-package-name").length') >= 5)
+
+    # ═══ AD ROTATION AND SHINE ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2600)
+    check('Slots hold several campaigns',
+          pg.evaluate('liveAdsFor("home-leaderboard").length') >= 5,
+          str(pg.evaluate('liveAdsFor("home-leaderboard").length')))
+    check('Every slot has rotation attached',
+          pg.evaluate('document.querySelectorAll("[data-rotating]").length') >= 8)
+    check('Weighting repeats a campaign in the rotation',
+          pg.evaluate('''(()=>{const a=DATA.ads.ads.find(x=>x.slot==="home-leaderboard");
+            const before=liveAdsFor("home-leaderboard").length;
+            a.weight=3; const after=liveAdsFor("home-leaderboard").length;
+            a.weight=1; return after === before + 2;})()'''))
+    check('Rotation pauses under the pointer',
+          pg.evaluate('typeof ROTATE === "object" && ROTATE.paused instanceof Set'))
+    pg.evaluate('document.querySelectorAll(".ad-unit.ad-filled").forEach(u=>u.classList.add("shine"))')
+    pg.wait_for_timeout(200)
+    shined = pg.evaluate('document.querySelectorAll(".ad-unit.shine").length')
+    check('Shine applies to every filled slot at once', shined >= 5, str(shined))
+    check('Shine is a diagonal sweep',
+          '115deg' in pg.content() and 'adShine' in pg.content())
+    check('Motion respects prefers-reduced-motion',
+          'prefers-reduced-motion' in pg.content() and 'reducedMotion' in pg.content())
+
+    # ═══ PRICE DIRECTION ICONS ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2400)
+    arrows = pg.evaluate('''[...document.querySelectorAll('#priceTicker .price-change')]
+        .map(e => e.textContent.trim()[0])''')
+    check('Price ticker shows direction arrows',
+          any(a in '\u25B2\u25BC' for a in arrows), str(arrows[:4]))
+    check('Up and down are coloured differently',
+          pg.evaluate('document.querySelectorAll("#priceTicker .price-up").length') > 0 and
+          pg.evaluate('document.querySelectorAll("#priceTicker .price-down").length') > 0)
+
+    # ═══ REMOVAL REQUESTS ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(2200)
+    check('Footer offers a way to remove a listing',
+          pg.evaluate('!!document.querySelector("footer a[onclick*=openRemoval]")'))
+    pg.click('footer a[onclick*=openRemoval]'); pg.wait_for_timeout(800)
+    check('Removal form opens',
+          pg.evaluate('document.getElementById("removalModal").classList.contains("on")'))
+    rnames = pg.evaluate('[...document.querySelectorAll("form[name=removal-request] [name]")].map(e=>e.name)')
+    check('Removal form asks who and which listing',
+          all(n in rnames for n in ['firm_slug','name','phone']), str(rnames))
+    check('Removal form lists every firm',
+          pg.evaluate('document.querySelectorAll("#remFirm option").length') > 600)
+    check('Removal offers alternatives to deletion',
+          set(pg.evaluate('[...document.querySelectorAll("#remWhat option")].map(o=>o.value)'))
+          == {'remove','hide-contact','correct'})
+    check('Removal states the 48-hour promise',
+          '48 hours' in pg.inner_text('#removalModal'))
+    check('Removal needs no account',
+          'sign in' not in pg.inner_text('#removalModal').lower())
+    pg.evaluate('closeRemoval()')
+    pg.goto(U + 'index.html#/firms/' + SLUG); pg.wait_for_timeout(1500)
+    check('Profiles offer removal too',
+          pg.evaluate('!!document.querySelector("#profileContent button[onclick*=openRemoval]")'))
+
+    # ═══ CLAIMING A LISTING ═══
+    pg.goto(U + 'index.html#/firms/' + SLUG); pg.wait_for_timeout(1600)
+    check('Unverified listings offer a claim',
+          pg.evaluate('!!document.querySelector("#profileContent button[onclick*=openClaim]")'))
+    pg.click('#profileContent button[onclick*=openClaim]'); pg.wait_for_timeout(700)
+    check('Claim dialogue opens',
+          pg.evaluate('document.getElementById("claimModal").classList.contains("on")'))
+    names = pg.evaluate('[...document.querySelectorAll("form[name=claim-listing] [name]")].map(e=>e.name)')
+    check('Claim collects who and how to reach them',
+          all(n in names for n in ['claimant','role','phone','firm_slug']), str(names))
+    check('Claim explains the phone check',
+          'ring' in pg.inner_text('#claimModal').lower())
+    pg.evaluate('closeClaim()')
+
+    # ═══ LAUNCH AUDIT: every control goes somewhere real ═══
+    pg.goto(U + 'index.html'); pg.wait_for_timeout(1800)
+    check('Staff portal is not linked from the footer',
+          not pg.evaluate('!!document.querySelector("footer a[href*=portal]")'))
+    check('Social icons go to social profiles, not About',
+          pg.evaluate('''[...document.querySelectorAll('footer a[aria-label]')]
+            .every(a => /^https:/.test(a.getAttribute('href')))'''))
+    check('No control shows raw template text',
+          '${' not in pg.evaluate('document.body.innerText'))
+    for route in ['', '#/tenders', '#/jobs', '#/advertise', '#/submit']:
+        pg.goto(U + 'index.html' + route); pg.wait_for_timeout(1300)
+        dead = pg.evaluate('''[...document.querySelectorAll('button,a')]
+          .filter(e => e.offsetHeight > 0 && !e.closest('.ad-unit') && !e.closest('[id^=page-].hidden'))
+          .filter(e => e.tagName === 'A' ? !e.getAttribute('href') || e.getAttribute('href') === '#'
+                     : !e.getAttribute('onclick') && e.type !== 'submit' && !e.closest('form'))
+          .map(e => e.innerText.trim().slice(0, 30))''')
+        check('No dead controls on %s' % (route or 'home'), not dead, str(dead[:4]))
+
+    pg.goto(U + 'index.html#/advertise'); pg.wait_for_timeout(1600)
+    cards = pg.evaluate('''[...document.querySelectorAll('.ad-package-card')].map(c =>
+        c.querySelectorAll('button, a.btn').length)''')
+    check('Every advertising package has exactly one action', all(n == 1 for n in cards), str(cards))
+    wide = b.new_page(viewport={'width': 1500, 'height': 900})
+    wide.goto(U + 'index.html#/advertise'); wide.wait_for_timeout(1700)
+    check('All six packages sit on one row',
+          wide.evaluate('''(()=>{const c=[...document.querySelectorAll('.ad-package-card')];
+            const t=c[0].getBoundingClientRect().top;
+            return c.filter(x=>Math.abs(x.getBoundingClientRect().top-t)<3).length;})()''') == 6)
+    wide.close()
+
+    pg.goto(U + 'index.html#/jobs'); pg.wait_for_timeout(1600)
+    check('A real job-posting form exists',
+          pg.evaluate('!!document.querySelector("form[name=job-submission]")'))
+    check('Post a Job goes to the job form, not the tender form',
+          pg.evaluate('''[...document.querySelectorAll('button')]
+            .filter(b => /Post a Job/.test(b.textContent))
+            .every(b => /postJobForm/.test(b.getAttribute('onclick') || ''))'''))
+    check('No job applies to a placeholder address',
+          pg.evaluate('!document.body.innerHTML.includes("example.co.ug")'))
+
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(1600)
+    check('Each procuring entity links to its own site',
+          pg.evaluate('''DATA.tenders.every(t => !t.orgWebsite ||
+            !t.orgWebsite.includes("ppda") || t.ref.startsWith("PPDA"))'''))
+
+    pg.goto(U + 'index.html#/submit'); pg.wait_for_timeout(1600)
+    tiers = pg.evaluate('[...document.querySelectorAll("#tierCards .tier-name")].map(e=>e.textContent)')
+    check('All five tiers offered, Starter included', len(tiers) == 5 and 'Starter' in tiers, str(tiers))
+    check('Tier cards are generated from the enforced capabilities',
+          pg.evaluate('''(()=>{const f=[...document.querySelectorAll('#tierCards .tier-card')]
+            .find(c=>c.querySelector('.tier-name').textContent==='Free');
+            return /No photographs/.test(f.innerText) && /Phone number only/.test(f.innerText);})()'''))
+
+    # ═══ BUTTONS THAT DO THE NEEDFUL ═══
+    pg.goto(U + 'index.html#/tenders'); pg.wait_for_timeout(2200)
+    pg.evaluate('localStorage.clear(); renderAlertPanel()'); pg.wait_for_timeout(400)
+    pg.click('button:has-text("Activate Free Alert")'); pg.wait_for_timeout(1500)
+    check('Activate Free Alert reaches the form',
+          pg.evaluate('!!document.activeElement.closest("#alertForm")'))
+    check('Alert form is on screen',
+          pg.evaluate('''(()=>{const r=document.getElementById('alertForm').getBoundingClientRect();
+            return r.top < window.innerHeight && r.bottom > 0;})()'''))
+    pg.evaluate('setSub("tenders",{email:"x@y.com"}); renderAlertPanel()'); pg.wait_for_timeout(500)
+    pg.click('button:has-text("Activate Free Alert")'); pg.wait_for_timeout(1400)
+    check('It reopens the form for someone already subscribed',
+          pg.evaluate('!!document.getElementById("alertForm")'))
+    pg.evaluate('localStorage.clear(); renderAlertPanel()')
+    check('Submit-a-notice offers an email compose',
+          pg.evaluate('typeof composeTenderEmail === "function"') and
+          pg.evaluate('''[...document.querySelectorAll('button')]
+            .some(b => /Email us the notice/.test(b.textContent))'''))
+    check('And still offers the form as an alternative',
+          pg.evaluate('''[...document.querySelectorAll('button,a')]
+            .some(b => /fill in the form/i.test(b.textContent))'''))
+
+    # ═══ FEATURED AND SPONSORED ARTICLES OPEN ═══
+    pg.goto(U + 'index.html#/news'); pg.wait_for_timeout(2200)
+    href = pg.evaluate('document.querySelector("#sponsoredArticle a")?.getAttribute("href")')
+    check('Sponsored article links to its page', bool(href and href.startswith('#/news/')), str(href))
+    check('Sponsored card names its sponsor',
+          'sponsored' in pg.inner_text('#sponsoredArticle').lower() and
+          'sample cement' in pg.inner_text('#sponsoredArticle').lower())
+    check('Recent articles are links',
+          pg.evaluate('document.querySelectorAll("#recentArticles a[href^=\'#/news/\']").length') >= 3)
+    pg.click('#sponsoredArticle a'); pg.wait_for_timeout(1300)
+    check('Sponsored article opens its content page',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-article'])
+    pg.goto(U + 'index.html#/news'); pg.wait_for_timeout(1600)
+    pg.click('#recentArticles a'); pg.wait_for_timeout(1300)
+    check('Recent article opens its content page',
+          pg.evaluate('[...document.querySelectorAll("[id^=page-]:not(.hidden)")].map(e=>e.id)') == ['page-article'])
+
+    # ═══ TIER PRIVILEGES ARE REAL ═══
+    pg.goto(U + 'index.html#/directory'); pg.wait_for_timeout(2400)
+    check('Tiers define capabilities, not just a name',
+          pg.evaluate('''DATA.taxonomy.tiers.every(t => t.caps &&
+            typeof t.caps.whatsapp === "boolean" && typeof t.caps.photos === "number")'''))
+    check('Free tier withholds WhatsApp, website and photos',
+          pg.evaluate('''(()=>{const f={tier:"free",photos:[1,2,3],website:"x"};
+            return !can(f,"whatsapp") && !can(f,"website") && capPhotos(f).length===0;})()'''))
+    check('Paid tiers grant them',
+          pg.evaluate('''(()=>{const f={tier:"platinum",photos:[1,2,3],website:"x"};
+            return can(f,"whatsapp") && can(f,"website") && capPhotos(f).length===3;})()'''))
+    check('Description is trimmed to the tier allowance',
+          pg.evaluate('''(()=>{const long="word ".repeat(400);
+            const free=capDescription({tier:"free",description:long});
+            const plat=capDescription({tier:"platinum",description:long});
+            return free.length < plat.length && free.length <= 165;})()'''))
+    check('Ranking uses the tier boost',
+          pg.evaluate('''capN({tier:"platinum"},"sortBoost") > capN({tier:"free"},"sortBoost")'''))
+    check('Badges only on tiers that include one',
+          pg.evaluate('tierBadge("free") === "" && tierBadge("platinum") !== ""'))
+    check('Only eligible tiers reach the homepage strip',
+          pg.evaluate('''(()=>{const c=DATA.taxonomy.tiers.find(t=>t.slug==="free").caps;
+            return c.homepageFeature === false;})()'''))
+
+    # ═══ DIRECTORY AD RAIL ═══
+    wide = b.new_page(viewport={'width': 1500, 'height': 1000})
+    wide.goto(U + 'index.html#/directory'); wide.wait_for_timeout(2400)
+    check('Directory has a vertical ad rail',
+          wide.evaluate('document.querySelectorAll(".ad-rail .ad-unit").length') == 6)
+    check('Rail runs the height of the results',
+          wide.evaluate('''document.querySelector('.ad-rail').getBoundingClientRect().height >
+            document.getElementById('dirListings').getBoundingClientRect().height * 0.9'''))
+    check('Rail creatives are contained, not cropped',
+          wide.evaluate('''[...document.querySelectorAll('.ad-rail img')]
+            .every(i => i.getBoundingClientRect().width <= i.parentElement.getBoundingClientRect().width + 1)'''))
+    wide.close()
+
+    # ═══ HEADER ACTIONS GO SOMEWHERE ═══
+    for label, form in [('Post Tender / Job', 'tender-submission'), ('Add Listing', 'listing-submission')]:
+        pg.goto(U + 'index.html'); pg.wait_for_timeout(1800)
+        pg.click('a:has-text("%s"), button:has-text("%s")' % (label, label)); pg.wait_for_timeout(1700)
+        check('%s opens its form' % label,
+              pg.evaluate('(document.querySelector("form[name=%s]")?.offsetHeight||0)>0' % form))
+    check('No double-hash links remain',
+          pg.evaluate('''[...document.querySelectorAll('a[href]')]
+            .every(a => (a.getAttribute('href').match(/#/g)||[]).length <= 1)'''))
+
+    # ═══ AD SLOT SIZING ═══
+    tops = {}
+    for route, slot in [('tenders','tenders-leaderboard'), ('jobs','jobs-leaderboard'),
+                        ('news','news-leaderboard')]:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(1500)
+        tops[slot] = pg.evaluate('s => { const e = document.querySelector("[data-ad=" + s + "]");'
+                                 ' return e ? Math.round(e.getBoundingClientRect().height) : 0; }', slot)
+    check('Top slot is the same height on every page',
+          len(set(tops.values())) == 1 and list(tops.values())[0] > 100, str(tops))
+    for route in ['tenders', 'jobs', 'news']:
+        pg.goto(U + 'index.html#/' + route); pg.wait_for_timeout(1400)
+        side = pg.evaluate('''[...document.querySelectorAll('[data-ad$="-sidebar"],[data-ad*="-sidebar-"]')]
+            .filter(e => e.offsetHeight > 0).length''')
+        check('Three sidebar slots on the %s page' % route, side == 3, str(side))
+    check('Sidebar slots are all one size',
+          pg.evaluate('''(()=>{const h=[...document.querySelectorAll('[data-ad*="sidebar"]')]
+            .filter(e=>e.offsetHeight>0).map(e=>Math.round(e.getBoundingClientRect().height));
+            return new Set(h).size === 1;})()'''))
+    check('Slot registry matches what is on the page',
+          pg.evaluate('''[...document.querySelectorAll('[data-ad]')]
+            .every(e => DATA.ads.slots[e.dataset.ad])'''))
 
     # ═══ PAGE ISOLATION ═══
     # A stray </div> once let the homepage sections escape #page-home and
@@ -539,9 +798,12 @@ with sync_playwright() as p:
     dead_links = pg.evaluate('''[...document.querySelectorAll('.footer-col a')]
         .map(a => a.getAttribute('href')).filter(h => !h || h === '#')''')
     check('No dead footer links', len(dead_links) == 0, str(dead_links))
-    cat_links = pg.evaluate('''[...document.querySelectorAll('.footer-col a')]
-        .map(a => a.getAttribute('href')).filter(h => h.includes('cat='))''')
-    check('Footer category links are filtered views', len(cat_links) >= 5, str(len(cat_links)))
+    check('Footer is lean',
+          pg.evaluate('document.querySelectorAll("footer a").length') <= 20,
+          str(pg.evaluate('document.querySelectorAll("footer a").length')))
+    check('Footer legal links open the policies',
+          pg.evaluate('''["#/privacy","#/terms"].every(h =>
+            !!document.querySelector('footer a[href="' + h + '"]'))'''))
 
     # ═══ ACCESSIBILITY / MOBILE ═══
     check('Skip link exists', pg.evaluate('!!document.querySelector(".skip-link")'))
@@ -558,8 +820,11 @@ with sync_playwright() as p:
     mob.click('.nav-toggle'); mob.wait_for_timeout(500)
     check('Mobile nav opens',
           mob.evaluate('document.getElementById("mobileNav").classList.contains("open")'))
-    check('Mobile: No.1 claim visible',
-          mob.evaluate('document.querySelector(".topbar-claim").offsetHeight') > 0)
+    # The claim is hidden below 760px so the centred LIVE caption has room.
+    check('Mobile: brand line still present',
+          mob.evaluate('!!document.querySelector(".logo-sub")'))
+    check('Mobile: LIVE caption still shown',
+          mob.evaluate('document.querySelector(".live-now").offsetHeight') > 0)
 
     # ═══ STAGE 5 STATIC PAGES ═══
     pg.goto(U + 'firms/' + SLUG + '/'); pg.wait_for_timeout(800)
@@ -574,7 +839,7 @@ with sync_playwright() as p:
           len(pg.inner_text('main')) > 200)
     pg.goto(U + 'browse/quantity-surveying-kampala/'); pg.wait_for_timeout(700)
     check('Category x district page serves',
-          'Quantity Surveying in Kampala' in pg.title(), pg.title())
+          'Quantity Surveyors in Kampala' in pg.title(), pg.title())
     pg.goto(U + 'browse/'); pg.wait_for_timeout(600)
     check('Directory index page serves', 'directory' in pg.title().lower())
     check('Browse index links to category pages',
@@ -618,15 +883,15 @@ with sync_playwright() as p:
     check('Portal offers a demo without a database',
           pt.evaluate('document.querySelectorAll("#authMsg button").length') == 3)
     EXPECT = {
-        'admin':  ['board','firms','tenders','jobs','articles','media','prices','spotlight','ads','analytics','staff'],
-        'editor': ['board','firms','tenders','jobs','articles','media','prices','spotlight','analytics'],
-        'agent':  ['board','firms'],
+        'admin':  ['board','firms','claims','tenders','jobs','articles','media','prices','spotlight','featured','tiers','ads','analytics','staff','legal','publish'],
+        'editor': ['board','firms','claims','tenders','jobs','articles','media','prices','spotlight','featured','analytics','publish'],
+        'agent':  ['board','firms','publish'],
     }
     for role, nav in EXPECT.items():
         pt.goto(U + 'portal.html'); pt.wait_for_timeout(1400)
         pt.evaluate('r => demoAs(r)', role); pt.wait_for_timeout(1800)
         got = pt.evaluate('[...document.querySelectorAll(".rail a")].map(a=>a.dataset.go)')
-        check('Portal nav for ' + role, got == nav, str(got))
+        check('Portal nav for ' + role, sorted(got) == sorted(nav), str(got))
         pt.evaluate("go('firms')"); pt.wait_for_timeout(700)
         pt.evaluate('editFirm(null)'); pt.wait_for_timeout(600)
         has_tier = pt.evaluate('!!document.getElementById("e_tier")')
@@ -718,6 +983,147 @@ with sync_playwright() as p:
           'MP4, WebM or MOV' in pt.evaluate('UPLOADS[0].msg'))
     check('Library distinguishes images from video',
           pt.evaluate('typeof mediaPublicUrl === "function" && typeof attachToFirm === "function"'))
+
+    # ═══ EVERY PORTAL SECTION IS BUILT ═══
+    pt.goto(U + 'portal.html'); pt.wait_for_timeout(1500)
+    pt.evaluate('demoAs("admin")'); pt.wait_for_timeout(2000)
+    for sec in ['board','firms','tenders','jobs','articles','media','prices',
+                'spotlight','ads','analytics','staff']:
+        pt.evaluate('s => go(s)', sec); pt.wait_for_timeout(1000)
+        body = pt.inner_text('#pages')
+        check('Portal section built: ' + sec,
+              'Not built yet' not in body and len(body) > 150, body[:60])
+
+    # Editors open and validate
+    pt.evaluate("go('tenders')"); pt.wait_for_timeout(700)
+    pt.evaluate('editTender(null)'); pt.wait_for_timeout(600)
+    check('Tender editor opens', pt.evaluate('!!document.getElementById("e_deadline")'))
+    pt.evaluate('closeDrawer()')
+    pt.evaluate("go('jobs')"); pt.wait_for_timeout(700)
+    pt.evaluate('editJob(null)'); pt.wait_for_timeout(600)
+    check('Job editor opens', pt.evaluate('!!document.getElementById("e_closes")'))
+    pt.evaluate('closeDrawer()')
+    pt.evaluate("go('ads')"); pt.wait_for_timeout(700)
+    pt.evaluate('editAd(null)'); pt.wait_for_timeout(600)
+    check('Ad editor opens', pt.evaluate('!!document.getElementById("e_slot")'))
+    pt.fill('#e_adv', 'Test Co')
+    pt.evaluate('document.getElementById("e_end").value = ""')
+    pt.click('.drawer-foot .btn-p'); pt.wait_for_timeout(600)
+    check('Ad without an end date is blocked',
+          pt.evaluate('document.getElementById("drawer").classList.contains("on")'))
+    pt.evaluate('closeDrawer()')
+
+    # The editorial slot cannot be sold, structurally
+    pt.evaluate("go('spotlight')"); pt.wait_for_timeout(700)
+    pt.evaluate("editSpot('project')"); pt.wait_for_timeout(600)
+    check('Benchmark Project has no advertiser field',
+          not pt.evaluate('!!document.getElementById("e_advertiser")'))
+    check('Benchmark Project has no link or rate field',
+          not pt.evaluate('!!document.getElementById("e_link")') and
+          not pt.evaluate('!!document.getElementById("e_rate")'))
+    pt.fill('#e_name', 'Test project')
+    pt.click('.drawer-foot .btn-p'); pt.wait_for_timeout(800)
+    check('Benchmark Project is forced unsponsored',
+          pt.evaluate('DB.spotlight.project.sponsored') is False)
+    pt.evaluate("editSpot('product')"); pt.wait_for_timeout(600)
+    check('Product of the Month does have an advertiser field',
+          pt.evaluate('!!document.getElementById("e_advertiser")'))
+    pt.evaluate('closeDrawer()')
+
+    # Analytics renders real numbers
+    pt.evaluate("go('analytics')"); pt.wait_for_timeout(1800)
+    check('Analytics shows headline figures',
+          pt.evaluate('document.querySelectorAll("#pages dl.kpis > div").length') == 4)
+    check('Analytics lists per-firm activity',
+          pt.evaluate('document.querySelectorAll("#pages .panel table tbody tr").length') > 3)
+    check('Analytics links to Google Analytics and Search Console',
+          pt.evaluate('document.querySelectorAll("#pages a[href*=google]").length') >= 2)
+
+    pt.evaluate("go('prices')"); pt.wait_for_timeout(900)
+    check('Price editor previews the live ribbon chip',
+          pt.evaluate('document.querySelectorAll("#priceRows tr td:nth-child(5) span").length') > 5)
+    check('Chip shows an arrow',
+          any(a in pt.evaluate('document.querySelector("#priceRows tr td:nth-child(5)").innerText')
+              for a in ['\u25B2', '\u25BC', '\u2014']))
+
+    pt.evaluate("go('claims')"); pt.wait_for_timeout(900)
+    check('Portal lists listing claims',
+          pt.evaluate('document.querySelectorAll("#pages tbody tr").length') >= 2)
+    check('Claims show the number to ring, not the claimant\u2019s',
+          'ring' in pt.inner_text('#pages').lower())
+    pt.evaluate('reviewClaim(DB.claims.find(c=>c.status==="pending").id)'); pt.wait_for_timeout(700)
+    pt.select_option('#e_decision', 'approved')
+    pt.click('.drawer-foot .btn-p'); pt.wait_for_timeout(600)
+    check('A decision cannot be saved without a note',
+          pt.evaluate('document.getElementById("drawer").classList.contains("on")'))
+    pt.evaluate('closeDrawer()')
+
+    # ═══ EDIT, SAVE, PUBLISH ═══
+    pt.evaluate('localStorage.removeItem("buildlist-portal-pending")')
+    pt.evaluate('paintPublish()'); pt.wait_for_timeout(300)
+    check('Topbar says the site is current when nothing is pending',
+          'up to date' in pt.inner_text('#publishBar'))
+
+    pt.evaluate("go('jobs')"); pt.wait_for_timeout(700)
+    pt.evaluate('editJob(null)'); pt.wait_for_timeout(600)
+    pt.fill('#e_title', 'Verify vacancy')
+    pt.fill('#e_company', 'Verify Ltd')
+    pt.fill('#e_closes', '2026-12-20')
+    pt.click('.drawer-foot .btn-p'); pt.wait_for_timeout(900)
+    check('Saving a vacancy records an unpublished change',
+          pt.evaluate('pending().length') == 1, str(pt.evaluate('pending().map(p=>p.what)')))
+    check('Topbar shows the pending count',
+          'not on the site yet' in pt.inner_text('#publishBar'))
+
+    pt.evaluate("go('publish')"); pt.wait_for_timeout(700)
+    check('Publish section lists what changed',
+          pt.evaluate('document.querySelectorAll("#pages tbody tr").length') >= 1)
+    check('Publish explains saving is not publishing',
+          'two different things' in pt.inner_text('#pages'))
+    check('Publish tells you how to configure the hook',
+          'BUILD_HOOK_URL' in pt.inner_text('#pages'))
+    pt.evaluate('publishSite()'); pt.wait_for_timeout(800)
+    check('Publish fails safely without a build hook',
+          'Nothing to build' in (pt.evaluate('document.getElementById("pubResult")?.innerText') or ''))
+    pt.evaluate('clearPending()')
+
+    check('Prices, jobs and monthly slots all have editors',
+          pt.evaluate('''["savePrices","editJob","editSpot","editTender","editAd","editArticle"]
+            .every(f => typeof window[f] === "function")'''))
+
+    pt.evaluate("go('legal')"); pt.wait_for_timeout(800)
+    check('Legal pages are editable in the portal',
+          pt.evaluate('document.querySelectorAll("#pages .filecard").length') == 2)
+    check('Legal editor warns it is not legal advice',
+          'advocate' in pt.inner_text('#pages'))
+
+    check('Portal has two-factor support',
+          pt.evaluate('typeof mfaGate === "function" && typeof submitCode === "function"'))
+    check('Administrators must enrol a second factor',
+          pt.evaluate('MFA.required.includes("admin")'))
+
+    # Analytics is interactive
+    pt.evaluate("go('analytics')"); pt.wait_for_timeout(1500)
+    v30 = pt.evaluate('document.querySelector(".an-kpis dd").textContent')
+    pt.click('.seg button:has-text("7 days")'); pt.wait_for_timeout(900)
+    check('Analytics period switch changes the figures',
+          pt.evaluate('document.querySelector(".an-kpis dd").textContent') != v30)
+    check('Analytics chart has one bar per day',
+          pt.evaluate('document.querySelectorAll(".an-chart .an-day").length') == 7)
+    pt.click('.seg button:has-text("30 days")'); pt.wait_for_timeout(900)
+    check('Analytics shows every panel',
+          pt.evaluate('document.querySelectorAll("#pages .panel").length') >= 4)
+    pt.click('#pages tbody tr'); pt.wait_for_timeout(500)
+    check('Clicking a firm focuses the chart on it',
+          pt.evaluate('!!document.querySelector(".an-controls .pill")'))
+    pt.evaluate('anSet("firm", null)'); pt.wait_for_timeout(300)
+    pt.click('th.sortable:has-text("Contacts")'); pt.wait_for_timeout(400)
+    col = pt.evaluate('[...document.querySelectorAll("#pages tbody tr td:nth-child(4)")].slice(0,8).map(t=>+t.textContent)')
+    check('Analytics table sorts', col == sorted(col, reverse=True), str(col))
+    check('Sidebar groups appear once each',
+          pt.evaluate('''(()=>{const t=document.querySelector('.rail')?.innerText||'';
+            return ['Daily','Content','Revenue','Admin'].every(g =>
+              t.split(String.fromCharCode(10)).filter(l=>l.trim()===g).length === 1);})()'''))
 
     check('Portal has no JS errors', not perr, str(perr[:2]))
     pt.close()

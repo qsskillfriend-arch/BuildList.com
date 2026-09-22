@@ -1,88 +1,13 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node supabase/pull.js && node build.js",
   "outputDirectory": ".",
   "framework": null,
-  "functions": {
-    "api/*.mjs": {
-      "runtime": "nodejs20.x"
-    }
-  },
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "geolocation=(), microphone=(), camera=(), payment=(), interest-cohort=()"
-        },
-        {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=31536000; includeSubDomains; preload"
-        },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://unpkg.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.github.com https://esm.sh https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://*.tile.openstreetmap.org; media-src 'self' blob: https://*.supabase.co; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
-        }
-      ]
-    },
-    {
-      "source": "/portal.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
-    },
-    {
-      "source": "/data/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/json; charset=utf-8"
-        }
-      ]
-    },
-    {
-      "source": "/images/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=604800"
-        }
-      ]
-    }
-  ],
+  "cleanUrls": true,
+  "trailingSlash": false,
   "redirects": [
     {
-      "source": "/directory",
-      "destination": "/browse/",
-      "permanent": true
-    },
-    {
-      "source": "/media-kit",
-      "destination": "/downloads/BuildList-Media-Kit.pdf",
-      "permanent": false
-    },
-    {
-      "source": "/admin.html",
+      "source": "/lib/:path*",
       "destination": "/404.html",
       "permanent": false
     },
@@ -92,13 +17,83 @@
       "permanent": false
     },
     {
-      "source": "/lib/:path*",
+      "source": "/admin.html",
       "destination": "/404.html",
       "permanent": false
     },
     {
-      "source": "/netlify/:path*",
-      "destination": "/404.html",
+      "source": "/directory",
+      "destination": "/browse/",
+      "permanent": true
+    },
+    {
+      "source": "/tenders",
+      "destination": "/#/tenders",
+      "permanent": true
+    },
+    {
+      "source": "/jobs",
+      "destination": "/#/jobs",
+      "permanent": true
+    },
+    {
+      "source": "/news",
+      "destination": "/#/news",
+      "permanent": true
+    },
+    {
+      "source": "/prices",
+      "destination": "/#/news",
+      "permanent": true
+    },
+    {
+      "source": "/events",
+      "destination": "/#/news",
+      "permanent": true
+    },
+    {
+      "source": "/advertise",
+      "destination": "/#/advertise",
+      "permanent": true
+    },
+    {
+      "source": "/submit",
+      "destination": "/#/submit",
+      "permanent": true
+    },
+    {
+      "source": "/add-listing",
+      "destination": "/#/submit",
+      "permanent": true
+    },
+    {
+      "source": "/about",
+      "destination": "/#/about",
+      "permanent": true
+    },
+    {
+      "source": "/contact",
+      "destination": "/#/about",
+      "permanent": true
+    },
+    {
+      "source": "/privacy",
+      "destination": "/#/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/#/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "destination": "/#/terms",
+      "permanent": true
+    },
+    {
+      "source": "/media-kit",
+      "destination": "/downloads/BuildList-Media-Kit.pdf",
       "permanent": false
     },
     {
@@ -202,6 +197,121 @@
       "permanent": false
     }
   ],
-  "cleanUrls": false,
-  "trailingSlash": true
+  "rewrites": [
+    {
+      "source": "/((?!api/|_next/|firms/|browse/|tenders/|news/|images/|data/|downloads/|favicon|icon-|og-image|manifest|robots|sitemap).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=(), payment=(), interest-cohort=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://unpkg.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.github.com https://esm.sh https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://*.tile.openstreetmap.org; media-src 'self' blob: https://*.supabase.co; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/data/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/firms/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/browse/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/downloads/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/images/ads/(.*).mp4",
+      "headers": [
+        {
+          "key": "Accept-Ranges",
+          "value": "bytes"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=43200"
+        }
+      ]
+    },
+    {
+      "source": "/portal.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
+  ]
 }

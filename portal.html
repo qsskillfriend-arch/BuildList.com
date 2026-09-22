@@ -253,6 +253,34 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
   .f2{grid-template-columns:1fr}
   .wrap{padding:14px}
 }
+
+.an-controls { gap: 8px; flex-wrap: wrap; }
+#pages .panel + .panel { margin-top: 22px; }
+#pages .panel > h3 { margin-bottom: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: none; background: var(--surface); padding: 6px 12px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--ink, #12302C); color: #fff; }
+.an-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 14px 0 18px; }
+.an-chart svg { width: 100%; height: auto; display: block; }
+.an-chart .bv { fill: #9DB9AC; } .an-chart .bc { fill: #C49A16; }
+.an-chart .an-day:hover .bv { fill: #1A3C2A; } .an-chart .an-day:hover .bc { fill: #8F6F0D; }
+.an-chart .tk { font-size: 10px; fill: #7A857D; }
+.an-legend { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 8px 0 2px; }
+.an-legend span.lv, .an-legend span.lc { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
+.an-legend .lv { background: #9DB9AC; } .an-legend .lc { background: #C49A16; margin-left: 10px; }
+.an-bars { display: grid; gap: 8px; }
+.an-bar { display: grid; grid-template-columns: 90px 1fr 110px; align-items: center; gap: 10px; font-size: 13px; }
+.an-bar div { background: #EEF2EF; height: 10px; border-radius: 5px; overflow: hidden; }
+.an-bar i { display: block; height: 100%; background: #1A3C2A; transition: width .4s ease; }
+.an-bar b { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+th.sortable { cursor: pointer; user-select: none; } th.sortable:hover { color: var(--text); }
+tr.on td { background: #FBF6E6; }
+.pill .x { border: none; background: none; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 0 0 4px; }
+.an-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+@media print { .rail, .top, .an-controls, .act, th:last-child { display: none !important; } }
+
 </style>
 </head>
 <body>
@@ -314,7 +342,6 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
 </div>
 <div id="toast" role="status"></div>
 
-<script src="/portal-config.js"></script>
 <script type="module">
 /* ═══════════════════════════════════════════════════════════════
    CONFIG
@@ -323,8 +350,8 @@ legend{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;
    in schema.sql are for. NEVER put the service_role key here; it
    bypasses every policy.
    ═══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL = String(window.BUILDLIST_PORTAL_CONFIG?.supabaseUrl || 'https://tzsivlfykbfkdpjgjjpr.supabase.co');
-const SUPABASE_ANON_KEY = String(window.BUILDLIST_PORTAL_CONFIG?.supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6c2l2bGZ5a2Jma2RwamdqanByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzEyMjAsImV4cCI6MjEwNTI0NzIyMH0.qXikMMhwmQzIJ2hLz3ypkyC4Qm3zZXiPAbdp7WObH8c');
+const SUPABASE_URL = '';          // e.g. 'https://abcdefgh.supabase.co'
+const SUPABASE_ANON_KEY = '';     // e.g. 'eyJhbGciOi...'
 
 /* ═══════════════════════════════════════════════════════════════
    ROLES
@@ -356,7 +383,7 @@ const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
 /* Google Analytics identifiers, so the links below go straight to your
    own property rather than a generic sign-in page. Paste the same
    Measurement ID you put in index.html. */
-const GA = { measurementId: 'G-ZZQ8B65052', propertyId: '' };
+const GA = { measurementId: '', propertyId: '' };
 
 const SESSION = { user: null, role: null, name: null, demo: false };
 let sb = null;
@@ -762,7 +789,11 @@ const SECTIONS = [
       flag:()=>pending().length }
 ];
 
+/* Items are declared where they make sense in the code, not in menu
+   order, so group them here or each heading repeats down the sidebar. */
+const GROUP_ORDER = ['Daily', 'Content', 'Revenue', 'Admin'];
 function buildNav() {
+  SECTIONS.sort((a, b) => GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group));
   let html = '', group = '';
   SECTIONS.filter(s => can(s.perm)).forEach(s => {
     if (s.group !== group) { group = s.group; html += '<div class="rail-sec">' + group + '</div>'; }
@@ -2960,10 +2991,7 @@ function editAd(id, presetSlot) {
     '</fieldset>');
 }
 
-RENDER.analytics = el => {
-  el.innerHTML = '<div class="loading">Reading listing activity…</div>';
-  loadAnalytics(el);
-};
+RENDER.analytics = el => { loadAnalytics(el); };
 
 /* ═══════════════════════════════════════════════════════════════
    ANALYTICS
@@ -2980,145 +3008,224 @@ RENDER.analytics = el => {
    in front of a shop owner, and you cannot print that from someone
    else's dashboard.
    ═══════════════════════════════════════════════════════════════ */
+/* Interactive state: period, tier filter, search, sort, selected firm */
+const AN = { days: 30, tier: '', q: '', sort: 'views', dir: -1, firm: null, events: [], loaded: 0 };
+
 async function loadAnalytics(el) {
-  const days = Number(ANALYTICS_STATE.days) || 30;
-  const since = new Date(Date.now() - days * 86400000).toISOString();
-  let events = [];
-  let unavailable = '';
-
-  if (SESSION.demo || !sb) {
-    /* Demo: deterministic sample so the shape is reviewable */
-    DB.firms.slice(0, 12).forEach((f, i) => {
-      const views = seededN(i + 1, 8, 90);
-      for (let k = 0; k < views; k++) events.push({ firm_id: f.id, kind: 'view' });
-      const taps = Math.round(views * (seededN(i + 5, 8, 26) / 100));
-      for (let k = 0; k < taps; k++)
-        events.push({ firm_id: f.id, kind: ['contact_whatsapp','contact_phone','contact_email'][k % 3] });
-    });
-  } else {
-    const { data, error } = await sb.from('listing_events')
-      .select('firm_id,kind').gte('occurred_at', since).limit(50000);
-    if (error) unavailable = error.message;
-    events = data || [];
+  /* Fetch once per period; everything else is filtering in the browser,
+     so clicking around the dashboard is instant. */
+  if (AN.loaded !== AN.days) {
+    el.innerHTML = '<div class="loading">Reading the last ' + AN.days + ' days\u2026</div>';
+    AN.events = await fetchEvents(AN.days);
+    AN.loaded = AN.days;
   }
+  paintAnalytics(el);
+}
 
-  const byFirm = {};
-  let views = 0, contacts = 0;
+async function fetchEvents(days) {
+  const since = new Date(Date.now() - days * 86400000);
+  if (SESSION.demo || !sb) {
+    /* Deterministic demo: dated events so the daily chart has shape */
+    const out = [];
+    DB.firms.slice(0, 24).forEach((f, i) => {
+      const views = Math.round(seededN(i + 1, 6, 90) * days / 30);
+      for (let k = 0; k < views; k++) {
+        const d = new Date(Date.now() - seededN(i * 97 + k, 0, days - 1) * 86400000);
+        out.push({ firm_id: f.id, kind: 'view', at: d.toISOString() });
+        if (seededN(i * 13 + k, 0, 100) < 20)
+          out.push({ firm_id: f.id, at: d.toISOString(),
+            kind: ['contact_whatsapp', 'contact_phone', 'contact_email'][k % 3] });
+      }
+    });
+    return out;
+  }
+  const { data, error } = await sb.from('listing_events')
+    .select('firm_id,kind,occurred_at').gte('occurred_at', since.toISOString()).limit(100000);
+  if (error) { AN.error = error.message; return []; }
+  return (data || []).map(e => ({ firm_id: e.firm_id, kind: e.kind, at: e.occurred_at }));
+}
+
+function paintAnalytics(el) {
+  el = el || document.querySelector('#pages .page');
+  const firmById = new Map(DB.firms.map(f => [String(f.id), f]));
+  const inScope = e => {
+    const f = firmById.get(String(e.firm_id));
+    if (AN.tier && (!f || (f.tier || 'free') !== AN.tier)) return false;
+    if (AN.firm && String(e.firm_id) !== String(AN.firm)) return false;
+    return true;
+  };
+  const ev = AN.events.filter(inScope);
+
+  /* Totals */
+  const isContact = k => String(k).startsWith('contact');
+  const views = ev.filter(e => e.kind === 'view').length;
+  const contacts = ev.filter(e => isContact(e.kind)).length;
   const byKind = {};
-  events.forEach(e => {
-    byKind[e.kind] = (byKind[e.kind] || 0) + 1;
-    if (!byFirm[e.firm_id]) byFirm[e.firm_id] = { views: 0, contacts: 0 };
-    if (e.kind === 'view') { byFirm[e.firm_id].views++; views++; }
-    else if (String(e.kind).startsWith('contact')) { byFirm[e.firm_id].contacts++; contacts++; }
+  ev.forEach(e => { byKind[e.kind] = (byKind[e.kind] || 0) + 1; });
+
+  /* Per day, for the chart */
+  const days = [];
+  for (let i = AN.days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    days.push({ d, v: 0, c: 0 });
+  }
+  const idx = new Map(days.map((x, i) => [x.d, i]));
+  ev.forEach(e => {
+    const i = idx.get(String(e.at || '').slice(0, 10));
+    if (i == null) return;
+    if (e.kind === 'view') days[i].v++; else if (isContact(e.kind)) days[i].c++;
   });
 
-  let rows = Object.entries(byFirm)
-    .map(([id, v]) => {
-      const f = DB.firms.find(x => String(x.id) === String(id));
-      return { name: f ? f.name : id, tier: f ? f.tier : '', slug: f ? f.slug : '',
-               views: v.views, contacts: v.contacts,
-               rate: v.views ? Math.round(v.contacts / v.views * 100) : 0 };
-    })
-    .sort((a, b) => b.views - a.views);
-  const query = String(ANALYTICS_STATE.q || '').trim().toLowerCase();
-  rows = rows.filter(r => !query || r.name.toLowerCase().includes(query));
-  const sorters = {
-    views: (a,b) => b.views - a.views,
-    contacts: (a,b) => b.contacts - a.contacts,
-    rate: (a,b) => b.rate - a.rate,
-    name: (a,b) => a.name.localeCompare(b.name)
-  };
-  rows.sort(sorters[ANALYTICS_STATE.sort] || sorters.views);
+  /* Per firm */
+  const per = {};
+  AN.events.filter(e => !AN.tier || ((firmById.get(String(e.firm_id)) || {}).tier || 'free') === AN.tier)
+    .forEach(e => {
+      const k = String(e.firm_id);
+      per[k] = per[k] || { views: 0, contacts: 0 };
+      if (e.kind === 'view') per[k].views++; else if (isContact(e.kind)) per[k].contacts++;
+    });
+  let rows = Object.entries(per).map(([id, v]) => {
+    const f = firmById.get(id) || {};
+    return { id, name: f.name || id, tier: f.tier || 'free', slug: f.slug || '',
+             views: v.views, contacts: v.contacts,
+             rate: v.views ? Math.round(v.contacts / v.views * 100) : 0 };
+  });
+  if (AN.q) rows = rows.filter(r => r.name.toLowerCase().includes(AN.q.toLowerCase()));
+  rows.sort((x, y) => AN.dir * ((x[AN.sort] > y[AN.sort]) - (x[AN.sort] < y[AN.sort])) ||
+                              String(x.name).localeCompare(y.name));
   ANALYTICS_ROWS = rows;
 
-  const gaId = (GA.measurementId || '').trim();
-  const pid = (GA.propertyId || '').trim();
-  const gaBase = pid ? 'https://analytics.google.com/analytics/web/#/p' + pid
-                     : 'https://analytics.google.com/';
+  const tiers = ((DB.taxonomy || {}).tiers || []).map(t => t.slug);
+  const selFirm = AN.firm ? firmById.get(String(AN.firm)) : null;
+  const upsell = rows.filter(r => r.tier === 'free' && r.contacts >= 3).length;
 
-  const contentHealth = [
-    ['Firms', DB.firms.length, 'firms'],
-    ['Open tenders', DB.tenders.filter(t => daysTo(t.deadline) >= 0).length, 'tenders'],
-    ['Open jobs', DB.jobs.filter(j => daysTo(j.deadline) >= 0).length, 'jobs'],
-    ['Published articles', DB.articles.filter(a => a.published !== false).length, 'articles'],
-    ['Live ads', (DB.ads && DB.ads.ads || []).filter(a => a.active !== false).length, 'ads']
-  ];
   el.innerHTML =
-    '<div class="panel" style="margin-bottom:18px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
-      '<strong style="font-size:13px">Activity window</strong>' +
-      '<select class="btn" style="padding:5px 9px" onchange="analyticsSet(\'days\',this.value)">' +
-        [7,30,90].map(n => '<option value="'+n+'"'+(days===n?' selected':'')+'>'+n+' days</option>').join('') +
-      '</select>' +
-      '<select class="btn" style="padding:5px 9px" onchange="analyticsSet(\'sort\',this.value)">' +
-        [['views','Most views'],['contacts','Most contacts'],['rate','Highest tap rate'],['name','Firm name']].map(o => '<option value="'+o[0]+'"'+(ANALYTICS_STATE.sort===o[0]?' selected':'')+'>'+o[1]+'</option>').join('') +
-      '</select>' +
-      '<input class="btn" style="padding:6px 9px;min-width:190px" placeholder="Filter firms…" value="'+esc(ANALYTICS_STATE.q)+'" oninput="analyticsSet(\'q\',this.value)">' +
-      '<button class="btn" type="button" onclick="refreshAnalytics()">Refresh</button>' +
-    '</div></div>' +
-    '<div class="panel" style="margin-bottom:18px"><h3>Live content connected to this dashboard</h3>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px">' +
-      contentHealth.map(c => '<button type="button" class="btn" style="display:block;text-align:left;padding:12px" onclick="go(\''+c[2]+'\')"><b style="display:block;font-size:18px">'+c[1]+'</b><span style="font-size:11px;color:var(--text-3)">'+c[0]+'</span></button>').join('') +
-      '</div></div>' +
     (SESSION.demo ? '<div class="note"><b>Demo figures.</b>Deterministic sample data so you can see ' +
       'the shape. Connect Supabase and these become your real listing_events.</div>' : '') +
-    (unavailable ? '<div class="note"><b>Could not read listing_events.</b>' + esc(unavailable) +
-      '<br><br>If the table does not exist yet, run schema.sql.</div>' : '') +
+    (AN.error ? '<div class="note red"><b>Could not read listing_events.</b>' + esc(AN.error) + '</div>' : '') +
 
-    '<dl class="kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;' +
-    'background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:22px">' +
-      kpi('Listing views', views.toLocaleString(), ('last ' + days + ' days')) +
-      kpi('Contact taps', contacts.toLocaleString(), 'call, WhatsApp or email') +
-      kpi('Tap rate', (views ? Math.round(contacts / views * 100) : 0) + '%', 'of views that made contact') +
-      kpi('Listings with activity', Object.keys(byFirm).length.toLocaleString(), 'of ' + DB.firms.length) +
-    '</dl>' +
-
-    '<div class="note"><b>This is the sales conversation.</b>' +
-    'Use these observed views and contact taps to discuss listing performance with firms; the dashboard reports activity rather than predicting results. ' +
-    'you will ever sell \u2014 you are not predicting a result, you are reporting one. Sort by taps ' +
-    'and work down.</div>' +
-
-    '<div class="panel"><h3>Per listing \u00b7 last 30 days' +
-      '<span style="float:right;display:flex;gap:6px">' +
-      '<button class="btn" style="padding:4px 10px;font-size:12px" onclick="downloadAnalytics()">Download CSV</button>' +
-      '<button class="btn" style="padding:4px 10px;font-size:12px" onclick="window.print()">Print</button>' +
-      '</span></h3>' +
-    '<div class="tscroll"><table><thead><tr><th>Firm</th><th>Tier</th><th>Views</th>' +
-    '<th>Contacts</th><th>Tap rate</th><th></th></tr></thead><tbody>' +
-    (rows.length ? rows.slice(0, 60).map(r =>
-      '<tr><td><span class="nm">' + esc(r.name) + '</span></td>' +
-      '<td><span class="pill ' + (r.tier === 'free' ? 'p-off' : 'p-new') + '">' + esc(r.tier || '\u2014') + '</span></td>' +
-      '<td class="mono">' + r.views + '</td>' +
-      '<td class="mono"><strong>' + r.contacts + '</strong></td>' +
-      '<td class="mono">' + r.rate + '%</td>' +
-      '<td class="act"><button class="btn" onclick="firmReport(\'' + esc(r.slug) + '\')">Report</button></td></tr>'
-    ).join('') : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No events recorded yet</b>' +
-      'Views and taps appear here once the site has traffic and analytics consent is given.</div></td></tr>') +
-    '</tbody></table></div></div>' +
-
-    '<div class="panel"><h3>Top listing activity</h3><p class="sub" style="margin-bottom:12px">The bars below are relative to the busiest listing in the selected window.</p>' +
-      (rows.length ? rows.slice(0,8).map(r => '<div style="display:grid;grid-template-columns:minmax(150px,2fr) 4fr 70px;gap:10px;align-items:center;margin:8px 0"><span style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.name)+'</span><span style="height:8px;background:var(--line);border-radius:20px;overflow:hidden"><span style="display:block;height:100%;width:'+Math.max(4,Math.round(r.views/(rows[0].views||1)*100))+'%;background:var(--forest)"></span></span><span class="mono" style="text-align:right">'+r.views+' views</span></div>').join('') : '<div class="empty"><b>No listing activity yet</b></div>') +
+    /* Controls */
+    '<div class="toolbar an-controls">' +
+      '<div class="seg">' + [7, 30, 90].map(d =>
+        '<button class="' + (AN.days === d ? 'on' : '') + '" onclick="anSet(\'days\',' + d + ')">' +
+        d + ' days</button>').join('') + '</div>' +
+      '<select onchange="anSet(\'tier\',this.value)" aria-label="Tier">' +
+        '<option value="">All tiers</option>' + tiers.map(t =>
+        '<option value="' + t + '"' + (AN.tier === t ? ' selected' : '') + '>' + t + '</option>').join('') +
+      '</select>' +
+      (selFirm ? '<span class="pill p-new" style="padding:5px 10px">' + esc(selFirm.name) +
+        ' <button class="x" onclick="anSet(\'firm\',null)" aria-label="Clear firm">\u00d7</button></span>' : '') +
+      '<div class="spacer"></div>' +
+      '<button class="btn" onclick="downloadAnalytics()">Download CSV</button>' +
+      '<button class="btn" onclick="downloadDailyCsv()">Daily CSV</button>' +
+      '<button class="btn" onclick="window.print()">Print</button>' +
     '</div>' +
 
-    '<div class="panel"><h3>What the site is recording</h3><div class="tscroll"><table><tbody>' +
-    (Object.keys(byKind).length ? Object.keys(byKind).sort((a, b) => byKind[b] - byKind[a]).map(k =>
-      '<tr><td class="mono">' + esc(k) + '</td><td class="mono">' + byKind[k] + '</td>' +
-      '<td class="sub">' + esc(EVENT_DOC[k] || '') + '</td></tr>').join('')
-      : '<tr><td class="sub">Nothing yet.</td></tr>') +
-    '</tbody></table></div></div>' +
+    /* KPIs */
+    '<dl class="kpis an-kpis">' +
+      kpi('Listing views', views.toLocaleString(), 'last ' + AN.days + ' days') +
+      kpi('Contact taps', contacts.toLocaleString(), 'call, WhatsApp or email') +
+      kpi('Tap rate', (views ? Math.round(contacts / views * 100) : 0) + '%', 'views that made contact') +
+      kpi('Free firms worth calling', upsell, '3+ contacts, still on Free') +
+    '</dl>' +
 
-    '<div class="panel"><h3>Site-wide traffic</h3>' +
-    (gaId
-      ? '<div class="note" style="margin:16px 20px"><b>Measurement ID ' + esc(gaId) + '.</b>' +
-        'Remember the tag only loads for visitors who accept the cookie notice, so these figures ' +
-        'undercount total traffic by whatever share declines. That is expected and lawful.</div>'
-      : '<div class="note" style="margin:16px 20px"><b>No Measurement ID set.</b>' +
-        'Nothing site-wide is being recorded. Create a GA4 property and paste the ID into ' +
-        '<span class="mono">SITE.analytics.measurementId</span> in index.html.</div>') +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:0 20px 20px">' +
-      gaLink(gaBase + '/realtime/overview', 'Live right now', 'Confirm the tag works after installing it.') +
-      gaLink(gaBase + '/reports/explorer', 'Pages and traffic sources', 'Which pages people open, and how they arrived.') +
-      gaLink('https://search.google.com/search-console', 'Search Console', 'What people typed to find you. As important as GA for a directory.') +
+    /* Chart */
+    '<div class="panel"><h3>Views and contacts per day' +
+      (selFirm ? ' \u00b7 ' + esc(selFirm.name) : AN.tier ? ' \u00b7 ' + esc(AN.tier) + ' tier' : '') +
+      '</h3><div class="an-chart">' + dayChart(days) + '</div>' +
+      '<div class="an-legend"><span class="lv"></span>Views <span class="lc"></span>Contacts ' +
+      '<span class="rowsub" style="margin-left:auto">Hover a day for its figures</span></div></div>' +
+
+    /* Breakdown */
+    '<div class="panel"><h3>How people made contact</h3><div class="an-bars">' +
+      (Object.keys(byKind).filter(isContact).sort((a, b) => byKind[b] - byKind[a]).map(k => {
+        const pct = contacts ? Math.round(byKind[k] / contacts * 100) : 0;
+        return '<div class="an-bar"><span>' + esc(k.replace('contact_', '')) + '</span>' +
+          '<div><i style="width:' + pct + '%"></i></div><b>' + byKind[k] + ' \u00b7 ' + pct + '%</b></div>';
+      }).join('') || '<p class="rowsub">No contact taps in this period.</p>') +
+    '</div></div>' +
+
+    /* Table */
+    '<div class="panel"><h3>Per listing <span class="rowsub">\u00b7 click a firm to focus the chart on it</span></h3>' +
+      '<div class="toolbar" style="padding:0 0 10px"><input type="search" placeholder="Find a firm" ' +
+        'value="' + esc(AN.q) + '" oninput="anSet(\'q\',this.value)" style="max-width:260px">' +
+        '<span class="rowsub">' + rows.length + ' firms with activity</span></div>' +
+      '<div class="tscroll"><table><thead><tr>' +
+        [['name', 'Firm'], ['tier', 'Tier'], ['views', 'Views'], ['contacts', 'Contacts'], ['rate', 'Tap rate']]
+          .map(([k, l]) => '<th class="sortable" onclick="anSort(\'' + k + '\')">' + l +
+            (AN.sort === k ? (AN.dir < 0 ? ' \u2193' : ' \u2191') : '') + '</th>').join('') +
+        '<th></th></tr></thead><tbody>' +
+      (rows.length ? rows.slice(0, 100).map(r =>
+        '<tr class="' + (String(AN.firm) === r.id ? 'on' : '') + '" style="cursor:pointer" ' +
+          'onclick="anSet(\'firm\',\'' + esc(r.id) + '\')">' +
+        '<td><span class="nm">' + esc(r.name) + '</span></td>' +
+        '<td><span class="pill ' + (r.tier === 'free' ? 'p-off' : 'p-new') + '">' + esc(r.tier) + '</span></td>' +
+        '<td class="mono">' + r.views + '</td><td class="mono"><strong>' + r.contacts + '</strong></td>' +
+        '<td class="mono">' + r.rate + '%</td>' +
+        '<td class="act"><button class="btn" onclick="event.stopPropagation();firmReport(\'' +
+          esc(r.slug) + '\')">Report</button></td></tr>').join('')
+        : '<tr><td colspan="6"><div class="empty" style="border:none"><b>No activity</b>' +
+          'Nothing matches this period and filter.</div></td></tr>') +
+      '</tbody></table></div></div>' +
+
+    '<div class="panel"><h3>Site-wide traffic</h3><div class="an-links">' +
+      gaLink('https://analytics.google.com/', 'Google Analytics', 'Pages, sources and live visitors.') +
+      gaLink('https://search.google.com/search-console', 'Search Console', 'What people typed to find you.') +
     '</div></div>';
+}
+
+/* A small hand-drawn SVG chart: no library, works offline, prints. */
+function dayChart(days) {
+  const W = 760, H = 180, P = 26;
+  const max = Math.max(1, ...days.map(d => Math.max(d.v, d.c)));
+  const bw = (W - P * 2) / days.length;
+  const y = v => H - P - (v / max) * (H - P * 2);
+  const bars = days.map((d, i) => {
+    const x = P + i * bw;
+    return '<g class="an-day"><title>' + d.d + ': ' + d.v + ' views, ' + d.c + ' contacts</title>' +
+      '<rect x="' + (x + 1) + '" y="' + y(d.v) + '" width="' + Math.max(1, bw - 2) + '" height="' +
+        (H - P - y(d.v)) + '" class="bv"/>' +
+      '<rect x="' + (x + bw * 0.25) + '" y="' + y(d.c) + '" width="' + Math.max(1, bw * 0.5) +
+        '" height="' + (H - P - y(d.c)) + '" class="bc"/>' +
+      '<rect x="' + x + '" y="0" width="' + bw + '" height="' + H + '" fill="transparent"/></g>';
+  }).join('');
+  const ticks = [0, Math.round(max / 2), max].map(v =>
+    '<text x="4" y="' + (y(v) + 4) + '" class="tk">' + v + '</text>').join('');
+  const first = days[0] ? days[0].d.slice(5) : '', last = days.length ? days[days.length - 1].d.slice(5) : '';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Daily views and contacts">' +
+    ticks + bars +
+    '<text x="' + P + '" y="' + (H - 6) + '" class="tk">' + first + '</text>' +
+    '<text x="' + (W - P) + '" y="' + (H - 6) + '" class="tk" text-anchor="end">' + last + '</text></svg>';
+}
+
+function anSet(k, v) {
+  AN[k] = v;
+  const el = document.querySelector('#pages .page');
+  if (k === 'days') loadAnalytics(el); else paintAnalytics(el);
+  if (k === 'q') {             /* keep typing without losing the caret */
+    const i = document.querySelector('#pages input[type=search]');
+    if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  }
+}
+function anSort(k) {
+  if (AN.sort === k) AN.dir = -AN.dir; else { AN.sort = k; AN.dir = k === 'name' || k === 'tier' ? 1 : -1; }
+  paintAnalytics();
+}
+
+function downloadDailyCsv() {
+  const rows = [['date', 'views', 'contacts']];
+  const m = {};
+  AN.events.forEach(e => {
+    const d = String(e.at || '').slice(0, 10); if (!d) return;
+    m[d] = m[d] || [0, 0];
+    if (e.kind === 'view') m[d][0]++; else if (String(e.kind).startsWith('contact')) m[d][1]++;
+  });
+  Object.keys(m).sort().forEach(d => rows.push([d, m[d][0], m[d][1]]));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' }));
+  a.download = 'buildlist-daily-' + AN.days + 'd-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Downloaded ' + (rows.length - 1) + ' days');
 }
 
 /* The table as a file. A field agent going out for the day wants it on
@@ -3193,6 +3300,7 @@ Object.assign(window, {
   editTender, editJob, savePrices, addPriceRow, delPriceRow, newSnapshot,
   todayStr, sel, dTo, editSpot, editAd, addPairRow, thisMonthStr,
   loadAnalytics, firmReport, kpi, gaLink, seededN, GA, downloadAnalytics,
+  anSet, anSort, paintAnalytics, downloadDailyCsv, dayChart,
   get ANALYTICS_ROWS() { return ANALYTICS_ROWS; }, tickerChip, refreshChip
 });
 /* A live view, not a snapshot: Object.assign would have invoked the

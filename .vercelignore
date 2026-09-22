@@ -1,0 +1,20 @@
+# ═══════════════════════════════════════════════════
+# Not deployed to Vercel.
+#
+# admin.html is protected only by a passphrase in its own source, which
+# is not security. Excluding it is stronger than a 404 rule — the file
+# simply is not on the server. Run it locally.
+#
+# netlify/ is the other host's function wrapper. Harmless, but there is
+# no reason to ship it here.
+# ═══════════════════════════════════════════════════
+admin.html
+netlify/
+netlify.toml
+_redirects
+cms/
+forms/
+convert.py
+verify.py
+.DS_Store
+node_modules
