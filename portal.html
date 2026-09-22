@@ -281,6 +281,22 @@ tr.on td { background: #FBF6E6; }
 .an-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 @media print { .rail, .top, .an-controls, .act, th:last-child { display: none !important; } }
 
+.f3 { display:grid; grid-template-columns:1fr 1.3fr .8fr; gap:12px; }
+@media (max-width:760px){ .f3{ grid-template-columns:1fr; } }
+
+.catgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 14px; max-height:230px; overflow:auto;
+  border:1px solid var(--line); border-radius:6px; padding:10px 12px; }
+.catopt { display:flex; gap:7px; align-items:center; font-size:12.5px; cursor:pointer; }
+.allowance { margin-top:8px; }
+.allowance.over { color:#8F6F0D; font-weight:600; }
+
+.rev-card { margin-bottom:12px; }
+.rev-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.rev-stars { color:#C49A16; letter-spacing:1px; font-size:15px; }
+.rev-body { margin:8px 0; font-size:13.5px; line-height:1.6; }
+.rev-replybox { margin-top:10px; padding:9px 12px; background:#F4F6F4; border-left:3px solid #1A3C2A; border-radius:0 6px 6px 0; font-size:13px; }
+.rev-replybox p { margin:4px 0 0; }
+.rev-quote { font-size:13px; color:var(--text-2); background:#F7F6F1; padding:10px 12px; border-radius:6px; margin-bottom:14px; }
 </style>
 </head>
 <body>
@@ -342,6 +358,7 @@ tr.on td { background: #FBF6E6; }
 </div>
 <div id="toast" role="status"></div>
 
+<script src="site-config.js" onerror="window.BUILDLIST_CONFIG={}"></script>
 <script type="module">
 /* ═══════════════════════════════════════════════════════════════
    CONFIG
@@ -350,8 +367,12 @@ tr.on td { background: #FBF6E6; }
    in schema.sql are for. NEVER put the service_role key here; it
    bypasses every policy.
    ═══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL = 'https://tzsivlfykbfkdpjgjjpr.supabase.co';          // e.g. 'https://abcdefgh.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6c2l2bGZ5a2Jma2RwamdqanByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NzEyMjAsImV4cCI6MjEwNTI0NzIyMH0.qXikMMhwmQzIJ2hLz3ypkyC4Qm3zZXiPAbdp7WObH8c';     // e.g. 'eyJhbGciOi...'
+/* Set by build.js from the host's environment variables — see
+   DEPLOY.md. Nothing to paste here, and updating the files can no
+   longer wipe your keys. */
+const CFG = window.BUILDLIST_CONFIG || {};
+const SUPABASE_URL = CFG.supabaseUrl || '';
+const SUPABASE_ANON_KEY = CFG.supabaseAnonKey || '';
 
 /* ═══════════════════════════════════════════════════════════════
    ROLES
@@ -383,11 +404,11 @@ const can = p => !!(SESSION.role && ROLES[SESSION.role].can.includes(p));
 /* Google Analytics identifiers, so the links below go straight to your
    own property rather than a generic sign-in page. Paste the same
    Measurement ID you put in index.html. */
-const GA = { measurementId: 'G-ZZQ8B65052', propertyId: '' };
+const GA = { measurementId: CFG.gaMeasurementId || '', propertyId: CFG.gaPropertyId || '' };
 
 const SESSION = { user: null, role: null, name: null, demo: false };
 let sb = null;
-const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [], media: [], claims: [] };
+const DB = { firms: [], tenders: [], jobs: [], articles: [], prices: null, taxonomy: null, spotlight: null, ads: null, staff: [], media: [], claims: [], reviews: [] };
 
 /* ═══════════════════════════════════════════════════════════════
    BOOT
@@ -400,7 +421,8 @@ async function boot() {
     /* Demo mode: read the committed JSON so the portal can be reviewed,
        role gating and all, before anyone signs up for anything. */
     msg('warn', '<b>Not connected to a database yet.</b>' +
-      'Paste your Supabase URL and anon key into <span class="mono">portal.html</span>. ' +
+      'Set <span class="mono">SUPABASE_URL</span> and <span class="mono">SUPABASE_ANON_KEY</span> ' +
+      'in your host\u2019s environment variables and redeploy. ' +
       'Until then you can open it in demo mode to see how the roles work \u2014 ' +
       'nothing you change is saved.' +
       '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' +
@@ -416,16 +438,29 @@ async function boot() {
 }
 
 window.demoAs = async function (role) {
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) return;   /* never on a live portal */
   SESSION.demo = true;
   SESSION.role = role;
   SESSION.name = 'Demo ' + ROLES[role].label;
-  SESSION.user = { email: 'demo@buildlist.com' };
+  SESSION.user = { id: 'demo-you', email: 'demo@buildlist.com' };
   const files = ['taxonomy','firms','tenders','jobs','articles','prices','spotlight','ads'];
   const res = await Promise.all(files.map(f =>
     fetch('data/' + f + '.json').then(r => r.json()).catch(() => null)));
   files.forEach((f, i) => { if (res[i]) DB[f] = res[i]; });
   DB.media = [];
   DB.legal = {};
+  DB.reviews = DB.firms.slice(0, 5).map((f, i) => ({
+    id: 'demo-rev-' + i, firm_id: f.id, author_name: ['Grace Namutebi','Peter Okello','Sarah Achieng','David Mugisha','Ruth Nakato'][i],
+    author_email: ['grace','peter','sarah','david','ruth'][i] + '@mail.ug', rating: [5, 2, 4, 3, 5][i],
+    body: ['Clear drawings, delivered on the day agreed, and they answered every query from the contractor.',
+           'Two deadlines missed and it took a week to get a call back. The final work was acceptable.',
+           'Good value on the bills of quantities. Would use again for a mid-sized job.',
+           'Competent but slow to respond on site visits.',
+           'Handled approvals with KCCA far faster than we expected.'][i],
+    was_customer: i !== 3, status: i < 3 ? 'pending' : 'published',
+    firm_reply: i === 4 ? 'Thank you \u2014 glad the approvals went smoothly.' : null,
+    created_at: new Date(Date.now() - i * 86400000).toISOString()
+  }));
   DB.claims = DB.firms.slice(0, 3).map((f, i) => ({
     id: 'demo-claim-' + i, firm_id: f.id, claimant: ['Moses Kigozi','Sarah Nabukenya','David Okot'][i],
     role: ['Director','Operations manager','Owner'][i],
@@ -437,9 +472,9 @@ window.demoAs = async function (role) {
   DB.articles.forEach(a => { if (a.published === undefined) a.published = true;
     if (!a.body) a.body = (a.excerpt || '') + String.fromCharCode(10,10) + '## What this means' + String.fromCharCode(10,10) + 'Write the rest here.'; });
   DB.staff = [
-    { name: 'You', role: role, email: 'demo@buildlist.com' },
-    { name: 'Sample content officer', role: 'editor', email: 'editor@example.com' },
-    { name: 'Sample field agent', role: 'agent', email: 'agent@example.com' }
+    { user_id: 'demo-you', name: 'You', role: role, email: 'demo@buildlist.com' },
+    { user_id: 'demo-ed', name: 'Sample content officer', role: 'editor', email: 'editor@example.com' },
+    { user_id: 'demo-ag', name: 'Sample field agent', role: 'agent', email: 'agent@example.com' }
   ];
   startApp();
 };
@@ -656,8 +691,8 @@ window.signOut = async function () {
 async function loadAll() {
   setSync('Loading\u2026');
   const [firms, tenders, jobs, articles, cats, dists, accs, tiers, staff,
-         media, claims, legal, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
-    sb.from('firms').select('*').order('name'),
+         media, claims, reviews, legal, spotlight, ads, adSlots, prices, priceItems] = await Promise.all([
+    sb.from('firms').select('*,firm_categories(categories(slug)),firm_services(label,sort),firm_projects(name,value,year)').order('name'),
     sb.from('tenders').select('*').order('deadline'),
     sb.from('jobs').select('*').order('posted_at', { ascending: false }),
     sb.from('articles').select('*').order('published_at', { ascending: false }),
@@ -668,6 +703,7 @@ async function loadAll() {
     can('staff') ? sb.from('staff').select('*') : Promise.resolve({ data: [] }),
     sb.from('media').select('*').order('created_at', { ascending: false }).limit(300),
     sb.from('firm_claims').select('*').order('created_at', { ascending: false }).limit(200),
+    sb.from('reviews').select('*').order('created_at', { ascending: false }).limit(1000),
     sb.from('legal_docs').select('*'),
     sb.from('spotlight').select('*').eq('active', true),
     can('ads') ? sb.from('ads').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
@@ -679,12 +715,34 @@ async function loadAll() {
   DB.tenders = tenders.data || [];
   DB.jobs = jobs.data || [];
   DB.articles = articles.data || [];
+  /* Relations arrive nested; the editor and the site work in plain lists. */
+  (firms.data || []).forEach(f => {
+    f.categories = (f.firm_categories || []).map(r => r.categories && r.categories.slug).filter(Boolean);
+    f.services = (f.firm_services || []).sort((a, b) => (a.sort || 0) - (b.sort || 0)).map(r => r.label);
+    f.projects = (f.firm_projects || []).map(r => ({ name: r.name, value: r.value || '', year: r.year || '' }));
+    f.logo = f.logo_url || ''; f.catalogue = f.catalogue_url || '';
+  });
   DB.taxonomy = {
     categories: cats.data || [], districts: dists.data || [],
     accreditations: accs.data || [], tiers: tiers.data || []
   };
+  /* If the database has not been given tier capabilities yet (PATCH-02
+     does that), fall back to the ones the site ships with, so the Tiers
+     page and the firm editor never show an empty allowance. */
+  if (DB.taxonomy.tiers.some(t => !t.caps || !Object.keys(t.caps).length)) {
+    try {
+      const shipped = await (await fetch('data/taxonomy.json', { cache: 'no-cache' })).json();
+      DB.taxonomy.tiers.forEach(t => {
+        if (!t.caps || !Object.keys(t.caps).length) {
+          const s = (shipped.tiers || []).find(x => x.slug === t.slug);
+          if (s) t.caps = s.caps;
+        }
+      });
+    } catch (e) { /* keep what we have */ }
+  }
   DB.staff = staff.data || [];
   DB.claims = claims.data || [];
+  DB.reviews = reviews.data || [];
   DB.legal = Object.fromEntries((legal.data || []).map(d => [d.key,
     { key: d.key, effective: d.effective, body: d.body, updated: d.updated_at }]));
 
@@ -766,6 +824,9 @@ function startApp() {
 const SECTIONS = [
   { id:'board',     label:'Board',        group:'Daily',     perm:'board' },
   { id:'firms',     label:'Firms',        group:'Content',   perm:'firms',    count:()=>DB.firms.length },
+  /* Reviews: the reviewer's email is visible here, so not to agents. */
+  { id:'reviews',   label:'Reviews',      group:'Daily',     perm:'firms.verify',
+      count:()=>pendingReviews().length, flag:()=>pendingReviews().length },
   /* Claims hold a named person's phone number and decide who controls
      a listing. A field agent collects; they do not adjudicate. */
   { id:'claims',    label:'Claims',       group:'Daily',     perm:'firms.verify',
@@ -807,6 +868,7 @@ function buildNav() {
 const TITLES = {
   board:['Board','What needs doing today'],
   firms:['Firms','Listings, verification and tiers'],
+  reviews:['Reviews','Check each one before it appears on the site'],
   claims:['Listing claims','A firm says \u201cthis is us\u201d \u2014 ring the listed number before handing it over'],
   tenders:['Tenders','Closed notices hide themselves'],
   jobs:['Jobs','Vacancies expire on their closing date'],
@@ -831,7 +893,7 @@ window.go = function (id) {
   document.querySelectorAll('.rail a').forEach(a => a.classList.toggle('on', a.dataset.go === id));
   const pages = document.getElementById('pages');
   pages.innerHTML = '<div class="page on" data-page="' + id + '"></div>';
-  (RENDER[id] || (el => { el.innerHTML = '<div class="empty"><b>Coming next</b>Not built yet.</div>'; }))(pages.firstChild);
+  (RENDER[id] || (() => go('board')))(pages.firstChild);
   window.scrollTo(0, 0);
 };
 
@@ -871,6 +933,9 @@ RENDER.board = el => {
   if (SESSION.demo)
     jobs.push(task('urgent', 0, 'Removal requests',
       'They arrive through /api/form. Check your inbox or the submissions table daily \u2014 the privacy policy promises 48 hours', 'board'));
+  if (pendingReviews().length)
+    jobs.push(task('warn', pendingReviews().length, 'Reviews waiting to be checked',
+      'Publish negative ones too \u2014 only abusive, fake or off-topic reviews are rejected', 'reviews'));
   if (openClaims().length)
     jobs.push(task('urgent', openClaims().length, 'Listing claims awaiting a call',
       'Ring the number on the listing before approving \u2014 that call is the whole check', 'claims'));
@@ -996,10 +1061,11 @@ window.editFirm = function (id) {
       '<div class="f2">' + fld('e_phone','Phone', f.phone) + fld('e_whatsapp','WhatsApp', f.whatsapp) + '</div>' +
       '<div class="f2">' + fld('e_email','Email', f.email) + fld('e_website','Website', f.website) + '</div>' +
     '</fieldset>' +
+    listingFieldsets(f) +
     (can('firms.tier')
       ? '<fieldset><legend>Commercial \u2014 administrators only</legend>' +
           '<div class="f2">' +
-            '<div class="f"><label for="e_tier">Tier</label><select id="e_tier">' + opt(tx.tiers, f.tier) + '</select>' +
+            '<div class="f"><label for="e_tier">Tier</label><select id="e_tier" onchange="refreshAllowances()">' + opt(tx.tiers, f.tier) + '</select>' +
               '<div class="hint">Paid tiers mean somebody paid.</div></div>' +
             '<div class="f"><label for="e_status">Status</label><select id="e_status">' +
               ['pending','live','rejected','suspended'].map(s =>
@@ -1113,6 +1179,25 @@ window.saveDrawer = async function () {
     }
     notePending('Legal page: ' + key);
     closeDrawer(); go('legal'); toast('Saved. Publish to put it on the site.');
+    return;
+  }
+
+  if (CURRENT && CURRENT.kind === 'revreject') {
+    const reason = val('e_reason'), note = val('e_note');
+    const id = CURRENT.id; closeDrawer();
+    return moderateReview(id, 'rejected', { reject_reason: reason + (note ? ': ' + note : '') });
+  }
+  if (CURRENT && CURRENT.kind === 'revreply') {
+    const r = (DB.reviews || []).find(x => String(x.id) === String(CURRENT.id));
+    const reply = val('e_reply').trim();
+    const patch = { firm_reply: reply || null, replied_at: reply ? new Date().toISOString() : null };
+    if (!SESSION.demo && sb) {
+      const { error } = await sb.from('reviews').update(patch).eq('id', CURRENT.id);
+      if (error) return toast('Rejected by the database: ' + error.message);
+    }
+    Object.assign(r, patch);
+    notePending('Review reply: ' + (firmOf(r).name || ''));
+    closeDrawer(); go('reviews'); toast(reply ? 'Reply saved' : 'Reply removed');
     return;
   }
 
@@ -1340,6 +1425,10 @@ window.saveDrawer = async function () {
   f.phone = val('e_phone'); f.whatsapp = val('e_whatsapp') || f.phone;
   f.email = val('e_email'); f.website = val('e_website');
   if (!f.phone && !f.whatsapp) return toast('A listing nobody can call is worse than no listing');
+  const L = readListingFields();
+  if (!L.categories.length) return toast('Tick at least one category, or nobody can find them');
+  f.categories = L.categories; f.services = L.services; f.projects = L.projects;
+  f.logo = L.logo; f.catalogue = L.catalogue;
 
   if (can('firms.tier')) {
     f.tier = val('e_tier'); f.status = val('e_status');
@@ -1349,15 +1438,23 @@ window.saveDrawer = async function () {
     f.status = 'pending'; f.tier = 'free'; f.verified = false;
   }
 
+  /* The editor works on a copy. Write it back into the list, or the
+     table keeps showing the old values and the save looks as if it failed. */
+  const writeBack = extra => {
+    const i = DB.firms.findIndex(x => String(x.id) === String(CURRENT.id));
+    if (i >= 0) DB.firms[i] = Object.assign({}, DB.firms[i], f, extra || {});
+  };
+
   if (SESSION.demo) {
-    if (!CURRENT.id) { f.id = 'demo-' + Date.now(); DB.firms.unshift(f); }
+    if (!CURRENT.id) { f.id = 'demo-' + Date.now(); DB.firms.unshift(f); } else writeBack();
     closeDrawer(); paintFirms(); buildNav(); toast('Saved in demo only \u2014 nothing was written');
     return;
   }
 
   const payload = {
     name:f.name, slug:f.slug, district:f.district, area:f.area, description:f.description,
-    phone:f.phone, whatsapp:f.whatsapp, email:f.email, website:f.website
+    phone:f.phone, whatsapp:f.whatsapp, email:f.email, website:f.website,
+    logo_url: f.logo || null, catalogue_url: f.catalogue || null
   };
   if (can('firms.tier')) Object.assign(payload, {
     tier:f.tier, status:f.status, verified:f.verified, verified_at:f.verified_at });
@@ -1367,30 +1464,244 @@ window.saveDrawer = async function () {
                        : sb.from('firms').insert(payload).select().single();
   const { data, error } = await q;
   if (error) return toast('Rejected by the database: ' + error.message);
-  if (!CURRENT.id && data) DB.firms.unshift(data);
+  {
+    const fid = CURRENT.id || (data && data.id);
+    const e2 = fid ? await saveListingChildren(fid, L) : null;
+    if (e2) return toast('Saved the firm, but categories or services failed: ' + e2.message);
+  }
+  if (!CURRENT.id && data) DB.firms.unshift(Object.assign({}, data, {
+    categories: f.categories, services: f.services, projects: f.projects }));
+  else writeBack();
   notePending('Firm: ' + f.name); closeDrawer(); paintFirms(); buildNav(); toast('Saved');
 };
 
 /* ── Staff (admin only) ── */
 RENDER.staff = el => {
+  const me = SESSION.user && SESSION.user.id;
+  const admins = DB.staff.filter(x => x.role === 'admin').length;
   el.innerHTML =
+    '<div class="panel"><h3>Invite someone</h3>' +
+      '<p class="rowsub" style="margin-bottom:14px">They get an email with a link to set their own ' +
+      'password \u2014 nobody has to send a password over WhatsApp.</p>' +
+      '<div class="f3">' +
+        '<div class="f"><label for="stName">Name</label><input id="stName" type="text" autocomplete="off"></div>' +
+        '<div class="f"><label for="stEmail">Email</label><input id="stEmail" type="email" autocomplete="off"></div>' +
+        '<div class="f"><label for="stRole">Role</label><select id="stRole">' +
+          Object.keys(ROLES).map(r => '<option value="' + r + '"' + (r === 'editor' ? ' selected' : '') + '>' +
+            esc(ROLES[r].label) + '</option>').join('') + '</select></div>' +
+      '</div>' +
+      '<div class="hint" id="stRoleHint">' + esc(ROLES.editor.blurb) + '</div>' +
+      '<div style="margin-top:12px"><button class="btn btn-p" id="stInvite" onclick="inviteStaff()">Send invitation</button></div>' +
+      '<div id="stResult"></div>' +
+    '</div>' +
+
+    '<div class="panel"><h3>The team <span class="rowsub">\u00b7 ' + DB.staff.length + '</span></h3>' +
+    '<div class="tscroll"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Can do</th><th></th></tr></thead><tbody>' +
+    DB.staff.map(x => {
+      const self = x.user_id && x.user_id === me;
+      const lastAdmin = x.role === 'admin' && admins <= 1;
+      return '<tr><td><span class="nm">' + esc(x.name || '\u2014') + '</span>' +
+          (self ? '<span class="sub">you</span>' : '') + '</td>' +
+        '<td class="mono sub">' + esc(x.email || '') + '</td>' +
+        '<td>' + (self || lastAdmin
+          ? '<span class="role role-' + esc(x.role) + '">' + esc(ROLES[x.role] ? ROLES[x.role].label : x.role) + '</span>'
+          : '<select onchange="setStaffRole(\'' + esc(x.user_id) + '\',this.value)" aria-label="Role for ' + esc(x.name || '') + '">' +
+            Object.keys(ROLES).map(r => '<option value="' + r + '"' + (r === x.role ? ' selected' : '') + '>' +
+              esc(ROLES[r].label) + '</option>').join('') + '</select>') + '</td>' +
+        '<td class="rowsub">' + esc(ROLES[x.role] ? ROLES[x.role].blurb : '') + '</td>' +
+        '<td class="act">' + (self || lastAdmin
+          ? '<span class="rowsub">' + (self ? 'cannot remove yourself' : 'last administrator') + '</span>'
+          : '<button class="btn btn-d" onclick="removeStaff(\'' + esc(x.user_id) + '\')">Remove</button>') +
+        '</td></tr>';
+    }).join('') +
+    '</tbody></table></div></div>' +
+
     '<div class="note"><b>Roles are enforced by the database, not this menu.</b>' +
-    'Hiding a button stops an honest mistake. The policies and the guard trigger in ' +
-    '<span class="mono">schema.sql</span> stop everything else \u2014 a content officer cannot set a ' +
-    'tier even by calling the API directly.</div>' +
-    '<div class="tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Can do</th></tr></thead><tbody>' +
-    DB.staff.map(s =>
-      '<tr><td class="rowname">' + esc(s.name || '\u2014') + '</td>' +
-      '<td class="rowsub mono">' + esc(s.email || '') + '</td>' +
-      '<td><span class="role role-' + esc(s.role) + '">' + esc(ROLES[s.role] ? ROLES[s.role].label : s.role) + '</span></td>' +
-      '<td class="rowsub">' + esc(ROLES[s.role] ? ROLES[s.role].blurb : '') + '</td></tr>').join('') +
-    '</tbody></table></div>' +
-    '<div class="note" style="margin-top:18px"><b>Adding somebody.</b>' +
-    'Supabase dashboard \u2192 Authentication \u2192 Users \u2192 Add user. Copy their UUID, then run:<br>' +
-    '<span class="mono">insert into staff (user_id, role, name) values (\'their-uuid\', \'editor\', \'Their Name\');</span>' +
-    '<br><br>Roles: <span class="mono">admin</span>, <span class="mono">editor</span>, <span class="mono">agent</span>.</div>';
+    'Hiding a button stops an honest mistake; the policies stop everything else. ' +
+    'You cannot remove yourself or the last administrator, so the portal can never be locked out.</div>';
+
+  document.getElementById('stRole').onchange = e =>
+    document.getElementById('stRoleHint').textContent = ROLES[e.target.value].blurb;
 };
 
+async function inviteStaff() {
+  const name = val('stName'), email = val('stEmail').toLowerCase(), role = val('stRole');
+  const out = document.getElementById('stResult');
+  const say = (bad, html) => out.innerHTML = '<div class="note' + (bad ? ' red' : '') +
+    '" style="margin-top:14px">' + html + '</div>';
+  if (!name) return say(true, '<b>Add their name.</b>');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return say(true, '<b>That email address does not look right.</b>');
+  if (DB.staff.some(x => (x.email || '').toLowerCase() === email))
+    return say(true, '<b>' + esc(email) + ' is already on the team.</b>Change their role in the table below.');
+
+  if (SESSION.demo || !sb) {
+    DB.staff.push({ user_id: 'demo-' + Date.now(), name, email, role });
+    go('staff');
+    return say(false, '<b>Demo only.</b>Nothing was sent. On the live portal this emails them an invitation.');
+  }
+  const btn = document.getElementById('stInvite');
+  btn.disabled = true; btn.textContent = 'Sending\u2026';
+  try {
+    const token = (await sb.auth.getSession()).data.session?.access_token;
+    const res = await fetch('/api/staff', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ name, email, role }) });
+    const data = await res.json().catch(() => ({}));
+    if (!data.ok) return say(true, '<b>Not sent.</b>' + esc(data.message || data.error || 'Unknown error'));
+    DB.staff.push({ user_id: data.userId, name, email, role });
+    go('staff');
+    toast(data.message);
+  } catch (e) {
+    say(true, '<b>Could not reach the server.</b>' + esc(e.message));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send invitation'; }
+  }
+}
+
+async function setStaffRole(userId, role) {
+  const x = DB.staff.find(s => s.user_id === userId);
+  if (!x) return;
+  if (x.role === 'admin' && role !== 'admin' && DB.staff.filter(s => s.role === 'admin').length <= 1)
+    { toast('That is the last administrator'); go('staff'); return; }
+  if (!SESSION.demo && sb) {
+    const { error } = await sb.from('staff').update({ role }).eq('user_id', userId);
+    if (error) { toast('Rejected by the database: ' + error.message); go('staff'); return; }
+  }
+  x.role = role; go('staff');
+  toast((x.name || 'They') + ' is now ' + ROLES[role].label + '. It applies at their next sign-in.');
+}
+
+async function removeStaff(userId) {
+  const x = DB.staff.find(s => s.user_id === userId);
+  if (!x) return;
+  if (!confirm('Remove ' + (x.name || x.email) + ' from the portal? Their login remains, but they will see nothing.')) return;
+  if (!SESSION.demo && sb) {
+    const { error } = await sb.from('staff').delete().eq('user_id', userId);
+    if (error) return toast('Rejected by the database: ' + error.message);
+  }
+  DB.staff = DB.staff.filter(s => s.user_id !== userId);
+  go('staff'); buildNav();
+  toast('Removed. They lose access at once.');
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTING CONTENT — categories, services, projects, logo, catalogue
+   Each shows the allowance for the firm's current tier, live, so staff
+   see at once what will appear on the site and what is held back until
+   the firm upgrades. Content beyond the allowance is kept, not deleted:
+   when the firm upgrades, it simply starts showing.
+   ═══════════════════════════════════════════════════════════════ */
+function capsOfTier(slug) {
+  const t = ((DB.taxonomy || {}).tiers || []).find(x => x.slug === (slug || 'free'));
+  return (t && t.caps) || {};
+}
+function allowanceNote(id, used, max, noun) {
+  const over = used > max;
+  return '<div class="hint allowance' + (over ? ' over' : '') + '" id="' + id + '">' +
+    (max === 0 ? 'Not included on this tier \u2014 kept, and shown if they upgrade.'
+      : used + ' of ' + max + ' ' + noun + ' allowed on this tier' +
+        (over ? ' \u2014 the first ' + max + ' show; the rest appear if they upgrade.' : '.')) + '</div>';
+}
+
+function listingFieldsets(f) {
+  const c = capsOfTier(f.tier);
+  const cats = (DB.taxonomy.categories || []);
+  const mine = new Set(f.categories || []);
+  const services = (f.services || []).join('\n');
+  const projects = f.projects || [];
+  return '<fieldset><legend>Categories</legend>' +
+      '<div class="catgrid" id="e_cats">' + cats.map(k =>
+        '<label class="catopt"><input type="checkbox" value="' + esc(k.slug) + '"' +
+        (mine.has(k.slug) ? ' checked' : '') + ' onchange="refreshAllowances()"> ' + esc(k.name) + '</label>').join('') +
+      '</div>' + allowanceNote('al_cats', mine.size, Number(c.categories || 1), 'categories') +
+      '<div class="hint">The first one ticked, in list order, is their main category.</div>' +
+    '</fieldset>' +
+    '<fieldset><legend>Services</legend>' +
+      '<div class="f"><label for="e_services">One per line</label>' +
+      '<textarea id="e_services" rows="5" oninput="refreshAllowances()" ' +
+        'placeholder="Structural design\nSite supervision\nBills of quantities">' + esc(services) + '</textarea></div>' +
+      allowanceNote('al_services', (f.services || []).length, Number(c.services || 0), 'services') +
+    '</fieldset>' +
+    '<fieldset><legend>Projects</legend>' +
+      '<div id="e_projects">' + projects.map(projectRow).join('') + '</div>' +
+      '<button type="button" class="btn btn-sm" onclick="addProjectRow()">Add a project</button>' +
+      allowanceNote('al_projects', projects.length, Number(c.projects || 0), 'projects') +
+    '</fieldset>' +
+    '<fieldset><legend>Logo and catalogue</legend>' +
+      fld('e_logo', 'Logo URL', f.logo || f.logo_url || '',
+        'Upload it in the Media library and copy the URL. ' + (c.logo ? 'Shown on this tier.' : 'Not shown on this tier \u2014 initials appear instead.')) +
+      fld('e_catalogue', 'Catalogue URL (PDF)', f.catalogue || f.catalogue_url || '',
+        c.catalogue ? 'A Download catalogue button appears on their profile.' : 'Not included on this tier.') +
+    '</fieldset>';
+}
+
+function projectRow(p) {
+  p = p || {};
+  return '<div class="rep" data-proj><div class="f3">' +
+    '<div class="f"><input type="text" data-k="name" placeholder="Project" value="' + esc(p.name || '') + '"></div>' +
+    '<div class="f"><input type="text" data-k="value" placeholder="Value, e.g. UGX 2.4B" value="' + esc(p.value || '') + '"></div>' +
+    '<div class="f" style="display:flex;gap:6px"><input type="text" data-k="year" placeholder="Year" value="' + esc(p.year || '') + '">' +
+    '<button type="button" class="btn btn-sm btn-d" onclick="this.closest(\'[data-proj]\').remove();refreshAllowances()">\u00d7</button></div>' +
+    '</div></div>';
+}
+function addProjectRow() {
+  document.getElementById('e_projects').insertAdjacentHTML('beforeend', projectRow());
+  refreshAllowances();
+}
+
+/* Recount against whichever tier is selected right now, so changing the
+   tier dropdown shows immediately what the firm gains or loses. */
+function refreshAllowances() {
+  const tierSel = document.getElementById('e_tier');
+  const tier = tierSel ? tierSel.value : (CURRENT && CURRENT.item && CURRENT.item.tier);
+  const c = capsOfTier(tier);
+  const nCats = document.querySelectorAll('#e_cats input:checked').length;
+  const nServ = (val('e_services') || '').split('\n').map(x => x.trim()).filter(Boolean).length;
+  const nProj = [...document.querySelectorAll('#e_projects [data-proj]')]
+    .filter(r => r.querySelector('[data-k=name]').value.trim()).length;
+  const swap = (id, html) => { const el = document.getElementById(id); if (el) el.outerHTML = html; };
+  swap('al_cats', allowanceNote('al_cats', nCats, Number(c.categories || 1), 'categories'));
+  swap('al_services', allowanceNote('al_services', nServ, Number(c.services || 0), 'services'));
+  swap('al_projects', allowanceNote('al_projects', nProj, Number(c.projects || 0), 'projects'));
+}
+
+function readListingFields() {
+  return {
+    categories: [...document.querySelectorAll('#e_cats input:checked')].map(i => i.value),
+    services: (val('e_services') || '').split('\n').map(x => x.trim()).filter(Boolean),
+    projects: [...document.querySelectorAll('#e_projects [data-proj]')].map(r => ({
+      name: r.querySelector('[data-k=name]').value.trim(),
+      value: r.querySelector('[data-k=value]').value.trim(),
+      year: r.querySelector('[data-k=year]').value.trim()
+    })).filter(p => p.name),
+    logo: val('e_logo'), catalogue: val('e_catalogue')
+  };
+}
+
+/* Write the child tables: replace this firm's rows with what is on screen. */
+async function saveListingChildren(firmId, L) {
+  const catIds = (DB.taxonomy.categories || [])
+    .filter(k => L.categories.includes(k.slug)).map(k => k.id).filter(Boolean);
+  const steps = [
+    sb.from('firm_categories').delete().eq('firm_id', firmId),
+    sb.from('firm_services').delete().eq('firm_id', firmId),
+    sb.from('firm_projects').delete().eq('firm_id', firmId)
+  ];
+  for (const st of steps) { const { error } = await st; if (error) return error; }
+  const ins = [];
+  if (catIds.length) ins.push(sb.from('firm_categories').insert(
+    L.categories.map(slug => (DB.taxonomy.categories.find(k => k.slug === slug) || {}).id)
+      .filter(Boolean).map(id => ({ firm_id: firmId, category_id: id }))));
+  if (L.services.length) ins.push(sb.from('firm_services').insert(
+    L.services.map((label, i) => ({ firm_id: firmId, label, sort: i }))));
+  if (L.projects.length) ins.push(sb.from('firm_projects').insert(
+    L.projects.map(p => ({ firm_id: firmId, name: p.name, value: p.value || null,
+      year: parseInt(p.year, 10) || null }))));
+  for (const q of ins) { const { error } = await q; if (error) return error; }
+  return null;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    IMAGE PIPELINE
@@ -2350,9 +2661,8 @@ const LEGAL_DOCS = [
 
 RENDER.legal = el => {
   el.innerHTML =
-    '<div class="note"><b>Have these read by a Ugandan advocate before launch.</b>' +
-    'What is published now is a careful draft, not legal advice, and it has not been reviewed. ' +
-    'Editing here changes the live pages at the next publish.</div>' +
+    '<div class="note"><b>Editing here changes the live pages at the next publish.</b>' +
+    'Write in plain sentences, and set the effective date whenever the substance changes.</div>' +
     LEGAL_DOCS.map(d => {
       const doc = (DB.legal || {})[d.key];
       return '<div class="filecard">' +
@@ -2509,6 +2819,104 @@ async function publishSite() {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Publish'; }
   }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   REVIEWS — moderation
+   The standard is simple and it is printed on the site: negative
+   reviews are published; abusive, fake or off-topic ones are not.
+   Disliking a review is not a reason to reject it, and a firm paying
+   us is never a reason either.
+   ═══════════════════════════════════════════════════════════════ */
+const pendingReviews = () => (DB.reviews || []).filter(r => r.status === 'pending');
+let REV_TAB = 'pending';
+
+function firmOf(r) { return DB.firms.find(f => String(f.id) === String(r.firm_id)) || r.firms || {}; }
+const starText = n => '\u2605'.repeat(n) + '\u2606'.repeat(5 - n);
+
+RENDER.reviews = el => {
+  const all = DB.reviews || [];
+  const list = all.filter(r => r.status === (REV_TAB === 'pending' ? 'pending' : REV_TAB));
+  const count = k => all.filter(r => r.status === k).length;
+  el.innerHTML =
+    '<div class="note"><b>Publish negative reviews. Reject only abusive, fake or off-topic ones.</b>' +
+    'That rule is printed under every review on the site, and it is what makes the ratings worth ' +
+    'reading. A firm paying us is never a reason to reject a review.</div>' +
+    '<div class="toolbar"><div class="seg">' +
+      [['pending', 'Waiting'], ['published', 'Published'], ['rejected', 'Rejected']].map(([k, l]) =>
+        '<button class="' + (REV_TAB === k ? 'on' : '') + '" onclick="revTab(\'' + k + '\')">' +
+        l + ' (' + count(k) + ')</button>').join('') +
+    '</div></div>' +
+    (list.length ? list.map(r => {
+      const f = firmOf(r);
+      const replies = capsOfTier(f.tier).reviewReply;
+      return '<div class="panel rev-card">' +
+        '<div class="rev-top"><div><span class="nm">' + esc(f.name || 'Unknown firm') + '</span> ' +
+          '<span class="pill ' + ((f.tier || 'free') === 'free' ? 'p-off' : 'p-new') + '">' + esc(f.tier || 'free') + '</span></div>' +
+          '<span class="rev-stars" aria-label="' + r.rating + ' of 5">' + starText(r.rating) + '</span></div>' +
+        '<p class="rev-body">' + esc(r.body) + '</p>' +
+        '<div class="rowsub">' + esc(r.author_name) + ' \u00b7 <span class="mono">' + esc(r.author_email || '') + '</span>' +
+          (r.was_customer ? ' \u00b7 says they were a customer' : '') +
+          ' \u00b7 ' + esc(String(r.created_at || '').slice(0, 10)) + '</div>' +
+        (r.status === 'rejected' && r.reject_reason ? '<div class="rowsub" style="margin-top:6px">Rejected: ' + esc(r.reject_reason) + '</div>' : '') +
+        (r.firm_reply ? '<div class="rev-replybox"><b>Reply</b>' + (replies ? '' : ' <span class="rowsub">(not shown \u2014 their tier does not include replies)</span>') +
+          '<p>' + esc(r.firm_reply) + '</p></div>' : '') +
+        '<div class="act" style="justify-content:flex-start;margin-top:12px">' +
+          (r.status !== 'published' ? '<button class="btn btn-p" onclick="moderateReview(\'' + esc(r.id) + '\',\'published\')">Publish</button>' : '') +
+          (r.status !== 'rejected' ? '<button class="btn btn-d" onclick="rejectReview(\'' + esc(r.id) + '\')">Reject</button>' : '') +
+          (r.status === 'published' ? '<button class="btn" onclick="replyReview(\'' + esc(r.id) + '\')">' +
+            (r.firm_reply ? 'Edit reply' : 'Add the firm\u2019s reply') + '</button>' : '') +
+        '</div></div>';
+    }).join('')
+    : '<div class="empty"><b>' + (REV_TAB === 'pending' ? 'Nothing waiting' : 'None yet') + '</b>' +
+      (REV_TAB === 'pending' ? 'New reviews appear here the moment they are written.' : '') + '</div>');
+};
+
+function revTab(k) { REV_TAB = k; go('reviews'); }
+
+async function moderateReview(id, status, extra) {
+  const r = (DB.reviews || []).find(x => String(x.id) === String(id));
+  if (!r) return;
+  const patch = Object.assign({ status, moderated_by: SESSION.user && SESSION.user.id }, extra || {});
+  if (!SESSION.demo && sb) {
+    const { error } = await sb.from('reviews').update(patch).eq('id', id);
+    if (error) return toast('Rejected by the database: ' + error.message);
+  }
+  Object.assign(r, patch);
+  notePending('Review ' + status + ': ' + (firmOf(r).name || ''));
+  go('reviews'); buildNav();
+  toast(status === 'published' ? 'Published. It appears on the site at the next publish.' : 'Rejected and noted.');
+}
+
+function rejectReview(id) {
+  CURRENT = { kind: 'revreject', id };
+  openDrawer('Reject this review',
+    '<div class="note"><b>Only for abusive, fake or off-topic reviews.</b>' +
+    'A harsh but genuine review should be published. Record why, so the decision can be explained ' +
+    'if the reviewer asks.</div>' +
+    sel('e_reason', 'Reason', 'abusive', [
+      ['abusive', 'Abusive, threatening or discriminatory'],
+      ['fake', 'Appears fake, or written by the firm or a competitor'],
+      ['offtopic', 'Not about working with this firm'],
+      ['personal', 'Contains someone\u2019s personal details'],
+      ['duplicate', 'Duplicate of another review']]) +
+    area_('e_note', 'Note (optional)', ''));
+}
+
+function replyReview(id) {
+  const r = (DB.reviews || []).find(x => String(x.id) === String(id));
+  if (!r) return;
+  const f = firmOf(r);
+  CURRENT = { kind: 'revreply', id };
+  openDrawer('Reply from ' + (f.name || 'the firm'),
+    (capsOfTier(f.tier).reviewReply ? ''
+      : '<div class="note"><b>Their tier does not include public replies.</b>' +
+        'You can save it now; it appears automatically if they move to Verified or above.</div>') +
+    '<div class="rev-quote">' + esc(starText(r.rating)) + ' \u2014 ' + esc(r.body) + '</div>' +
+    area_('e_reply', 'The firm\u2019s reply, in their words', r.firm_reply || '') +
+    '<div class="hint">Enter it as the firm sent it to you. Keep it factual; a reply that argues ' +
+    'with the reviewer usually does the firm more harm than the review.</div>');
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2825,6 +3233,7 @@ const CAP_FIELDS = [
   ['leadAlerts',       'Lead alerts',                 'bool',    'Operational \u2014 you must actually send them.'],
   ['monthlyReport',    'Monthly performance report',  'bool',    'Operational \u2014 generated from Analytics.'],
   ['catalogue',        'Catalogue download',          'bool',    ''],
+  ['reviewReply',      'Reply publicly to reviews',   'bool',    'Every firm can be reviewed on any tier. This decides whether their reply is shown.'],
 ];
 
 RENDER.tiers = el => {
@@ -2911,6 +3320,11 @@ RENDER.ads = el => {
   const keys = Object.keys(slots);
 
   el.innerHTML =
+    ((DB.ads && DB.ads.ads || []).some(a => /-sample-\d+$/.test(a.id || ''))
+      ? '<div class="note"><b>Sample campaigns are hidden from visitors.</b>They exist so you can ' +
+        'preview a slot \u2014 add <span class="mono">?preview</span> to the site address to see them. ' +
+        'Run <span class="mono">supabase/REMOVE-SAMPLES.sql</span> when you no longer want them listed here.</div>'
+      : '') +
     '<div class="note"><b>Unsold slots sell themselves.</b>' +
     'A slot with no running campaign shows an "advertisement slot available" placeholder with ' +
     'your sales email, so the inventory is never simply blank.</div>' +
@@ -2930,6 +3344,8 @@ RENDER.ads = el => {
           : (ad.start && ad.start > today) ? '<span class="pill p-new">scheduled</span>'
           : '<span class="pill p-wait">expired</span>';
       }
+      const sample = ad && (/-sample-\d+$/.test(ad.id || '') || /^sample /i.test(ad.advertiser || ''));
+      if (sample) state = '<span class="pill p-off" title="Sample campaigns never reach visitors">sample \u2014 hidden</span>';
       return '<tr><td><span class="nm">' + esc(meta.label || k) + '</span>' +
         '<span class="sub mono">' + esc(k) + (meta.size ? ' \u00b7 ' + esc(meta.size) : '') + '</span></td>' +
         '<td>' + (ad ? esc(ad.advertiser) : '<span class="sub">\u2014</span>') + '</td>' +
@@ -3032,9 +3448,12 @@ async function fetchEvents(days) {
       for (let k = 0; k < views; k++) {
         const d = new Date(Date.now() - seededN(i * 97 + k, 0, days - 1) * 86400000);
         out.push({ firm_id: f.id, kind: 'view', at: d.toISOString() });
-        if (seededN(i * 13 + k, 0, 100) < 20)
-          out.push({ firm_id: f.id, at: d.toISOString(),
-            kind: ['contact_whatsapp', 'contact_phone', 'contact_email'][k % 3] });
+        if (seededN(i * 13 + k, 0, 100) < 20) {
+          /* Only the contact methods this firm's tier actually shows */
+          const kinds = ['contact_phone', 'contact_email']
+            .concat(capsOfTier(f.tier).whatsapp ? ['contact_whatsapp'] : []);
+          out.push({ firm_id: f.id, at: d.toISOString(), kind: kinds[k % kinds.length] });
+        }
       }
     });
     return out;
@@ -3168,6 +3587,16 @@ function paintAnalytics(el) {
           'Nothing matches this period and filter.</div></td></tr>') +
       '</tbody></table></div></div>' +
 
+    '<div class="panel"><h3>Monthly reports owed <span class="rowsub">\u00b7 tiers that include one</span></h3>' +
+      (reportsDue().length
+        ? '<div class="tscroll"><table><tbody>' + reportsDue().map(f =>
+            '<tr><td><span class="nm">' + esc(f.name) + '</span></td>' +
+            '<td><span class="pill p-new">' + esc(f.tier) + '</span></td>' +
+            '<td class="mono sub">' + esc(f.email || 'no email on file') + '</td>' +
+            '<td class="act"><button class="btn" onclick="firmReport(\'' + esc(f.slug) + '\')">Open report</button></td></tr>').join('') +
+          '</tbody></table></div>'
+        : '<p class="rowsub">No firm on a tier that includes monthly reports yet.</p>') +
+    '</div>' +
     '<div class="panel"><h3>Site-wide traffic</h3><div class="an-links">' +
       gaLink('https://analytics.google.com/', 'Google Analytics', 'Pages, sources and live visitors.') +
       gaLink('https://search.google.com/search-console', 'Search Console', 'What people typed to find you.') +
@@ -3263,18 +3692,76 @@ function seededN(n, lo, hi) {
   return Math.floor(lo + (x - Math.floor(x)) * (hi - lo + 1));
 }
 
-/* The printable one-pager a field agent puts in front of an owner. */
+/* ═══════════════════════════════════════════════════════════════
+   MONTHLY PERFORMANCE REPORT
+   The report a Premium or Platinum firm is promised, and the one-page
+   argument a field agent puts in front of a Free firm. It reports what
+   happened and never predicts what will — that is why people believe it.
+   ═══════════════════════════════════════════════════════════════ */
 function firmReport(slug) {
   const f = DB.firms.find(x => x.slug === slug);
   if (!f) return;
-  openDrawer('Performance report \u2014 ' + f.name,
-    '<div class="note"><b>Print this and hand it over.</b>' +
-    'It reports what happened; it does not promise what will. That distinction is why people believe it.</div>' +
-    '<p class="rowsub">Report generation is wired to listing_events. Once the site has 30 days of ' +
-    'traffic this renders the firm\u2019s own views, taps and busiest days, ready to print.</p>' +
-    '<div class="f"><label>Share this listing</label>' +
-    '<input type="text" readonly value="https://buildlist.com/firms/' + esc(slug) + '" onclick="this.select()"></div>');
-  document.querySelector('.drawer-foot').style.display = 'none';
+  const since = Date.now() - AN.days * 86400000;
+  const ev = (AN.events || []).filter(e => String(e.firm_id) === String(f.id) &&
+                                           (!e.at || new Date(e.at).getTime() >= since));
+  const views = ev.filter(e => e.kind === 'view').length;
+  const by = k => ev.filter(e => e.kind === k).length;
+  const wa = by('contact_whatsapp'), ph = by('contact_phone'), em = by('contact_email');
+  const contacts = wa + ph + em;
+  const days = [];
+  for (let i = AN.days - 1; i >= 0; i--) days.push({ d: new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), v: 0, c: 0 });
+  const ix = new Map(days.map((x, i) => [x.d, i]));
+  ev.forEach(e => { const i = ix.get(String(e.at || '').slice(0, 10)); if (i == null) return;
+    if (e.kind === 'view') days[i].v++; else if (String(e.kind).startsWith('contact')) days[i].c++; });
+  const best = days.slice().sort((a, b) => b.v - a.v)[0];
+  const caps = capsOfTier(f.tier);
+  const period = new Date(since).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' \u2013 ' +
+                 new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(f.name)} \u2014 performance report</title>
+  <style>
+    body{font:14px/1.55 system-ui,Segoe UI,sans-serif;color:#1d2521;max-width:760px;margin:30px auto;padding:0 24px}
+    h1{font-size:22px;margin:0 0 2px}.sub{color:#6b776f;margin:0 0 22px}
+    .brand{font-weight:800;color:#1A3C2A;font-size:15px}.brand span{color:#9A7A0F}
+    .k{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#dde3de;border:1px solid #dde3de;border-radius:8px;overflow:hidden;margin:18px 0}
+    .k div{background:#fff;padding:14px}.k b{display:block;font-size:24px}.k small{color:#6b776f}
+    svg{width:100%;height:auto}.bv{fill:#9DB9AC}.bc{fill:#C49A16}.tk{font-size:10px;fill:#7A857D}
+    table{width:100%;border-collapse:collapse;margin-top:8px}td{padding:7px 4px;border-bottom:1px solid #eef1ee}
+    .note{background:#F7F5EE;border-left:3px solid #9A7A0F;padding:10px 14px;margin-top:20px;font-size:13px}
+    @media print{.noprint{display:none}body{margin:0 auto}}
+  </style></head><body>
+  <div class="brand">BuildList<span>.com</span></div>
+  <h1>${esc(f.name)}</h1>
+  <p class="sub">Listing performance \u00b7 ${period} \u00b7 ${esc((f.tier || 'free').replace(/^./, c => c.toUpperCase()))} tier</p>
+  <div class="k">
+    <div><small>Profile views</small><b>${views}</b></div>
+    <div><small>Contact taps</small><b>${contacts}</b></div>
+    <div><small>Tap rate</small><b>${views ? Math.round(contacts / views * 100) : 0}%</b></div>
+    <div><small>Busiest day</small><b style="font-size:16px">${best && best.v ? new Date(best.d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '\u2014'}</b></div>
+  </div>
+  ${dayChart(days)}
+  <table>
+    <tr><td>WhatsApp taps</td><td style="text-align:right"><b>${wa}</b></td></tr>
+    <tr><td>Phone taps</td><td style="text-align:right"><b>${ph}</b></td></tr>
+    <tr><td>Email taps</td><td style="text-align:right"><b>${em}</b></td></tr>
+  </table>
+  ${(f.tier || 'free') === 'free' && contacts
+    ? `<div class="note"><b>${contacts} ${contacts === 1 ? 'person' : 'people'} tried to contact you this period.</b>
+       On the Free tier your listing shows a phone number only. A WhatsApp button, photographs and a
+       higher place in search are included from Starter upwards.</div>`
+    : `<div class="note">Figures are counted by BuildList.com from visits to your listing. They report what
+       happened and are not a forecast.</div>`}
+  <p class="noprint" style="margin-top:22px"><button onclick="print()">Print or save as PDF</button></p>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { toast('Allow pop-ups for the portal to open the report'); return; }
+  w.document.write(html); w.document.close();
+}
+
+/* Firms whose tier includes a monthly report, for the Analytics page. */
+function reportsDue() {
+  return DB.firms.filter(f => capsOfTier(f.tier).monthlyReport && (f.status || 'live') === 'live');
 }
 
 const EVENT_DOC = {
@@ -3296,6 +3783,8 @@ Object.assign(window, {
   submitCode, finishEnrolment, startEnrolment, afterMfa, mfaGate, MFA,
   reviewClaim, openClaims, publishSite, editLegal, insLegal, paintLegalPreview,
   setFeatured, moveFeatured, editTier, editNewsletter, CAP_FIELDS,
+  inviteStaff, setStaffRole, removeStaff, refreshAllowances, addProjectRow, capsOfTier,
+  revTab, moderateReview, rejectReview, replyReview, pendingReviews, reportsDue,
   notePending, pending, clearPending, paintPublish,
   editTender, editJob, savePrices, addPriceRow, delPriceRow, newSnapshot,
   todayStr, sel, dTo, editSpot, editAd, addPairRow, thisMonthStr,

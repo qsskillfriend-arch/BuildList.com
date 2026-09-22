@@ -724,10 +724,8 @@ a { text-decoration: none; color: inherit; }
 .legal-toc { background: var(--white); border: 1px solid var(--border);
   border-radius: var(--r-lg); padding: 20px 24px; margin-bottom: 28px; }
 .legal-toc a { display: block; padding: 4px 0; font-size: .88rem; }
-.legal-draft { background: var(--gold-pale); border: 1px solid rgba(196,154,22,.45);
   border-radius: var(--r-md); padding: 16px 20px; margin-bottom: 26px; font-size: .86rem;
   line-height: 1.65; color: #6B5308; }
-.legal-draft strong { display: block; margin-bottom: 4px; color: #4A3A05; }
 
 /* Segmented row of tender client-type filters. Scrolls sideways on a
    phone rather than wrapping into three ragged lines. */
@@ -1508,7 +1506,29 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   .stats-grid-adv, .key-stat-grid { grid-template-columns: 1fr; }
   .footer-bottom .container { flex-direction: column; align-items: flex-start; }
 }
+
+/* Reviews */
+.rev-summary { display:flex; align-items:center; gap:6px; font-size:.9rem; }
+.rev-dist { display:grid; gap:4px; max-width:340px; margin:0 0 16px; }
+.rev-dist div { display:grid; grid-template-columns:30px 1fr 26px; align-items:center; gap:8px; font-size:.74rem; color:var(--muted); }
+.rev-dist i { display:block; height:7px; background:var(--parchment-d); border-radius:4px; overflow:hidden; }
+.rev-dist b { display:block; height:100%; background:var(--gold); }
+.rev-dist em { font-style:normal; text-align:right; }
+.rev-badge { font-size:.62rem; font-weight:700; background:var(--green-soft); color:var(--forest);
+  padding:1px 7px; border-radius:9px; margin-left:6px; vertical-align:middle; }
+.rev-reply { margin:10px 0 0 18px; padding:10px 14px; border-left:3px solid var(--forest);
+  background:var(--parchment-d); border-radius:0 6px 6px 0; font-size:.82rem; }
+.rev-reply p { margin:4px 0 0; color:var(--slate); }
+.rev-policy { font-size:.74rem; color:var(--muted); margin-top:14px; line-height:1.55; }
+.star-pick { display:flex; align-items:center; gap:4px; }
+.star-pick button { background:none; border:none; font-size:1.9rem; line-height:1; color:#D8D4C6;
+  cursor:pointer; padding:2px; transition:color .12s, transform .12s; }
+.star-pick button.on { color:var(--gold); }
+.star-pick button:hover, .star-pick button:focus-visible { transform:scale(1.12); outline:none; }
+.star-label { font-size:.84rem; color:var(--muted); margin-left:8px; }
+.form-error { background:#FBECEC; color:#8A2A2A; border-radius:6px; padding:9px 12px; font-size:.84rem; margin-bottom:12px; }
 </style>
+<script src="site-config.js" onerror="window.BUILDLIST_CONFIG={}"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to main content</a>
@@ -2449,13 +2469,13 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
                onclick="track('listing_form_download',{format:'pdf'})">
               <span class="dl-btn-kind">PDF</span>
               <span class="dl-btn-main">Print-ready</span>
-              <span class="dl-btn-sub">One page &middot; 59KB</span>
+              <span class="dl-btn-sub">One page &middot; <span data-size="downloads/BuildList-Listing-Form.pdf">59KB</span></span>
             </a>
             <a class="dl-btn" href="downloads/BuildList-Listing-Form.docx" download
                onclick="track('listing_form_download',{format:'docx'})">
               <span class="dl-btn-kind">WORD</span>
               <span class="dl-btn-main">Editable</span>
-              <span class="dl-btn-sub">Change it first &middot; 19KB</span>
+              <span class="dl-btn-sub">Change it first &middot; <span data-size="downloads/BuildList-Listing-Form.docx">11KB</span></span>
             </a>
           </div>
           <ol class="dl-steps">
@@ -2546,8 +2566,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
           <div class="submit-sidebar-card" style="background:var(--gold-pale);border-color:rgba(196,154,22,.3)">
             <h4><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chat"></use></svg> Need Help?</h4>
             <p style="font-size:.82rem;color:var(--slate);margin-bottom:12px">Our team will help you set up your listing for maximum visibility.</p>
-            <a class="btn btn-forest btn-sm" style="width:100%;justify-content:center" href="tel:+256700000000" onclick="track('call_us',{})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-phone"></use></svg> Call: +256 700 000 000</a>
-            <a class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px" href="https://wa.me/256700000000?text=Hello%20BuildList.com%2C%20I%20would%20like%20help%20adding%20my%20firm." target="_blank" rel="noopener" onclick="track('whatsapp_us',{})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chat"></use></svg> WhatsApp Us</a>
+            <a class="btn btn-forest btn-sm" style="width:100%;justify-content:center" href="#" data-site-tel data-site-if="phone" onclick="track('call_us',{})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-phone"></use></svg> Call <span data-site="phone"></span></a>
+            <a class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:6px" href="#" data-site-wa data-site-if="whatsapp" target="_blank" rel="noopener" onclick="track('whatsapp_us',{})"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chat"></use></svg> WhatsApp Us</a>
           </div>
         <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:18px" data-ad="submit-sidebar"></div>
         <div class="ad-unit ad-rectangle ad-sponsored" style="margin-top:16px" data-ad="submit-sidebar-2"></div>
@@ -2675,8 +2695,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <h3 style="margin-bottom:16px;font-size:.95rem">Company Details</h3>
         <div style="display:flex;flex-direction:column;gap:11px;font-size:.85rem">
           <div style="display:flex;justify-content:space-between;gap:14px;padding-bottom:9px;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Legal entity</span><span style="font-weight:700;text-align:right">Sharplink Ventures (U) Limited</span></div>
-          <div style="display:flex;justify-content:space-between;gap:14px;padding-bottom:9px;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">URSB reg. no.</span><span style="font-weight:700">[insert]</span></div>
-          <div style="display:flex;justify-content:space-between;gap:14px;padding-bottom:9px;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">URA TIN</span><span style="font-weight:700">[insert]</span></div>
+          <div style="display:flex;justify-content:space-between;gap:14px;padding-bottom:9px;border-bottom:1px solid var(--border)" data-site-if="ursb"><span style="color:var(--muted)">URSB reg. no.</span><span style="font-weight:700" data-site="ursb"></span></div>
+          <div style="display:flex;justify-content:space-between;gap:14px;padding-bottom:9px;border-bottom:1px solid var(--border)" data-site-if="tin"><span style="color:var(--muted)">URA TIN</span><span style="font-weight:700" data-site="tin"></span></div>
           <div style="display:flex;justify-content:space-between;gap:14px;padding-bottom:9px;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Registered office</span><span style="font-weight:700;text-align:right">Kampala, Uganda</span></div>
           <div style="display:flex;justify-content:space-between;gap:14px"><span style="color:var(--muted)">Data protection</span><span style="font-weight:700;text-align:right">PDPO registered</span></div>
         </div>
@@ -2695,8 +2715,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <p style="color:rgba(255,255,255,.65)">For listing enquiries, advertising packages, partnership proposals, or media requests — we respond within one business day.</p>
         <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-mail"></use></svg> <span data-site="email">hello@buildlist.com</span></div>
-          <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-phone"></use></svg> <span data-site="phone">+256 700 000 000</span></div>
-          <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-pin"></use></svg> <span data-site="address">Plot 18, Kampala Road, Kampala</span></div>
+          <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem" data-site-if="phone"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-phone"></use></svg> <span data-site="phone"></span></div>
+          <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:.9rem" data-site-if="address"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-pin"></use></svg> <span data-site="address"></span></div>
         </div>
       </div>
       <form name="contact" onsubmit="return handleForm(event,'Message received. We reply within one business day.')" style="background:rgba(255,255,255,.08);border-radius:var(--r-md);padding:28px">
@@ -2737,11 +2757,10 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   <div class="container">
     <div class="legal">
       <p class="updated">Last updated: <span id="privacyUpdated">11 September 2026</span> &middot; Version 1.0</p>
-      <div class="legal-draft"><strong>Template — must be reviewed by a Ugandan advocate before you rely on it.</strong>This is a working draft written for BuildList.com’s actual operation, not a generic download. It is a sound starting point and will save you money at the lawyer’s office, but it is not legal advice and it has not been checked against current Ugandan case law. Have it reviewed, fill in the bracketed details, then delete this notice.</div>
       
       <p>BuildList.com is operated by <strong>Sharplink Ventures (U) Limited</strong>, a company registered in
-      Uganda (URSB registration number [insert], TIN [insert]), with its registered office at [insert address],
-      Kampala. In this policy "we" and "us" mean Sharplink Ventures (U) Limited.</p>
+      Uganda<span data-site-if="ursb">, URSB registration number <span data-site="ursb"></span></span><span data-site-if="tin">, TIN <span data-site="tin"></span></span><span data-site-if="address">, with its registered office at <span data-site="address"></span></span>.
+      In this policy "we" and "us" mean Sharplink Ventures (U) Limited.</p>
 
       <p>This policy explains what personal data we handle, why, and what you can require us to do about it. It is
       written to comply with the <strong>Data Protection and Privacy Act, 2019</strong> and the Data Protection and
@@ -2837,8 +2856,8 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
         <li><strong>Stop sending you the digest</strong> — every message carries an unsubscribe link.</li>
         <li><strong>Withdraw consent</strong> at any time, which for a listing means removal.</li>
       </ul>
-      <p>Contact <a href="mailto:hello@buildlist.com">hello@buildlist.com</a> or WhatsApp
-      <span data-site="phone">+256 700 000 000</span>. If you are not satisfied with our response you may complain to
+      <p>Contact <a href="mailto:hello@buildlist.com" data-site-mail>hello@buildlist.com</a><span data-site-if="phone"> or WhatsApp
+      <span data-site="phone"></span></span>. If you are not satisfied with our response you may complain to
       the <strong>Personal Data Protection Office</strong>, National Information Technology Authority – Uganda
       (NITA-U), Kampala.</p>
 
@@ -2858,9 +2877,9 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       businesses or subscribers, tell you directly.</p>
 
       <h2>11. Contact</h2>
-      <p>Sharplink Ventures (U) Limited &middot; [insert registered address], Kampala, Uganda<br>
-      <a href="mailto:hello@buildlist.com">hello@buildlist.com</a> &middot;
-      <span data-site="phone">+256 700 000 000</span></p>
+      <p>Sharplink Ventures (U) Limited<span data-site-if="address"> &middot; <span data-site="address"></span></span>, Uganda<br>
+      <a href="mailto:hello@buildlist.com" data-site-mail>hello@buildlist.com</a><span data-site-if="phone"> &middot;
+      <span data-site="phone"></span></span></p>
 
     </div>
   </div>
@@ -2880,7 +2899,6 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
   <div class="container">
     <div class="legal">
       <p class="updated">Last updated: <span id="termsUpdated">11 September 2026</span> &middot; Version 1.0</p>
-      <div class="legal-draft"><strong>Template — must be reviewed by a Ugandan advocate before you rely on it.</strong>This is a working draft written for BuildList.com’s actual operation, not a generic download. It is a sound starting point and will save you money at the lawyer’s office, but it is not legal advice and it has not been checked against current Ugandan case law. Have it reviewed, fill in the bracketed details, then delete this notice.</div>
       
       <p>These terms govern your use of BuildList.com, operated by <strong>Sharplink Ventures (U) Limited</strong>
       ("we", "us"). By using the site you accept them. If you do not accept them, do not use the site.</p>
@@ -2978,7 +2996,7 @@ button, .nav-link, .mobile-nav-link, .footer-col a, .header-top a { font: inheri
       jurisdiction.</p>
 
       <h2>12. Contact</h2>
-      <p>Sharplink Ventures (U) Limited &middot; [insert registered address], Kampala, Uganda<br>
+      <p>Sharplink Ventures (U) Limited<span data-site-if="address"> &middot; <span data-site="address"></span></span>, Uganda<br>
       <a href="mailto:hello@buildlist.com">hello@buildlist.com</a></p>
 
     </div>
@@ -3091,16 +3109,22 @@ const SITE = {
   name:       'BuildList.com',
   owner:      'Sharplink Ventures (U) Limited',
   domain:     'buildlist.com',
-  email:      'hello@buildlist.com',
-  adsEmail:   'advertising@buildlist.com',
-  phone:      '+256 700 000 000',
-  address:    'Plot 18, Kampala Road, Kampala',
+  /* Company details come from the host's environment variables through
+     site-config.js. Anything not set is hidden on the page rather than
+     shown as a placeholder or an invented value. */
+  email:      (window.BUILDLIST_CONFIG || {}).email    || 'hello@buildlist.com',
+  adsEmail:   (window.BUILDLIST_CONFIG || {}).adsEmail || 'advertising@buildlist.com',
+  phone:      (window.BUILDLIST_CONFIG || {}).phone    || '',
+  whatsapp:   (window.BUILDLIST_CONFIG || {}).whatsapp || '',
+  address:    (window.BUILDLIST_CONFIG || {}).address  || '',
+  ursb:       (window.BUILDLIST_CONFIG || {}).ursb     || '',
+  tin:        (window.BUILDLIST_CONFIG || {}).tin      || '',
 
   // Google Analytics 4. Paste your Measurement ID (Admin → Data streams
   // → Web → "G-XXXXXXXXXX"). Leave blank and no tag loads at all — no
   // silent tracking, no cookie banner needed for an empty string.
   analytics: {
-    measurementId: '',       // e.g. 'G-ABC1234567'
+    measurementId: (window.BUILDLIST_CONFIG || {}).gaMeasurementId || '',  // set via GA_MEASUREMENT_ID
     anonymizeIp: true,
     debug: false             // true = log every event to the console
   },
@@ -3242,7 +3266,9 @@ function filterFirms(items, f) {
       ].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
-    if (f.categories.length && !f.categories.some(c => item.categories.includes(c))) return false;
+    /* A firm is filed under as many categories as its tier allows, so
+       filtering uses the capped list, not everything it asked for. */
+    if (f.categories.length && !f.categories.some(c => capCats(item).includes(c))) return false;
     if (f.districts.length  && !f.districts.includes(item.district)) return false;
     if (f.tiers.length      && !f.tiers.includes(item.tier)) return false;
     if (f.accreditations.length && !f.accreditations.every(a => (item.accreditations || []).includes(a))) return false;
@@ -3266,7 +3292,10 @@ function filterFirms(items, f) {
    an invented count is a lie the first user catches. */
 function facetCounts(items, key) {
   return items.reduce((acc, item) => {
-    const vals = Array.isArray(item[key]) ? item[key] : [item[key]];
+    /* Categories are counted as the tier files them, so a count always
+       matches the number of firms you get when you click it. */
+    const raw = key === 'categories' ? capCats(item) : item[key];
+    const vals = Array.isArray(raw) ? raw : [raw];
     vals.filter(Boolean).forEach(v => { acc[v] = (acc[v] || 0) + 1; });
     return acc;
   }, {});
@@ -3471,6 +3500,23 @@ const capServices = firm => (firm.services || []).slice(0, capN(firm, 'services'
 const capProjects = firm => (firm.projects || []).slice(0, capN(firm, 'projects'));
 const capCats     = firm => (firm.categories || []).slice(0, capN(firm, 'categories'));
 
+
+/* District centres, used when a tier does not include an exact pin. */
+const DISTRICT_CENTRES = {
+  kampala: [0.3476, 32.5825], wakiso: [0.4044, 32.4594], mukono: [0.3533, 32.7553],
+  jinja: [0.4244, 33.2042], entebbe: [0.0512, 32.4637], mbarara: [-0.6072, 30.6545],
+  gulu: [2.7724, 32.2881], hoima: [1.4331, 31.3524], kayunga: [0.7025, 32.8886],
+  kabale: [-1.2486, 29.9899], tororo: [0.6925, 34.1808], luweero: [0.8492, 32.4731],
+  bushenyi: [-0.5853, 30.2114], busia: [0.4669, 34.0922], mbale: [1.0827, 34.1750],
+  masaka: [-0.3338, 31.7341], lira: [2.2491, 32.8998], arua: [3.0201, 30.9111],
+  fort_portal: [0.6710, 30.2750], soroti: [1.7147, 33.6111]
+};
+function pinFor(f) {
+  if (can(f, 'preciseMap') || !f.district) return f;
+  const c = DISTRICT_CENTRES[String(f.district).replace(/-/g, '_')];
+  return c ? Object.assign({}, f, { lat: c[0], lng: c[1], approx: true }) : f;
+}
+
 function tierBadge(tier) {
   const caps = ((DATA.taxonomy || {}).tiers || []).find(x => x.slug === tier);
   if (caps && caps.caps && !caps.caps.badge) return '';
@@ -3563,7 +3609,7 @@ function logoMarkup(firm, cls, extraStyle) {
   const style = firm.tier === 'platinum'
     ? 'background:var(--gold);color:var(--forest-deep);' + (extraStyle || '')
     : (extraStyle || '');
-  if (firm.logo) {
+  if (firm.logo && can(firm, 'logo')) {
     // onerror swaps in the initials block, so a wrong path degrades gracefully
     return '<div class="' + cls + ' has-logo" style="' + style + '">' +
            '<img src="' + esc(firm.logo) + '" alt="' + esc(firm.name) + ' logo" loading="lazy" ' +
@@ -3674,6 +3720,177 @@ function sparkFor(name) {
   const up = vals[vals.length - 1] >= vals[0];
   return `<svg width="72" height="20" viewBox="0 0 72 20" aria-hidden="true">
     <polyline points="${pts}" fill="none" stroke="${up ? '#B83232' : '#1F7A4D'}" stroke-width="1.5"/></svg>`;
+}
+
+
+/* Nominating a Benchmark Project. It used to link to the About page. */
+
+/* ═══════════════════════════════════════════════════════════════
+   REVIEWS
+   Every firm can be reviewed, on every tier. Paying does not buy a
+   better rating or the removal of a bad one. Reviews are checked before
+   they appear; negative ones are published, abusive or fake ones are
+   not. Whether a firm's reply is shown depends on its tier.
+   ═══════════════════════════════════════════════════════════════ */
+function reviewsSection(firm) {
+  const list = firm.reviewList || [];
+  const n = firm.reviews || list.length;
+  const dist = [5, 4, 3, 2, 1].map(k => list.filter(r => r.rating === k).length);
+  const showReply = can(firm, 'reviewReply');
+  return `<div class="profile-section" id="reviews">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <h3 style="margin:0">Reviews</h3>
+      ${n ? `<span class="rev-summary">${stars(firm.rating)} <strong>${firm.rating}</strong>
+        <span class="rowsub">from ${n} review${n === 1 ? '' : 's'}</span></span>` : ''}
+      <button type="button" class="btn btn-outline btn-sm" style="margin-left:auto"
+        onclick="openReview('${esc(firm.slug)}')">Write a review</button>
+    </div>
+    ${n > 2 ? `<div class="rev-dist">${[5, 4, 3, 2, 1].map((k, i) => `
+      <div><span>${k}\u2605</span><i><b style="width:${list.length ? Math.round(dist[i] / list.length * 100) : 0}%"></b></i>
+      <em>${dist[i]}</em></div>`).join('')}</div>` : ''}
+    ${list.length ? list.map(r => `
+      <div class="review-item">
+        <div class="review-header">
+          <div class="review-author-avatar">${esc((r.author || '?')[0])}</div>
+          <div><div class="review-author-name">${esc(r.author)}
+            ${r.customer ? '<span class="rev-badge">Customer</span>' : ''}</div>
+            <div class="review-date">${dateLabel(r.date)}</div></div>
+          <div class="review-stars" style="margin-left:auto">${stars(r.rating)}</div>
+        </div>
+        <p class="review-text">${esc(r.body)}</p>
+        ${showReply && r.reply ? `<div class="rev-reply"><strong>Reply from ${esc(firm.name)}</strong>
+          <p>${esc(r.reply)}</p></div>` : ''}
+      </div>`).join('')
+      : `<p class="rowsub" style="padding:6px 0 2px">No reviews yet. If you have worked with
+         ${esc(firm.name)}, yours would be the first.</p>`}
+    <p class="rev-policy">Reviews are checked before they appear. We publish negative reviews;
+      we remove abusive, fake or off-topic ones. A firm cannot pay to change its rating.</p>
+  </div>`;
+}
+
+function openReview(slug) {
+  const firm = DATA.firms.find(f => f.slug === slug);
+  if (!firm) return;
+  const box = document.getElementById('revModal') || (() => {
+    const d = document.createElement('div');
+    d.id = 'revModal'; d.className = 'modal-scrim';
+    d.addEventListener('click', e => { if (e.target === d) closeReview(); });
+    document.body.appendChild(d); return d;
+  })();
+  box.innerHTML = `
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="revTitle">
+      <div class="modal-head"><h3 id="revTitle">Review ${esc(firm.name)}</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeReview()">Close</button></div>
+      <div class="modal-body">
+        <form name="listing-review" onsubmit="return submitReview(event)">
+          <input type="hidden" name="firm_slug" value="${esc(firm.slug)}">
+          <input type="hidden" name="rating" id="revRating" value="">
+          <div class="form-group"><label class="form-label">Your rating</label>
+            <div class="star-pick" role="radiogroup" aria-label="Rating">
+              ${[1, 2, 3, 4, 5].map(k => `<button type="button" role="radio" aria-checked="false"
+                aria-label="${k} star${k > 1 ? 's' : ''}" data-k="${k}" onclick="pickStars(${k})">\u2605</button>`).join('')}
+              <span class="star-label" id="starLabel">Choose</span>
+            </div></div>
+          <div class="form-group"><label class="form-label" for="revText">What was it like to work with them?</label>
+            <textarea class="form-input" id="revText" name="review" required minlength="30" maxlength="2000"
+              style="min-height:110px" placeholder="What they did, whether it was on time and on budget, how they communicated."></textarea>
+            <div class="rowsub" id="revCount" style="text-align:right;font-size:.74rem">0 / 2000</div></div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="revName">Your name</label>
+              <input class="form-input" id="revName" name="name" required autocomplete="name"></div>
+            <div class="form-group"><label class="form-label" for="revEmail">Email <span class="optional">(never shown)</span></label>
+              <input class="form-input" id="revEmail" name="email" type="email" required autocomplete="email"></div>
+          </div>
+          <label class="catopt" style="margin-bottom:14px;display:flex;gap:8px;font-size:.86rem">
+            <input type="checkbox" name="was_customer" value="yes"> I hired or worked with this firm</label>
+          <div id="revMsg"></div>
+          <button class="btn btn-primary" type="submit">Submit the review</button>
+          <p class="disclosure" style="margin-top:12px">Only your first name and initial are shown.
+            One review per firm per email. We check every review before it appears.</p>
+        </form>
+      </div>
+    </div>`;
+  box.classList.add('on'); document.body.style.overflow = 'hidden';
+  const ta = document.getElementById('revText');
+  ta.addEventListener('input', () => document.getElementById('revCount').textContent = ta.value.length + ' / 2000');
+  setTimeout(() => box.querySelector('.star-pick button')?.focus(), 80);
+  track('review_opened', { firm_slug: slug });
+}
+
+function pickStars(k) {
+  document.getElementById('revRating').value = k;
+  document.querySelectorAll('.star-pick button').forEach(b => {
+    const on = Number(b.dataset.k) <= k;
+    b.classList.toggle('on', on); b.setAttribute('aria-checked', String(Number(b.dataset.k) === k));
+  });
+  document.getElementById('starLabel').textContent =
+    ['', 'Poor', 'Below expectations', 'Satisfactory', 'Good', 'Excellent'][k];
+}
+
+/* The rating is not a native input, so check it before the shared
+   handler posts the form. */
+function submitReview(e) {
+  const msg = document.getElementById('revMsg');
+  if (!document.getElementById('revRating').value) {
+    e.preventDefault();
+    msg.innerHTML = '<div class="form-error" role="alert">Choose a rating from one to five stars.</div>';
+    return false;
+  }
+  if (document.getElementById('revText').value.trim().length < 30) {
+    e.preventDefault();
+    msg.innerHTML = '<div class="form-error" role="alert">Say a little more \u2014 a sentence or two about the work.</div>';
+    return false;
+  }
+  msg.innerHTML = '';
+  return handleForm(e, 'Thank you. We check every review before it appears, usually within two working days.');
+}
+
+function closeReview() {
+  document.getElementById('revModal')?.classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+function openNominate() {
+  const box = document.getElementById('nomModal') || (() => {
+    const d = document.createElement('div');
+    d.id = 'nomModal'; d.className = 'modal-scrim';
+    d.addEventListener('click', e => { if (e.target === d) closeNominate(); });
+    document.body.appendChild(d); return d;
+  })();
+  box.innerHTML = `
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="nomTitle">
+      <div class="modal-head"><h3 id="nomTitle">Suggest a Benchmark Project</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeNominate()">Close</button></div>
+      <div class="modal-body">
+        <p style="font-size:.88rem;color:var(--slate);line-height:1.6;margin-bottom:16px">
+          We write up one Ugandan project a month that other firms can learn from. It is editorial and
+          never sold \u2014 so tell us why it is worth studying, not why it is impressive.</p>
+        <form name="project-nomination"
+          onsubmit="return handleForm(event,'Thank you. We read every nomination and will be in touch if we write it up.')">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="nmProj">Project</label>
+              <input class="form-input" id="nmProj" name="project" required></div>
+            <div class="form-group"><label class="form-label" for="nmLoc">Where</label>
+              <input class="form-input" id="nmLoc" name="location" required></div>
+          </div>
+          <div class="form-group"><label class="form-label" for="nmWhy">What could another firm learn from it?</label>
+            <textarea class="form-input" id="nmWhy" name="why" required style="min-height:90px"></textarea></div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="nmName">Your name and role</label>
+              <input class="form-input" id="nmName" name="name" required></div>
+            <div class="form-group"><label class="form-label" for="nmContact">Phone or email</label>
+              <input class="form-input" id="nmContact" name="contact" required></div>
+          </div>
+          <button class="btn btn-primary" type="submit">Send the nomination</button>
+        </form>
+      </div>
+    </div>`;
+  box.classList.add('on'); document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('nmProj')?.focus(), 80);
+}
+function closeNominate() {
+  document.getElementById('nomModal')?.classList.remove('on');
+  document.body.style.overflow = '';
 }
 
 function openAdEnquiry(pkg, intent) {
@@ -3888,7 +4105,7 @@ function closeClaim() {
   if (box) box.classList.remove('on');
   document.body.style.overflow = '';
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeClaim(); closeRemoval(); closeAdEnquiry(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeClaim(); closeRemoval(); closeAdEnquiry(); closeNominate(); closeReview(); } });
 
 function firmVideos(firm) {
   if (!can(firm, 'video')) return '';
@@ -3961,11 +4178,20 @@ function adWrap(ad, inner, click) {
    'weight' of 3 means that advertiser appears three times in the
    rotation to everyone else's once — which is how a Platinum booking
    is worth more than a filler without needing a separate slot. */
+/* Sample campaigns exist so a slot can be previewed before anything is
+   sold. They must never reach a visitor as though they were real
+   adverts, so they only render with ?preview in the address. An unsold
+   slot then shows its "advertise here" state, which is what should be
+   there at launch anyway. */
+const PREVIEW = /[?&]preview\b/.test(location.search);
+const isSample = a => !!(a && (a.sample || /-sample-\d+$/.test(a.id || '') ||
+                                /^sample /i.test(a.advertiser || '')));
+
 function liveAdsFor(slotKey) {
   if (!DATA.ads || !DATA.ads.ads) return [];
   const today = new Date().toISOString().slice(0, 10);
   const eligible = DATA.ads.ads.filter(a =>
-    a.slot === slotKey && a.active !== false &&
+    a.slot === slotKey && a.active !== false && (PREVIEW || !isSample(a)) &&
     (!a.start || a.start <= today) && (!a.end || a.end >= today));
   const out = [];
   eligible.forEach(a => {
@@ -4275,7 +4501,7 @@ function renderFeatured() {
         ${logoMarkup(l, 'fcard-logo')}
         <div class="fcard-id">
           <a class="fcard-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>
-          <span class="fcard-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</span>
+          <span class="fcard-cat">${capCats(l).map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</span>
         </div>
       </div>
       <p class="fcard-desc">${esc(capDescription(l))}</p>
@@ -4389,7 +4615,7 @@ function renderProductOfMonth() {
   const p = DATA.spotlight && DATA.spotlight.product;
   if (!el) return;
 
-  if (!p || p.active === false) {
+  if (!p || p.active === false || ((p.sample || /^sample /i.test(p.name || '') || /example\.com/.test(p.link || '')) && !PREVIEW)) {
     /* Unsold inventory sells itself, same as every other slot. */
     el.innerHTML =
       '<div class="spot spot-product"><div class="spot-body">' +
@@ -4398,7 +4624,7 @@ function renderProductOfMonth() {
       '<p class="spot-text">One manufacturer or distributor per month, on the homepage and in the ' +
       'weekly digest. Written up properly rather than run as a banner, so it reads as information ' +
       'and gets read.</p>' +
-      '<div class="spot-specs"><div class="spot-spec"><dt>Rate</dt><dd>From UGX 800,000</dd></div>' +
+      '<div class="spot-specs"><div class="spot-spec"><dt>Rates</dt><dd>On request</dd></div>' +
       '<div class="spot-spec"><dt>Runs for</dt><dd>One calendar month</dd></div></div>' +
       '<a class="btn btn-primary btn-sm" href="#/advertise" style="align-self:flex-start">Book a month</a>' +
       '</div></div>';
@@ -4441,7 +4667,7 @@ function renderProjectOfMonth() {
   const p = DATA.spotlight && DATA.spotlight.project;
   if (!el) return;
 
-  if (!p || p.active === false) {
+  if (!p || p.active === false || ((p.sample || /^sample /i.test(p.name || '') || /example\.com/.test(p.link || '')) && !PREVIEW)) {
     el.innerHTML =
       '<div class="spot spot-project"><div class="spot-body">' +
       '<div class="spot-eyebrow">' + ico('crane') + ' Benchmark Project</div>' +
@@ -4449,7 +4675,7 @@ function renderProjectOfMonth() {
       '<p class="spot-text">Each month we write up one Ugandan project worth studying \u2014 what the ' +
       'brief was, what was difficult, and what other firms can take from it. Tell us about one you ' +
       'worked on.</p>' +
-      '<a class="btn btn-primary btn-sm" href="#/about" style="align-self:flex-start">Suggest a project</a>' +
+      '<button type="button" class="btn btn-primary btn-sm" style="align-self:flex-start" onclick="openNominate()">Suggest a project</button>' +
       '<p class="spot-editorial-note">Editorial. This slot is not for sale.</p>' +
       '</div></div>';
     return;
@@ -4944,6 +5170,8 @@ function tierLines(c) {
   if (c.leadAlerts) out.push('Lead alerts');
   if (c.monthlyReport) out.push('Monthly performance report');
   if (c.homepageFeature) out.push('Eligible for the homepage strip');
+  if (c.catalogue) out.push('Catalogue download on your profile');
+  if (c.reviewReply) out.push('Reply publicly to reviews');
   return out;
 }
 
@@ -5472,7 +5700,7 @@ function renderDirListings() {
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <a class="dir-row-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>${tierBadge(l.tier)}
         </div>
-        <div class="dir-row-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
+        <div class="dir-row-cat">${capCats(l).map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
         <div class="dir-row-tags">${(l.accreditations || []).map(a => `<span class="dir-row-tag">${esc(NAMES.accreditation[a] || a)}</span>`).join('')}</div>
         <div style="margin-top:6px">${verifiedLine(l)}${l.website && can(l, 'website') ? ` &middot; <a href="${esc(l.website)}" target="_blank" rel="nofollow noopener" onclick="event.stopPropagation();track('listing_website',{firm_slug:'${esc(l.slug)}'})">${esc(domainOf(l.website))}</a>` : ''}</div>
       </div>
@@ -5816,7 +6044,7 @@ function rfqMatch() {
   if (!cat) { box.innerHTML = ''; hidden.value = ''; return; }
 
   const matches = DATA.firms
-    .filter(f => f.categories.includes(cat) && f.verified && (!dist || f.district === dist))
+    .filter(f => capCats(f).includes(cat) && f.verified && (!dist || f.district === dist))
     .sort((a, b) => capN(b, 'sortBoost') - capN(a, 'sortBoost') || b.rating - a.rating)
     .slice(0, 5);
 
@@ -5876,7 +6104,7 @@ function renderDirGrid() {
         ${logoMarkup(l, 'listing-logo')}
         <div style="flex:1;min-width:0">
           <a class="gcard-name" href="#/firms/${esc(l.slug)}">${esc(l.name)}</a>
-          <div class="gcard-cat">${l.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
+          <div class="gcard-cat">${capCats(l).map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ')}</div>
         </div>
       </div>
       ${tierBadge(l.tier) ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${tierBadge(l.tier)}</div>` : ''}
@@ -5927,7 +6155,10 @@ async function renderDirMap() {
   const all = filterFirms(DATA.firms, FILTERS);
   paintDirCount(all.length);
   renderPager(all.length);   // returns empty markup for the map view
-  const results = all.filter(f => f.lat && f.lng);
+  /* An exact pin is a paid capability. Everyone else is placed at the
+     centre of their district, which is honest about what we know and
+     still puts them on the map. */
+  const results = all.map(pinFor).filter(f => f.lat && f.lng);
 
   if (!results.length) {
     wrap.innerHTML = '<div class="map-fallback">' + directoryEmpty() + '</div>';
@@ -5961,7 +6192,7 @@ async function renderDirMap() {
     const m = L.marker([f.lat, f.lng], { icon: icon, title: f.name }).addTo(MAP_LAYER);
     m.bindPopup(
       '<a class="mp-name" href="#/firms/' + esc(f.slug) + '">' + esc(f.name) + '</a>' +
-      '<div class="mp-meta">' + f.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ') +
+      '<div class="mp-meta">' + capCats(f).map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ') +
       '<br>' + esc(f.area) + '</div>' +
       '<a class="btn btn-primary btn-sm" href="#/firms/' + esc(f.slug) + '">View profile</a>' +
       (f.geoPrecision !== 'area' ? '<div class="mp-approx">Approximate location</div>' : '')
@@ -6032,7 +6263,7 @@ function directoryEmpty() {
 function renderProfile(firm) {
   const el = document.getElementById('profileContent');
   if (!el) return;
-  const cats = firm.categories.map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ');
+  const cats = capCats(firm).map(c => esc(NAMES.category[c] || c)).join(' \u00b7 ');
 
   el.innerHTML = `
   <div class="profile-hero">
@@ -6052,7 +6283,7 @@ function renderProfile(firm) {
           <div class="profile-hero-meta">
             <div class="profile-hero-meta-item">${ico('building')} ${cats}</div>
             <div class="profile-hero-meta-item">${ico('pin')} ${esc(firm.area)}</div>
-            ${firm.reviews > 0 ? `<div class="profile-hero-meta-item">${stars(firm.rating)} ${firm.rating} (${firm.reviews} reviews)</div>` : ''}
+            ${firm.reviews > 0 ? `<div class="profile-hero-meta-item"><a href="#reviews" onclick="event.preventDefault();document.getElementById('reviews').scrollIntoView({behavior:'smooth'})" style="color:inherit">${stars(firm.rating)} ${firm.rating} (${firm.reviews} review${firm.reviews === 1 ? '' : 's'})</a></div>` : ''}
             ${firm.established ? `<div class="profile-hero-meta-item">${ico('calendar')} Established ${firm.established}</div>` : ''}
           </div>
           <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
@@ -6085,20 +6316,21 @@ function renderProfile(firm) {
           <button class="btn-plain" onclick="openRemoval('${esc(firm.slug)}')">Ask us to remove this listing</button>
         </div>
 
-        ${(firm.services || []).length ? `
+        ${capServices(firm).length ? `
         <div class="profile-section">
           <h3>Services</h3>
-          <div class="dir-row-tags">${firm.services.map(sv => `<span class="dir-row-tag">${esc(sv)}</span>`).join('')}</div>
+          <div class="dir-row-tags">${capServices(firm).map(sv => `<span class="dir-row-tag">${esc(sv)}</span>`).join('')}</div>
         </div>` : ''}
 
         ${firmVideos(firm)}
 
         ${photoGallery(firm)}
+        ${reviewsSection(firm)}
 
-        ${(firm.projects || []).length ? `
+        ${capProjects(firm).length ? `
         <div class="profile-section">
           <h3>Selected projects</h3>
-          ${firm.projects.map(pr => `
+          ${capProjects(firm).map(pr => `
             <div class="tender-card" style="margin-bottom:10px">
               <div class="tender-body">
                 <div class="tender-title">${esc(pr.name)}</div>
@@ -6122,6 +6354,9 @@ function renderProfile(firm) {
           <div class="profile-contact-item">${ico('phone')} <a href="tel:${esc(firm.phone)}" onclick="contactFirm('${esc(firm.slug)}','phone','${esc(firm.phone)}');return false;">${esc(firm.phone)}</a></div>
           ${firm.email ? `<div class="profile-contact-item">${ico('mail')} <a href="mailto:${esc(firm.email)}">${esc(firm.email)}</a></div>` : ''}
           ${firm.website && can(firm, 'website') ? `<div class="profile-contact-item">${ico('globe')} <a href="${esc(firm.website)}" rel="nofollow noopener" target="_blank">${esc(domainOf(firm.website))}</a></div>` : ''}
+          ${firm.catalogue && can(firm, 'catalogue') ? `<a class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-top:10px"
+              href="${esc(firm.catalogue)}" target="_blank" rel="noopener"
+              onclick="track('catalogue_download',{firm_slug:'${esc(firm.slug)}'})">${ico('download')} Download catalogue</a>` : ''}
           ${can(firm, 'whatsapp') && firm.whatsapp
             ? `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="contactFirm('${esc(firm.slug)}','whatsapp','${esc(firm.whatsapp)}')">${ico('whatsapp')} Message on WhatsApp</button>`
             : `<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="contactFirm('${esc(firm.slug)}','phone','${esc(firm.phone)}')">${ico('phone')} Call this firm</button>`}
@@ -6641,9 +6876,24 @@ function paintStats() {
     el.textContent = (key === 'visitors' || key === 'subs') ? fmt(v[key]) : plusCount(v[key]);
   });
 
+  /* Fill every company detail; hide whatever is not configured, along
+     with its label, so nothing half-filled ever reaches the page. */
   document.querySelectorAll('[data-site]').forEach(el => {
     const k = el.getAttribute('data-site');
     if (SITE[k]) el.textContent = SITE[k];
+  });
+  document.querySelectorAll('[data-site-if]').forEach(el => {
+    el.hidden = !SITE[el.getAttribute('data-site-if')];
+  });
+  document.querySelectorAll('[data-site-mail]').forEach(a => {
+    a.href = 'mailto:' + SITE.email; a.textContent = SITE.email;
+  });
+  document.querySelectorAll('[data-site-tel]').forEach(a => {
+    if (SITE.phone) a.href = 'tel:' + SITE.phone.replace(/[^+0-9]/g, '');
+  });
+  document.querySelectorAll('[data-site-wa]').forEach(a => {
+    if (SITE.whatsapp) a.href = 'https://wa.me/' + SITE.whatsapp + '?text=' +
+      encodeURIComponent('Hello BuildList.com, I would like help adding my firm.');
   });
 
   const note = document.getElementById('mediaKitNote');
