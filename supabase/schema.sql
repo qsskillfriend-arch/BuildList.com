@@ -823,3 +823,10 @@ create index if not exists firms_featured_idx on firms(featured, featured_sort);
 -- Tier capabilities. Read at render time, so changing one here changes
 -- every listing on that tier at the next build.
 alter table tiers add column if not exists caps jsonb default '{}'::jsonb;
+
+-- ── Columns the portal writes and the build now reads ─────────
+-- Without these, portal edits save but never reach the public site.
+alter table tenders add column if not exists client_type text;
+alter table tenders add column if not exists org_website text;
+alter table tenders add column if not exists summary text;
+alter table categories add column if not exists on_home boolean not null default false;

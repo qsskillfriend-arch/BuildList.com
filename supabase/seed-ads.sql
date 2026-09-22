@@ -43,12 +43,12 @@ insert into ad_slots (key, label, size) values
   ('submit-sidebar-2', 'Add your firm sidebar, 2', '300x250'),
   ('submit-sidebar-3', 'Add your firm sidebar, 3', '300x250'),
   ('submit-sidebar-4', 'Add your firm sidebar, 4', '300x250'),
-  ('directory-rail-1', 'Directory rail 1', '300x180'),
+  ('directory-rail-1', 'Directory rail 1', '300x250'),
   ('directory-rail-2', 'Directory rail 2', '300x250'),
-  ('directory-rail-3', 'Directory rail 3', '300x300'),
+  ('directory-rail-3', 'Directory rail 3', '300x250'),
   ('directory-rail-4', 'Directory rail 4', '300x250'),
-  ('directory-rail-5', 'Directory rail 5', '300x400'),
-  ('directory-rail-6', 'Directory rail 6', '300x300')
+  ('directory-rail-5', 'Directory rail 5', '300x250'),
+  ('directory-rail-6', 'Directory rail 6', '300x250')
 on conflict (key) do update set label = excluded.label, size = excluded.size;
 
 insert into ads (campaign_id, slot, advertiser, image_url, alt, link, link_type,

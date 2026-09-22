@@ -74,6 +74,30 @@ async function getAll(table, query) {
   return out;
 }
 
+/* Read what is already committed, so the database can win where it has
+   a value and the committed file fills in anything it does not.
+
+   Without this, every build overwrote taxonomy.json with only the
+   columns the database happened to have — silently erasing tier
+   capabilities (so every firm rendered as Free) and the homepage
+   category flags (so the homepage showed no categories at all). */
+const existing = file => {
+  try { return JSON.parse(fs.readFileSync(path.join(DATA, file), 'utf8')); }
+  catch (e) { return null; }
+};
+const bySlug = (list, key = 'slug') =>
+  Object.fromEntries((list || []).map(x => [x[key], x]));
+
+/* Ask for optional columns, and fall back to the basic query if the
+   database has not had the newer migration yet. */
+async function getSafe(table, rich, basic) {
+  try { return await get(table, rich); }
+  catch (e) {
+    console.log('  ' + table.padEnd(22) + 'newer columns missing \u2014 run schema.sql; using basics');
+    return get(table, basic);
+  }
+}
+
 const write = (file, obj) => {
   fs.writeFileSync(path.join(DATA, file), JSON.stringify(obj, null, 2) + '\n');
   console.log('  data/' + file.padEnd(22) + (Array.isArray(obj) ? obj.length + ' records' : 'written'));
@@ -87,16 +111,33 @@ async function main() {
     get('categories', 'select=slug,name,cluster&order=sort'),
     get('districts', 'select=slug,name&order=name'),
     get('accreditations', 'select=slug,name&order=name'),
-    get('tiers', 'select=slug,name,rank,price_ugx&order=rank'),
+    getSafe('tiers', 'select=slug,name,rank,price_ugx,caps&order=rank',
+                     'select=slug,name,rank,price_ugx&order=rank'),
     get('ad_slots', 'select=key,label,size')
   ]);
 
-  write('taxonomy.json', {
-    categories: cats,
-    districts: dists,
-    accreditations: accs,
-    tiers: tiers.map(t => ({ slug: t.slug, name: t.name, rank: t.rank, price: t.price_ugx }))
-  });
+  const oldTax = existing('taxonomy.json') || {};
+  const oldCats = bySlug(oldTax.categories);
+  const oldTiers = bySlug(oldTax.tiers);
+
+  write('taxonomy.json', Object.assign({}, oldTax, {
+    /* Keep the committed order and homepage flags; take names from the
+       database so a rename in Supabase still reaches the site. */
+    categories: (oldTax.categories && oldTax.categories.length
+      ? oldTax.categories.map(c => {
+          const db = cats.find(x => x.slug === c.slug);
+          return db ? Object.assign({}, c, { name: db.name || c.name }) : c;
+        }).concat(cats.filter(x => !oldCats[x.slug]).map(x => Object.assign({ onHome: false }, x)))
+      : cats),
+    districts: dists.length ? dists : (oldTax.districts || []),
+    accreditations: accs.length ? accs : (oldTax.accreditations || []),
+    tiers: tiers.map(t => {
+      const old = oldTiers[t.slug] || {};
+      const dbCaps = t.caps && Object.keys(t.caps).length ? t.caps : null;
+      return { slug: t.slug, name: t.name, rank: t.rank, price: t.price_ugx,
+               caps: dbCaps || old.caps || {} };
+    })
+  }));
 
   /* ── Firms, with their joined rows ───────────────────────── */
   const firms = await getAll('firms',
@@ -121,6 +162,8 @@ async function main() {
     reviews: 0,
     tier: f.tier,
     status: f.status,
+    featured: !!f.featured,
+    featuredSort: f.featured_sort || 0,
     accreditations: (f.firm_accreditations || []).map(r => r.accreditations.slug),
     phone: f.phone || '',
     whatsapp: f.whatsapp || f.phone || '',
@@ -163,11 +206,18 @@ async function main() {
 
   /* ── Tenders and jobs ────────────────────────────────────── */
   const tenders = await getAll('tenders', 'select=*&order=deadline');
-  write('tenders.json', tenders.map(t => ({
-    ref: t.ref, title: t.title, org: t.org, deadline: t.deadline,
-    value: t.value_text, valueUgx: t.value_ugx, category: t.category,
-    featured: t.featured, source: t.source, postedAt: t.posted_at
-  })));
+  const oldTenders = bySlug(existing('tenders.json'), 'ref');
+  write('tenders.json', tenders.map(t => {
+    const old = oldTenders[t.ref] || {};
+    return {
+      ref: t.ref, title: t.title, org: t.org, deadline: t.deadline,
+      value: t.value_text, valueUgx: t.value_ugx, category: t.category,
+      clientType: t.client_type || old.clientType || '',
+      orgWebsite: t.org_website || old.orgWebsite || '',
+      summary: t.summary || old.summary || '',
+      featured: t.featured, source: t.source, postedAt: t.posted_at
+    };
+  }));
 
   const jobs = await getAll('jobs', 'select=*,firms(slug)&order=posted_at.desc');
   write('jobs.json', jobs.map(j => ({
@@ -228,6 +278,34 @@ async function main() {
         firmSlug: a.firm_slug || '', start: a.starts_on, end: a.ends_on
     }))
   });
+
+  /* ── Monthly slots and the digest sponsor ────────────────── */
+  try {
+    const spots = await get('spotlight', 'select=*&active=is.true&order=month.desc');
+    const oldSpot = existing('spotlight.json') || {};
+    const pick = slot => {
+      const r = spots.find(x => x.slot === slot);
+      if (!r) return oldSpot[slot] || null;
+      return {
+        active: r.active, month: r.month, monthLabel: r.month_label || '',
+        sponsored: slot !== 'project' && !!r.sponsored, advertiser: r.advertiser || '',
+        name: r.name, tagline: r.tagline || '', body: r.body || '',
+        image: r.image_url || '', alt: r.alt || '', link: r.link || '', cta: r.cta || '',
+        location: r.location || '', sector: r.sector || '', completed: r.completed || '',
+        credit: r.credit || '', specs: r.specs || [], facts: r.facts || [], lessons: r.lessons || []
+      };
+    };
+    write('spotlight.json', Object.assign({}, oldSpot, {
+      product: pick('product'), project: pick('project'), newsletter: pick('newsletter')
+    }));
+  } catch (e) { console.log('  spotlight.json         kept committed copy (' + e.message.slice(0, 60) + ')'); }
+
+  /* ── Legal pages edited in the portal ────────────────────── */
+  try {
+    const legal = await get('legal_docs', 'select=key,effective,body,updated_at');
+    if (legal.length) write('legal.json', Object.fromEntries(legal.map(d =>
+      [d.key, { effective: d.effective, body: d.body, updated: d.updated_at }])));
+  } catch (e) { console.log('  legal.json             none yet \u2014 shipped pages stay'); }
 
   console.log('\n  Pull complete. build.js will now generate pages from this data.\n');
 }
