@@ -14,7 +14,8 @@
     "postedAt": "2026-09-07",
     "closesAt": "2026-10-07",
     "featured": true,
-    "applyEmail": "jobs@example.co.ug"
+    "applyEmail": "jobs@buildlist.com",
+    "_note": "Replace with the employer’s own address before launch."
   },
   {
     "slug": "project-architect",
@@ -31,7 +32,8 @@
     "postedAt": "2026-09-09",
     "closesAt": "2026-10-09",
     "featured": true,
-    "applyEmail": "jobs@example.co.ug"
+    "applyEmail": "jobs@buildlist.com",
+    "_note": "Replace with the employer’s own address before launch."
   },
   {
     "slug": "site-engineer-roads",
@@ -48,7 +50,8 @@
     "postedAt": "2026-09-05",
     "closesAt": "2026-10-05",
     "featured": false,
-    "applyEmail": "jobs@example.co.ug"
+    "applyEmail": "jobs@buildlist.com",
+    "_note": "Replace with the employer’s own address before launch."
   },
   {
     "slug": "me-engineering-graduate",
@@ -65,7 +68,8 @@
     "postedAt": "2026-09-03",
     "closesAt": "2026-10-03",
     "featured": false,
-    "applyEmail": "jobs@example.co.ug"
+    "applyEmail": "jobs@buildlist.com",
+    "_note": "Replace with the employer’s own address before launch."
   },
   {
     "slug": "construction-project-manager",
@@ -82,7 +86,8 @@
     "postedAt": "2026-09-08",
     "closesAt": "2026-10-08",
     "featured": false,
-    "applyEmail": "jobs@example.co.ug"
+    "applyEmail": "jobs@buildlist.com",
+    "_note": "Replace with the employer’s own address before launch."
   },
   {
     "slug": "bim-coordinator",
@@ -99,6 +104,7 @@
     "postedAt": "2026-09-06",
     "closesAt": "2026-10-06",
     "featured": false,
-    "applyEmail": "jobs@example.co.ug"
+    "applyEmail": "jobs@buildlist.com",
+    "_note": "Replace with the employer’s own address before launch."
   }
 ]
