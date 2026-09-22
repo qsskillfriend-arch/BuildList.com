@@ -830,3 +830,17 @@ alter table tenders add column if not exists client_type text;
 alter table tenders add column if not exists org_website text;
 alter table tenders add column if not exists summary text;
 alter table categories add column if not exists on_home boolean not null default false;
+
+-- ── Staff managed from the portal ─────────────────────────────
+-- Email is stored so the team list is readable without a join into the
+-- auth schema, which the anon key cannot read. user_id must be unique
+-- so an invitation to somebody already on staff updates rather than
+-- duplicates them.
+alter table staff add column if not exists email text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'staff_user_id_key') then
+    alter table staff add constraint staff_user_id_key unique (user_id);
+  end if;
+exception when others then null;
+end $$;

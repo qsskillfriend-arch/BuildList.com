@@ -23,19 +23,29 @@ insert into districts (slug,name) values
 on conflict (slug) do nothing;
 
 insert into categories (slug,name,cluster,sort) values
-  ('quantity-surveyors','Quantity Surveyors','Professionals',1),
-  ('architecture-firms','Architecture Firms','Professionals',2),
-  ('civil-engineering','Civil Engineering','Professionals',3),
-  ('structural-engineering','Structural Engineering','Professionals',4),
-  ('me-engineering','M&E Engineering','Professionals',5),
-  ('land-surveyors','Land Surveyors','Professionals',6),
-  ('building-contractors','Building Contractors','Contractors',7),
-  ('road-contractors','Road Contractors','Contractors',8),
-  ('material-suppliers','Material Suppliers','Suppliers',9),
-  ('plant-equipment-hire','Plant & Equipment Hire','Services',10),
-  ('interior-designers','Interior Designers','Furnishings',11),
-  ('office-furniture','Office Furniture','Furnishings',12)
-on conflict (slug) do nothing;
+  ('architecture-design','Architects & Designers','Design',1),
+  ('quantity-surveying','Quantity Surveyors','Professionals',2),
+  ('civil-structural','Civil & Structural Engineers','Professionals',3),
+  ('land-surveying','Land Surveyors','Professionals',4),
+  ('property-valuers','Property Valuers','Professionals',5),
+  ('urban-planning','Urban & Town Planners','Professionals',6),
+  ('general-contracting','General Contractors','Contractors',7),
+  ('electrical-contracting','Electrical Contractors','Contractors',8),
+  ('suppliers','Material Suppliers','Supply',9),
+  ('plumbing-fire','Plumbing & Fire Fighting','Contractors',10),
+  ('plant-hire','Plant & Equipment Hire','Trades',11),
+  ('hvac','Heating, Ventilation & Air Conditioning','Contractors',12),
+  ('structural-steel','Aluminium, Steel & Glass Works','Contractors',13),
+  ('interior-design','Interior Designers','Trades',14),
+  ('landscaping','Landscaping & External Works','Contractors',15),
+  ('building-management','Building Management Systems','Services',16),
+  ('ict-network','ICT & Networks Specialists','Services',17),
+  ('facility-management','Facility Managers','Services',18),
+  ('health-safety','Health & Safety Consultants','Services',19),
+  ('environmental','Environmental & Sustainability','Services',20),
+  ('real-estate-development','Real Estate Developers','Development',21),
+  ('tradesmen','Tradesmen','Trades',22)
+on conflict (slug) do update set name = excluded.name, cluster = excluded.cluster, sort = excluded.sort;
 
 insert into accreditations (slug,name) values
   ('boraqs','ARB Registered'),('uipe','UIPE Member'),('uiqs','ISU Member'),

@@ -127,7 +127,12 @@ async function main() {
       ? oldTax.categories.map(c => {
           const db = cats.find(x => x.slug === c.slug);
           return db ? Object.assign({}, c, { name: db.name || c.name }) : c;
-        }).concat(cats.filter(x => !oldCats[x.slug]).map(x => Object.assign({ onHome: false }, x)))
+        })
+      /* Deliberately NOT appending categories that exist only in the
+         database: an old seed left a second, differently-named set there,
+         which is where "Quantity Surveyors" and "Quantity Surveying"
+         appearing side by side came from. The 22 committed categories are
+         the list; the database can rename them, not add to them. */
       : cats),
     districts: dists.length ? dists : (oldTax.districts || []),
     accreditations: accs.length ? accs : (oldTax.accreditations || []),
@@ -170,6 +175,7 @@ async function main() {
     email: f.email || '',
     website: f.website || '',
     logo: f.logo_url || '',
+    catalogue: f.catalogue_url || '',
     /* Videos attached in the portal become part of the generated
        profile, so a firm's walkthrough appears on its public page
        without anyone editing JSON. */
@@ -191,7 +197,27 @@ async function main() {
   }));
 
   /* Ratings come from published reviews, never from a stored number */
-  const reviews = await getAll('reviews', 'select=firm_id,rating&status=eq.published');
+  const reviews = await getAll('reviews',
+    'select=firm_id,rating,author_name,body,was_customer,firm_reply,replied_at,created_at' +
+    '&status=eq.published&order=created_at.desc');
+
+  /* The newest 20 published reviews go onto each profile. The reviewer's
+     email is never selected, and names are shortened to "Grace N." */
+  const shortName = n => {
+    const p = String(n || '').trim().split(/\s+/);
+    return p.length > 1 ? p[0] + ' ' + p[p.length - 1][0].toUpperCase() + '.' : (p[0] || 'Anonymous');
+  };
+  const listByFirm = {};
+  reviews.forEach(r => {
+    (listByFirm[r.firm_id] = listByFirm[r.firm_id] || []);
+    if (listByFirm[r.firm_id].length < 20) listByFirm[r.firm_id].push({
+      author: shortName(r.author_name), rating: r.rating, body: r.body,
+      customer: !!r.was_customer, date: String(r.created_at || '').slice(0, 10),
+      reply: r.firm_reply || '', replyDate: String(r.replied_at || '').slice(0, 10)
+    });
+  });
+  /* firmJson ids are 1, 2, 3 \u2026 not database ids, so match by position */
+  firms.forEach((f, i) => { firmJson[i].reviewList = listByFirm[f.id] || []; });
   const agg = {};
   reviews.forEach(r => {
     agg[r.firm_id] = agg[r.firm_id] || { n: 0, sum: 0 };
